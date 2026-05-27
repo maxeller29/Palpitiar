@@ -1,7 +1,7 @@
 {
   "name": "palpitiar",
   "version": "1.0.0",
-  "description": "Gerador de combinações de loteria com IA",
+  "description": "Gerador de combinações de loteria com IA - Artigos automáticos via Claude",
   "scripts": {
     "gerar-artigos": "node scripts/gerar-artigos.js"
   },
