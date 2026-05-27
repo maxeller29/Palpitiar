@@ -23,10 +23,10 @@ jobs:
       - name: 📦 Instalar dependências
         run: npm install
 
-      - name: 🧪 Testar API Claude
-  env:
-    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-  run: node scripts/test-api.js
+ - name: 🧪 Testar API Claude    # 6 espaços antes do hífen
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/test-api.js
   
       - name: ⚙️ Configurar Git
         run: |
