@@ -23,11 +23,10 @@ jobs:
       - name: 📦 Instalar dependências
         run: npm install
 
-      - name: 🤖 Gerar 3 artigos com Claude
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node scripts/gerar-artigos.js
-
+      - name: 🧪 Testar API Claude
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  run: node scripts/test-api.js
       - name: ⚙️ Configurar Git
         run: |
           git config --local user.email "action@github.com"
