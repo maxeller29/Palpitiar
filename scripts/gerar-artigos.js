@@ -2,7 +2,6 @@ const Anthropic = require("@anthropic-ai/sdk");
 const fs = require("fs");
 const path = require("path");
 
-// Validar API key
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("❌ Erro: ANTHROPIC_API_KEY não está definida!");
   process.exit(1);
@@ -10,43 +9,62 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 console.log("🔑 API Key presente:", process.env.ANTHROPIC_API_KEY.substring(0, 15) + "...");
 
-// Inicializar cliente
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Artigos a serem gerados
 const artigos = [
   {
-    titulo: "Dezenas mais sorteadas na Mega-Sena",
-    keyword: "dezenas mais sorteadas mega-sena",
-    filename: "artigo-dezenas-mais-sorteadas-megasena.html",
-    prompt: `Escreva um artigo completo (900+ palavras) sobre as dezenas mais sorteadas na Mega-Sena.
+    titulo: "Estratégias de Jogo Responsável em Loterias",
+    keyword: "jogo responsável loterias",
+    filename: "artigo-jogo-responsavel-loterias.html",
+    prompt: `Escreva um artigo completo (900+ palavras) sobre "Estratégias de Jogo Responsável em Loterias".
 
-Inclua: análise estatística, top 10 dezenas, probabilidades, se é viável usar essa estratégia, e links para o gerador.
-Use heading H2 e H3. Sem HTML tags, apenas o conteúdo em texto simples.`,
+O artigo deve incluir:
+1. Por que não gastar mais do que pode permitir
+2. Como estabelecer um orçamento saudável para loterias
+3. Sinais de alerta para dependência de jogos
+4. Dicas práticas para jogar com responsabilidade
+5. Recursos e links para ajuda profissional
+6. Estatísticas sobre jogos de azar
+
+Use linguagem clara e empática. Estruture com H2 e H3. Inclua disclaimer sobre saúde mental.`,
   },
   {
-    titulo: "Como funciona a Lotofácil — guia completo",
-    keyword: "como funciona lotofácil",
-    filename: "artigo-como-funciona-lotofacil.html",
-    prompt: `Escreva um guia completo (900+ palavras) sobre como funciona a Lotofácil.
+    titulo: "História e Evolução das Loterias Brasileiras",
+    keyword: "história loterias brasileiras",
+    filename: "artigo-historia-loterias-brasileiras.html",
+    prompt: `Escreva um artigo completo (900+ palavras) sobre "História e Evolução das Loterias Brasileiras".
 
-Inclua: regras básicas, estrutura de prêmios (15, 14, 13, 12, 11 acertos), como jogar, probabilidades e links para o gerador.
-Use heading H2 e H3. Sem HTML tags, apenas o conteúdo em texto simples.`,
+O artigo deve incluir:
+1. Origem das loterias no Brasil (décadas passadas)
+2. Como surgiram a Mega-Sena, Lotofácil e Quina
+3. Mudanças nas regras ao longo dos anos
+4. Impacto social e econômico das loterias
+5. Evolução tecnológica (de papel para digital)
+6. Dados curiosos sobre loterias brasileiras
+
+Use linguagem envolvente e histórica. Estruture com H2 e H3. Seja informativo e educativo.`,
   },
   {
-    titulo: "Quina vs Lotofácil: qual tem mais chances?",
-    keyword: "quina vs lotofácil",
-    filename: "artigo-quina-vs-lotofacil.html",
-    prompt: `Escreva uma análise completa (900+ palavras) comparando Quina e Lotofácil.
+    titulo: "Combinações Ganhadores: Análise de Padrões Reais",
+    keyword: "padrões números ganhadores loterias",
+    filename: "artigo-padroes-combinacoes-ganhadores.html",
+    prompt: `Escreva um artigo completo (900+ palavras) sobre "Combinações Ganhadores: Análise de Padrões Reais".
 
-Inclua: comparação de regras, probabilidades, custo-benefício, qual é melhor para cada tipo de jogador, e links para geradores.
-Use heading H2 e H3. Sem HTML tags, apenas o conteúdo em texto simples.`,
+O artigo deve incluir:
+1. Padrões estatísticos que mais saem em loterias
+2. Análise de números pares vs ímpares
+3. Sequências e combinações que mais ganham
+4. Dados históricos de milhares de concursos
+5. Como usar análise de padrões (com responsabilidade)
+6. Limitações da previsão em jogos de azar
+7. Dicas baseadas em estatísticas reais
+
+Use linguagem técnica mas acessível. Incluir gráficos/tabelas mentais. Sempre ressaltar que é análise, não garantia.`,
   },
 ];
 
-// Template HTML básico
 function criarHTML(titulo, conteudo) {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -55,17 +73,20 @@ function criarHTML(titulo, conteudo) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${titulo} · Palpitiar</title>
 <meta name="description" content="${titulo}">
+<meta name="robots" content="index, follow">
 </head>
 <body style="font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;">
 <h1>${titulo}</h1>
+<div style="background: #f5f5f5; padding: 15px; border-left: 4px solid #d4a84b; margin: 20px 0;">
+  <p><strong>Aviso:</strong> Este artigo é informativo. Jogos de azar envolvem risco. Jogue responsavelmente.</p>
+</div>
 <div>${conteudo.replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>')}</div>
 <hr>
-<p><small>Artigo gerado automaticamente • ${new Date().toLocaleDateString('pt-BR')}</small></p>
+<p><small>Artigo gerado em ${new Date().toLocaleDateString('pt-BR')} • Palpitiar</small></p>
 </body>
 </html>`;
 }
 
-// Função para gerar artigos
 async function gerarArtigos() {
   console.log("\n🚀 Iniciando geração de artigos...\n");
 
@@ -77,7 +98,7 @@ async function gerarArtigos() {
       console.log(`📝 Gerando: ${artigo.titulo}...`);
 
       const message = await client.messages.create({
-        model: "claude-opus-4.6",
+        model: "claude-opus-4-6",
         max_tokens: 2000,
         messages: [
           {
@@ -87,41 +108,29 @@ async function gerarArtigos() {
         ],
       });
 
-      const conteudo =
-        message.content[0].type === "text" ? message.content[0].text : "";
-
+      const conteudo = message.content[0].type === "text" ? message.content[0].text : "";
       const html = criarHTML(artigo.titulo, conteudo);
 
-      // Criar diretório se não existir
       const blogDir = path.join(process.cwd(), "blog");
       if (!fs.existsSync(blogDir)) {
         fs.mkdirSync(blogDir, { recursive: true });
       }
 
-      // Salvar arquivo
       const caminhoArquivo = path.join(blogDir, artigo.filename);
       fs.writeFileSync(caminhoArquivo, html, "utf-8");
 
       console.log(`   ✅ Salvo: ${artigo.filename}\n`);
       sucessos++;
     } catch (erro) {
-      console.error(`   ❌ Erro: ${erro.message}`);
-      console.error(`   Tipo: ${erro.code || erro.status || "desconhecido"}\n`);
+      console.error(`   ❌ Erro: ${erro.message}\n`);
       erros++;
     }
   }
 
   console.log(`\n📊 Resultado: ${sucessos} sucesso(s), ${erros} erro(s)`);
-
-  if (sucessos > 0) {
-    console.log("✨ Geração parcial concluída!");
-  } else {
-    console.log("⚠️  Nenhum artigo foi gerado!");
-    process.exit(1);
-  }
+  if (sucessos === 0) process.exit(1);
 }
 
-// Executar
 gerarArtigos().catch((erro) => {
   console.error("Erro fatal:", erro);
   process.exit(1);
