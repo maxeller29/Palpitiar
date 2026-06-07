@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisar Meus Números · Palpitiar</title>
+<meta name="description" content="Analise seus números da sorte com base em dados históricos reais. Descubra se sua combinação é boa, média ou fraca — e se já foi premiada em algum concurso.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://palpitiar.com.br/analisar.html">
+<meta property="og:title" content="Analisar Meus Números · Palpitiar">
+<meta property="og:description" content="Análise estatística da sua combinação com base em 13.700+ concursos históricos.">
+<meta property="og:url" content="https://palpitiar.com.br/analisar.html">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,600;9..144,0,800;9..144,1,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --gold: #d4a84b;
+  --gold-dim: rgba(212,168,75,.18);
+  --gold-faint: rgba(212,168,75,.07);
+  --green: #4caf7d;
+  --green-dim: rgba(76,175,125,.15);
+  --blue: #6b8cda;
+  --blue-dim: rgba(107,140,218,.15);
+  --red: #c4452d;
+  --red-dim: rgba(196,69,45,.15);
+  --amber: #e8a020;
+  --bg: #0a1a14;
+  --bg2: #0d1f18;
+  --ink: #f4ebd0;
+  --ink-dim: rgba(244,235,208,.7);
+  --ink-faint: rgba(244,235,208,.35);
+  --line: rgba(244,235,208,.1);
+  --display: 'Fraunces', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--display);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ─── NAV ─────────────────────────────────── */
+  .site-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .site-nav-logo {
+    font-family: var(--display); font-weight: 800; font-style: italic;
+    font-size: 22px; letter-spacing: -0.02em; color: var(--ink);
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .site-nav-logo:hover { opacity: 0.8; }
+  .site-nav-logo img { height: 32px; width: auto; display: block; }
+  .site-nav-logo em { color: var(--gold); font-style: normal; }
+  .site-nav-links { display: flex; gap: 6px; align-items: center; }
+  .site-nav-link {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; padding: 8px 16px; border-radius: 2px;
+    text-decoration: none; color: var(--ink-dim); transition: all 0.2s;
+    border: 1px solid transparent; position: relative;
+  }
+  .site-nav-link:hover { color: var(--ink); border-color: var(--line); }
+  .site-nav-link.back { color: var(--ink-faint); font-size: 9px; }
+  .site-nav-link.back:hover { color: var(--ink-dim); }
+  .site-nav-link.ms { color: rgba(212,168,75,0.7); }
+  .site-nav-link.ms:hover, .site-nav-link.ms-active {
+    color: #d4a84b !important;
+    background: rgba(212,168,75,0.1) !important;
+    border-color: rgba(212,168,75,0.35) !important;
+  }
+  .site-nav-link.ms-active { font-weight: 700; box-shadow: 0 2px 0 0 #d4a84b; }
+  .site-nav-link.lf { color: rgba(76,175,125,0.7); }
+  .site-nav-link.lf:hover, .site-nav-link.lf-active {
+    color: #4caf7d !important;
+    background: rgba(76,175,125,0.1) !important;
+    border-color: rgba(76,175,125,0.35) !important;
+  }
+  .site-nav-link.lf-active { font-weight: 700; box-shadow: 0 2px 0 0 #4caf7d; }
+  .site-nav-link.qn { color: rgba(107,140,218,0.7); }
+  .site-nav-link.qn:hover, .site-nav-link.qn-active {
+    color: #6b8cda !important;
+    background: rgba(107,140,218,0.1) !important;
+    border-color: rgba(107,140,218,0.35) !important;
+  }
+  .site-nav-link.qn-active { font-weight: 700; box-shadow: 0 2px 0 0 #6b8cda; }
+
+/* ─── HERO ────────────────────────────────── */
+.hero {
+  padding: 72px 40px 48px;
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse 700px 500px at 60% 20%, rgba(212,168,75,.05), transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-tag::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: var(--gold);
+  opacity: .5;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-style: italic;
+  font-size: clamp(36px, 6vw, 64px);
+  letter-spacing: -.03em;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+h1 em { color: var(--gold); font-style: normal; }
+.hero-desc {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-dim);
+  max-width: 520px;
+  line-height: 1.75;
+}
+
+/* ─── PAINEL PRINCIPAL ────────────────────── */
+.main-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── STEP 1: SELEÇÃO DE LOTERIA ─────────── */
+.step {
+  margin-bottom: 40px;
+}
+.step-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-label .step-num {
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(212,168,75,.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.lottery-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.lottery-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: var(--display);
+  text-align: left;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.lottery-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold-faint);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.lottery-btn:hover::before { opacity: 1; }
+.lottery-btn:hover { border-color: rgba(212,168,75,.4); }
+.lottery-btn.active {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--ink);
+}
+.lottery-btn.active::before { opacity: 0; }
+.lb-name {
+  font-weight: 600;
+  font-size: 17px;
+  margin-bottom: 4px;
+  letter-spacing: -.01em;
+}
+.lb-info {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: .05em;
+}
+.lottery-btn.active .lb-info { color: var(--gold); opacity: .8; }
+
+/* ─── STEP 2: ENTRADA DE NÚMEROS ─────────── */
+.numbers-panel {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(255,255,255,.015);
+  overflow: hidden;
+}
+.numbers-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.numbers-header-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.numbers-header-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+}
+
+.number-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 20px;
+}
+.num-ball {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+.num-ball:hover {
+  border-color: rgba(212,168,75,.5);
+  color: var(--gold);
+  background: var(--gold-faint);
+}
+.num-ball.selected {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a1a14;
+  font-weight: 700;
+}
+.num-ball.selected:hover {
+  background: #e8bc5a;
+}
+.num-ball:disabled, .num-ball.disabled-ball {
+  opacity: .25;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.numbers-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn-clear {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-clear:hover { border-color: rgba(196,69,45,.5); color: var(--red); }
+
+.btn-analyze {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #0a1a14;
+  background: var(--gold);
+  border: none;
+  border-radius: 3px;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-analyze::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.15);
+  opacity: 0;
+  transition: opacity .15s;
+}
+.btn-analyze:hover::after { opacity: 1; }
+.btn-analyze:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+.btn-analyze:disabled::after { opacity: 0; }
+
+/* ─── LOADING ─────────────────────────────── */
+.loading-overlay {
+  display: none;
+  text-align: center;
+  padding: 48px 20px;
+}
+.loading-overlay.active { display: block; }
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: .08em;
+}
+
+/* ─── RELATÓRIO ───────────────────────────── */
+#report-section { display: none; }
+#report-section.visible { display: block; }
+
+.report-header {
+  padding: 32px 0 24px;
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+}
+.report-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.report-combo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.report-ball {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #0a1a14;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── CARD DE CLASSIFICAÇÃO ──────────────── */
+.classification-card {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.class-banner {
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.class-banner.boa { background: linear-gradient(135deg, rgba(76,175,125,.12), rgba(76,175,125,.04)); border-left: 3px solid var(--green); }
+.class-banner.media { background: linear-gradient(135deg, rgba(212,168,75,.12), rgba(212,168,75,.04)); border-left: 3px solid var(--gold); }
+.class-banner.fraca { background: linear-gradient(135deg, rgba(196,69,45,.1), rgba(196,69,45,.03)); border-left: 3px solid var(--red); }
+
+.class-icon { font-size: 36px; line-height: 1; }
+.class-info { flex: 1; }
+.class-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.class-banner.boa .class-label { color: var(--green); }
+.class-banner.media .class-label { color: var(--gold); }
+.class-banner.fraca .class-label { color: var(--red); }
+.class-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.class-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+.class-score {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+.class-banner.boa .class-score { color: var(--green); }
+.class-banner.media .class-score { color: var(--gold); }
+.class-banner.fraca .class-score { color: var(--red); }
+.class-score-label { font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+/* ─── MÉTRICAS ────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.metric-cell {
+  background: var(--bg2);
+  padding: 16px 20px;
+}
+.metric-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.metric-value {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -.01em;
+  margin-bottom: 2px;
+}
+.metric-bench {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.metric-ok { color: var(--green); }
+.metric-warn { color: var(--gold); }
+.metric-bad { color: var(--red); }
+
+/* ─── BARRAS DE FREQUÊNCIA ────────────────── */
+.freq-section {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.freq-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 16px;
+}
+.freq-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.freq-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  width: 28px;
+  color: var(--gold);
+  flex-shrink: 0;
+  text-align: right;
+}
+.freq-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(244,235,208,.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.freq-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .6s cubic-bezier(.23,1,.32,1);
+}
+.freq-bar.hot { background: var(--green); }
+.freq-bar.warm { background: var(--gold); }
+.freq-bar.cold { background: rgba(244,235,208,.2); }
+.freq-pct {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── ANÁLISE DETALHADA ────────────────────── */
+.analysis-body {
+  padding: 20px 28px;
+}
+.analysis-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(244,235,208,.05);
+  gap: 16px;
+}
+.analysis-row:last-child { border-bottom: none; }
+.ar-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: .05em;
+}
+.ar-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+.ar-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+.badge-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(76,175,125,.3); }
+.badge-warn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212,168,75,.3); }
+.badge-bad { background: var(--red-dim); color: var(--red); border: 1px solid rgba(196,69,45,.3); }
+.analysis-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: .55;
+  padding: 12px 20px 2px;
+  border-top: 1px solid var(--line);
+}
+.ar-prob {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-faint);
+  margin-top: 3px;
+  line-height: 1.5;
+  opacity: .75;
+}
+
+/* ─── SEÇÃO DE HISTÓRICO ──────────────────── */
+.history-section {
+  margin-top: 32px;
+}
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.history-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -.02em;
+  flex: 1;
+}
+.history-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: .1em;
+}
+.history-badge.found { background: var(--green-dim); color: var(--green); border: 1px solid rgba(76,175,125,.3); }
+.history-badge.none { background: rgba(244,235,208,.05); color: var(--ink-faint); border: 1px solid var(--line); }
+
+.history-empty {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  padding: 24px 0;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.award-card {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.award-card:hover { border-color: rgba(212,168,75,.3); }
+.award-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,.01);
+}
+.award-concurso {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  min-width: 80px;
+}
+.award-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  flex: 1;
+}
+.award-faixa {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: .08em;
+}
+.award-loading {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mini-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+/* ─── CARD DE PREMIAÇÃO ───────────────────── */
+.award-card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: border-color .2s;
+}
+.award-card:hover { border-color: rgba(212,168,75,.25); }
+.award-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: rgba(0,0,0,.25);
+  border-bottom: 1px solid var(--line);
+}
+.award-concurso {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold);
+}
+.award-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  flex: 1;
+}
+.award-faixa {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: .08em;
+  border: 1px solid;
+}
+/* ─── GRID DE CÉLULAS ─────────────────────── */
+.award-grid {
+  display: flex;
+  background: rgba(0,0,0,.12);
+  overflow-x: auto;
+}
+.award-cell-wrap {
+  flex: 1;
+  min-width: 120px;
+  position: relative; /* para o badge flutuante */
+  border-right: 1px solid var(--line);
+}
+.award-cell-wrap:last-child { border-right: none; }
+.award-cell {
+  padding: 14px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100%;
+}
+.award-cell-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.award-cell-val {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  white-space: nowrap;
+  line-height: 1.1;
+}
+.award-cell-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* ─── CÉLULA DESTAQUE (faixa do usuário) ──── */
+.award-cell-wrap.destaque {
+  background: rgba(212,168,75,.07);
+  border-right-color: rgba(212,168,75,.3);
+}
+.award-cell-wrap.destaque .award-cell-label { color: var(--gold); }
+.award-cell-wrap.destaque .award-cell-val   { color: var(--gold); font-size: 20px; }
+/* Badge "★ SUA FAIXA" flutuante */
+.award-sua-faixa {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg2);
+  border: 1px solid rgba(212,168,75,.5);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--gold);
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+/* ─── CÉLULA ACUMULADA ────────────────────── */
+.award-cell-wrap.acumulado { background: rgba(255,255,255,.01); }
+.award-cell-wrap.acumulado .award-cell-label { color: rgba(180,180,180,.5); }
+.award-cell-wrap.acumulado .award-cell-val   { color: var(--ink-dim); font-size: 16px; }
+.award-cell-wrap.acumulado .award-cell-sub   { color: rgba(180,180,180,.4); }
+/* Acumulado + destaque */
+.award-cell-wrap.destaque.acumulado {
+  background: rgba(107,140,218,.07);
+  border-right-color: rgba(107,140,218,.3);
+}
+.award-cell-wrap.destaque.acumulado .award-cell-label { color: rgba(107,140,218,.8); }
+.award-cell-wrap.destaque.acumulado .award-cell-val   {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(107,140,218,.8);
+}
+.award-cell-wrap.destaque.acumulado .award-sua-faixa {
+  border-color: rgba(107,140,218,.5);
+  color: rgba(107,140,218,.9);
+}
+/* ─── CÉLULA DE DEZENAS ───────────────────── */
+.award-cell-dezenas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+.award-dez {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  background: rgba(255,255,255,.03);
+  flex-shrink: 0;
+}
+.award-dez.acerto {
+  background: rgba(212,168,75,.2);
+  border-color: rgba(212,168,75,.8);
+  color: var(--gold);
+  font-weight: 700;
+}
+.award-dez-nums {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+.award-dez-nums span { color: var(--gold); font-weight: 700; }
+/* ─── LOADING ─────────────────────────────── */
+.award-loading {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mini-spinner {
+  width: 12px; height: 12px;
+  border: 1.5px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+/* Mantido para fallback API */
+.award-rateio { display: none; }
+.rateio-grid  { display: none; }
+@media (max-width: 600px) {
+  .award-grid { flex-wrap: wrap; }
+  .award-cell-wrap { min-width: 44%; border-bottom: 1px solid var(--line); }
+  .award-cell-wrap:nth-last-child(-n+2) { border-bottom: none; }
+}
+
+/* ─── TOTALIZAÇÃO ─────────────────────────── */
+.total-premiado-card {
+  border: 1px solid rgba(212,168,75,.35);
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(212,168,75,.08), rgba(212,168,75,.02));
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.total-premiado-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.total-premiado-val {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -.02em;
+  color: var(--gold);
+}
+.total-premiado-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+.total-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.total-stat {
+  text-align: center;
+}
+.total-stat-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.total-stat-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ─── CONTROLES DA LISTA ──────────────────── */
+.history-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.sort-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: all .2s;
+}
+.sort-btn.active {
+  border-color: rgba(212,168,75,.5);
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+.sort-btn:hover:not(.active) {
+  border-color: rgba(212,168,75,.3);
+  color: var(--ink-dim);
+}
+.sort-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: .08em;
+  margin-right: 4px;
+}
+
+/* ─── EXPANDIR ────────────────────────────── */
+.btn-expandir {
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed rgba(212,168,75,.3);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 8px;
+}
+.btn-expandir:hover {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+}
+
+/* ─── FOOTER ──────────────────────────────── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 28px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+footer a { color: var(--ink-faint); text-decoration: none; transition: color .2s; }
+footer a:hover { color: var(--gold); }
+
+/* ─── RESPONSIVO ─────────────────────────── */
+@media (max-width: 680px) {
+  .site-nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .site-nav-links { flex-wrap: wrap; gap: 6px; }
+  .hero { padding: 48px 20px 32px; }
+  .main-wrap { padding: 0 20px 60px; }
+  footer { padding: 24px 20px; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .num-ball { width: 38px; height: 38px; font-size: 12px; }
+  .lottery-btn { min-width: 100%; }
+}
+
+/* ─── ANIMAÇÕES ───────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .4s ease both; }
+.delay-1 { animation-delay: .08s; }
+.delay-2 { animation-delay: .16s; }
+.delay-3 { animation-delay: .24s; }
+
+.pulse-gold {
+  animation: pulseGold 2s ease infinite;
+}
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,75,.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(212,168,75,0); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div style="max-width:960px;margin:0 auto;padding:0 40px;">
+  <nav class="site-nav">
+    <a class="site-nav-logo" href="index.html">
+      <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+      <span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
+    </a>
+    <div class="site-nav-links">
+      <a class="site-nav-link" href="index.html">← Início</a>
+      <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
+      <a class="site-nav-link lf" href="lotofacil.html">Lotofácil</a>
+      <a class="site-nav-link qn" href="quina.html">Quina</a>
+      <a class="site-nav-link" href="blog.html">Blog</a>
+    </div>
+  </nav>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Análise de combinação</div>
+  <h1>Analisar meus <em>números</em></h1>
+  <p class="hero-desc">
+    Informe sua combinação e descubra como ela se compara com 13.700+ concursos históricos reais. 
+    Classificação estatística + busca por premiações passadas.
+  </p>
+</div>
+
+<!-- PAINEL -->
+<div class="main-wrap">
+
+  <!-- STEP 1: LOTERIA -->
+  <div class="step fade-up">
+    <div class="step-label"><span class="step-num">1</span> Escolha a loteria</div>
+    <div class="lottery-selector">
+      <button class="lottery-btn" id="btn-mega" onclick="selectLoteria('mega')">
+        <div class="lb-name">Mega-Sena</div>
+        <div class="lb-info">6 dezenas · 1–60 · 3.009 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-lotofacil" onclick="selectLoteria('lotofacil')">
+        <div class="lb-name">Lotofácil</div>
+        <div class="lb-info">15 dezenas · 1–25 · 3.690 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-quina" onclick="selectLoteria('quina')">
+        <div class="lb-name">Quina</div>
+        <div class="lb-info">5 dezenas · 1–80 · 7.031 concursos</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: NÚMEROS -->
+  <div class="step fade-up delay-1" id="step-numbers" style="display:none">
+    <div class="step-label"><span class="step-num">2</span> Selecione seus números</div>
+    <div class="numbers-panel">
+      <div class="numbers-header">
+        <span class="numbers-header-title" id="panel-title">Selecione os números</span>
+        <span class="numbers-header-count" id="panel-count">0 / 0 selecionados</span>
+      </div>
+      <div class="number-grid" id="number-grid"></div>
+      <div class="numbers-footer">
+        <button class="btn-clear" onclick="clearNumbers()">Limpar seleção</button>
+        <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()" disabled>
+          <span>Analisar combinação</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">Carregando histórico...</div>
+  </div>
+
+  <!-- RELATÓRIO -->
+  <div id="report-section">
+
+    <!-- COMBINAÇÃO ANALISADA -->
+    <div class="report-header fade-up">
+      <div class="report-tag">Resultado da análise</div>
+      <div class="report-combo" id="report-combo"></div>
+    </div>
+
+    <!-- CLASSIFICAÇÃO -->
+    <div class="classification-card fade-up delay-1" id="classification-card">
+      <div class="class-banner" id="class-banner">
+        <div class="class-icon" id="class-icon"></div>
+        <div class="class-info">
+          <div class="class-label" id="class-label"></div>
+          <div class="class-title" id="class-title"></div>
+          <div class="class-sub" id="class-sub"></div>
+        </div>
+        <div>
+          <div class="class-score" id="class-score"></div>
+          <div class="class-score-label">pontos</div>
+        </div>
+      </div>
+
+      <!-- MÉTRICAS -->
+      <div class="metrics-grid" id="metrics-grid"></div>
+
+      <!-- FREQUÊNCIA DAS DEZENAS -->
+      <div class="freq-section">
+        <div class="freq-title">Frequência histórica de cada dezena selecionada</div>
+        <div id="freq-bars"></div>
+      </div>
+
+      <!-- ANÁLISE DETALHADA -->
+      <div class="analysis-body" id="analysis-body"></div>
+    </div>
+
+    <!-- HISTÓRICO DE PREMIAÇÕES -->
+    <div class="history-section fade-up delay-2">
+      <div class="history-header">
+        <div class="history-title">Premiações na série histórica</div>
+        <div class="history-badge" id="history-badge"></div>
+      </div>
+      <div id="total-premiado-wrap"></div>
+      <div class="history-controls" id="history-controls" style="display:none">
+        <span class="sort-label">Ordenar por:</span>
+        <button class="sort-btn" id="sort-recente" onclick="sortPremiados('recente')">Mais recente</button>
+        <button class="sort-btn active" id="sort-antigo" onclick="sortPremiados('antigo')">Mais antigo</button>
+        <button class="sort-btn" id="sort-valor" onclick="sortPremiados('valor')">Maior prêmio</button>
+        <button class="sort-btn" id="sort-faixa" onclick="sortPremiados('faixa')">Maior faixa</button>
+      </div>
+      <div id="history-results"></div>
+    </div>
+
+  </div><!-- /report-section -->
+
+</div><!-- /main-wrap -->
+
+<footer>
+  <span>© 2026 <a href="index.html">Palpitiar</a> · Análise estatística gratuita</span>
+  <span>
+    <a href="sobre.html">Sobre</a> ·
+    <a href="privacidade.html">Privacidade</a> ·
+    <a href="termos.html">Termos</a>
+  </span>
+  <span>Jogue com responsabilidade · +18</span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG DAS LOTERIAS
+// ═══════════════════════════════════════════════════════════
+const LOTERIAS = {
+  mega: {
+    id: 'mega',
+    nome: 'Mega-Sena',
+    arquivo: 'mega-sena-historico.json',
+    min: 1, max: 60,
+    qtd: 6,
+    caixaSlug: 'megasena',
+    faixas: { 4: 'Quadra', 5: 'Quina', 6: 'Sena' },
+    minAcertos: 4,
+    somaIdeal: [100, 220],
+    parIdeal: [2, 4],
+    grupos: 5, // grupos de 12 dezenas
+    descFaixas: ['1–12', '13–24', '25–36', '37–48', '49–60'],
+    grupoTam: 12,
+  },
+  lotofacil: {
+    id: 'lotofacil',
+    nome: 'Lotofácil',
+    arquivo: 'lotofacil-historico.json',
+    min: 1, max: 25,
+    qtd: 15,
+    caixaSlug: 'lotofacil',
+    faixas: { 11: '11 acertos', 12: '12 acertos', 13: '13 acertos', 14: '14 acertos', 15: '15 acertos' },
+    minAcertos: 11,
+    somaIdeal: [140, 225],
+    parIdeal: [6, 9],
+    grupos: 5,
+    descFaixas: ['1–5', '6–10', '11–15', '16–20', '21–25'],
+    grupoTam: 5,
+  },
+  quina: {
+    id: 'quina',
+    nome: 'Quina',
+    arquivo: 'quina-historico.json',
+    min: 1, max: 80,
+    qtd: 5,
+    caixaSlug: 'quina',
+    faixas: { 2: 'Duque', 3: 'Terno', 4: 'Quadra', 5: 'Quina' },
+    minAcertos: 2,
+    somaIdeal: [100, 290],
+    parIdeal: [2, 3],
+    grupos: 8,
+    descFaixas: ['1–10', '11–20', '21–30', '31–40', '41–50', '51–60', '61–70', '71–80'],
+    grupoTam: 10,
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════
+let loteriaAtual = null;
+let selNumeros = new Set();
+let historicoCache = {};
+
+// ═══════════════════════════════════════════════════════════
+// SELECIONAR LOTERIA
+// ═══════════════════════════════════════════════════════════
+function selectLoteria(id) {
+  loteriaAtual = id;
+  selNumeros.clear();
+  document.querySelectorAll('.lottery-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + (id === 'lotofacil' ? 'lotofacil' : id)).classList.add('active');
+  buildGrid();
+  document.getElementById('step-numbers').style.display = 'block';
+  document.getElementById('report-section').classList.remove('visible');
+  document.getElementById('loading-overlay').classList.remove('active');
+  setTimeout(() => document.getElementById('step-numbers').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MONTAR GRADE DE NÚMEROS
+// ═══════════════════════════════════════════════════════════
+function buildGrid() {
+  const cfg = LOTERIAS[loteriaAtual];
+  const grid = document.getElementById('number-grid');
+  grid.innerHTML = '';
+  for (let n = cfg.min; n <= cfg.max; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-ball';
+    btn.textContent = String(n).padStart(2, '0');
+    btn.dataset.n = n;
+    btn.onclick = () => toggleNum(n, btn);
+    grid.appendChild(btn);
+  }
+  updateCounter();
+}
+
+function toggleNum(n, btn) {
+  const cfg = LOTERIAS[loteriaAtual];
+  if (selNumeros.has(n)) {
+    selNumeros.delete(n);
+    btn.classList.remove('selected');
+  } else {
+    if (selNumeros.size >= cfg.qtd) return;
+    selNumeros.add(n);
+    btn.classList.add('selected');
+  }
+  updateCounter();
+}
+
+function updateCounter() {
+  const cfg = LOTERIAS[loteriaAtual];
+  const sel = selNumeros.size;
+  document.getElementById('panel-count').textContent = `${sel} / ${cfg.qtd} selecionados`;
+  document.getElementById('panel-title').textContent = cfg.nome + ' — escolha ' + cfg.qtd + ' dezenas';
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = sel < cfg.qtd;
+  if (sel === cfg.qtd) btn.classList.add('pulse-gold');
+  else btn.classList.remove('pulse-gold');
+}
+
+function clearNumbers() {
+  selNumeros.clear();
+  document.querySelectorAll('.num-ball.selected').forEach(b => b.classList.remove('selected'));
+  updateCounter();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INICIAR ANÁLISE
+// ═══════════════════════════════════════════════════════════
+async function startAnalysis() {
+  const cfg = LOTERIAS[loteriaAtual];
+  if (selNumeros.size < cfg.qtd) return;
+
+  document.getElementById('loading-overlay').classList.add('active');
+  document.getElementById('loading-text').textContent = 'Carregando histórico de ' + cfg.nome + '...';
+  document.getElementById('report-section').classList.remove('visible');
+  document.getElementById('step-numbers').scrollIntoView({ behavior: 'smooth' });
+
+  try {
+    // Carrega histórico — bust de cache para garantir versão atualizada do servidor
+    if (!historicoCache[loteriaAtual]) {
+      const url = cfg.arquivo + '?v=' + Date.now();
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Falha ao carregar histórico');
+      historicoCache[loteriaAtual] = await res.json();
+    }
+    const historico = historicoCache[loteriaAtual];
+
+    document.getElementById('loading-text').textContent = 'Processando estatísticas...';
+    await sleep(80);
+
+    const combo = Array.from(selNumeros).sort((a,b) => a - b);
+    const resultado = analisarCombo(combo, historico, cfg);
+
+    renderReport(combo, resultado, cfg);
+
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('report-section').classList.add('visible');
+    setTimeout(() => document.getElementById('report-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+
+    // Busca rateio via API só se o JSON não tiver prêmios embutidos
+    if (resultado.premiados.length > 0 && !resultado.temPremiosNoJson) {
+      buscarRateios(resultado.premiados, cfg);
+    }
+
+  } catch(e) {
+    document.getElementById('loading-overlay').classList.remove('active');
+    alert('Erro ao carregar histórico: ' + e.message + '\n\nVerifique se os arquivos de histórico estão no mesmo diretório.');
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════════
+// ANÁLISE ESTATÍSTICA
+// ═══════════════════════════════════════════════════════════
+function analisarCombo(combo, historico, cfg) {
+  const draws = historico.draws || historico; // suporta ambos os formatos
+  const total = draws.length;
+
+  // ── 1. Frequência por dezena ──────────────────────────
+  const freqMap = {};
+  for (let n = cfg.min; n <= cfg.max; n++) freqMap[n] = 0;
+  for (const d of draws) {
+    const dezenas = Array.isArray(d) ? d[2] : (d.dezenas || d.numeros);
+    if (!dezenas) continue;
+    for (const n of dezenas) freqMap[n] = (freqMap[n] || 0) + 1;
+  }
+  const maxFreq = Math.max(...Object.values(freqMap));
+  const minFreq = Math.min(...Object.values(freqMap));
+
+  // Frequências absolutas da combo
+  const freqCombo = combo.map(n => ({
+    num: n,
+    freq: freqMap[n] || 0,
+    pct: ((freqMap[n] || 0) / total * 100).toFixed(1)
+  }));
+
+  // Rank percentil de frequência (0-100)
+  const allFreqs = Object.values(freqMap).sort((a,b) => a - b);
+  function percentil(val) {
+    const idx = allFreqs.findIndex(f => f >= val);
+    return Math.round(idx / allFreqs.length * 100);
+  }
+  const freqMedia = combo.reduce((s, n) => s + (freqMap[n]||0), 0) / combo.length;
+  const freqPctMedio = percentil(freqMedia);
+
+  // ── 2. Paridade ──────────────────────────────────────
+  const pares = combo.filter(n => n % 2 === 0).length;
+  const impares = combo.length - pares;
+
+  // ── 3. Soma ───────────────────────────────────────────
+  const soma = combo.reduce((s, n) => s + n, 0);
+
+  // ── 4. Distribuição por grupo (dezenas) ───────────────
+  const grupos = {};
+  for (let g = 0; g < cfg.grupos; g++) grupos[g] = 0;
+  for (const n of combo) {
+    const g = Math.floor((n - cfg.min) / cfg.grupoTam);
+    grupos[Math.min(g, cfg.grupos - 1)]++;
+  }
+  const gruposUsados = Object.values(grupos).filter(v => v > 0).length;
+
+  // ── 5. Consecutivos — máxima sequência ininterrupta ──
+  let consecutivos = 0; // pares consecutivos (para compatibilidade com render)
+  for (let i = 1; i < combo.length; i++) {
+    if (combo[i] - combo[i-1] === 1) consecutivos++;
+  }
+  // Calcula o maior bloco ininterrupto (ex: 01,02,03,04,05 → maxBloco=5)
+  let maxBloco = 1, blocoAtual = 1;
+  for (let i = 1; i < combo.length; i++) {
+    if (combo[i] - combo[i-1] === 1) {
+      blocoAtual++;
+      if (blocoAtual > maxBloco) maxBloco = blocoAtual;
+    } else {
+      blocoAtual = 1;
+    }
+  }
+
+  // ── 6. Métricas estruturais adicionais ────────────────────
+
+  // A. Span geográfico
+  const span = combo[combo.length - 1] - combo[0];
+  const spanOkMin     = Math.round((cfg.max - cfg.min) * 0.50);
+  const spanAlertaMin = Math.round((cfg.max - cfg.min) * 0.30);
+
+  // B. Progressão aritmética (PA) — variância das diffs
+  // Desativada para Lotofácil (mediana var=0.80, 69% dos sorteios têm var≤1)
+  const diffs = [];
+  for (let i = 1; i < combo.length; i++) diffs.push(combo[i] - combo[i-1]);
+  const diffMean     = diffs.reduce((s,x) => s+x, 0) / diffs.length;
+  const diffVariancia = diffs.reduce((s,x) => s+(x-diffMean)**2, 0) / diffs.length;
+
+  // C. Progressão geométrica (PG) — variância dos ratios
+  // PG exata (var≤0.01): Mega 3.3%, Loto 3.4%, Quina 4.3%
+  // PG quasi (var≤0.05): Mega 16.9%, Loto 24.2%, Quina 17.9%
+  const ratios = [];
+  for (let i = 1; i < combo.length; i++) ratios.push(combo[i] / combo[i-1]);
+  const ratioMean    = ratios.reduce((s,x) => s+x, 0) / ratios.length;
+  const ratioVariancia = ratios.reduce((s,x) => s+(x-ratioMean)**2, 0) / ratios.length;
+
+  // D. Concentração de unidade (último dígito)
+  const uCount = {};
+  for (const n of combo) { const u = n % 10; uCount[u] = (uCount[u] || 0) + 1; }
+  const maxUnidade   = Math.max(...Object.values(uCount));
+  const nUnidades    = Object.keys(uCount).length; // qtd de dígitos distintos
+
+  // E. Maior buraco entre dezenas consecutivas
+  // Mega: p10=12 p90=28 — buraco ≥ 35 é raro (<3% dos sorteios)
+  const maxBuraco = diffs.reduce((m, d) => Math.max(m, d), 0);
+  const maxBuracoIdeal = Math.round((cfg.max - cfg.min) * 0.55); // ~55% do range
+  const maxBuracoAlerta = Math.round((cfg.max - cfg.min) * 0.70);
+
+  // F. Cobertura de metades (baixa/alta)
+  const metade = Math.round((cfg.max + cfg.min) / 2);
+  const nBaixas = combo.filter(n => n <= metade).length;
+  const nAltas  = combo.filter(n => n > metade).length;
+  // "Todas numa metade": Mega ocorreu 62x (2.06%) — penalizar
+  const todasUmaMetade = nBaixas === 0 || nAltas === 0;
+
+  // G. Atraso médio das dezenas da combo (quantos concursos sem aparecer)
+  // Calculado a partir do histórico real
+  const ultimaVez = {};
+  for (const n of combo) ultimaVez[n] = -1;
+  draws.forEach((d, idx) => {
+    for (const n of d[2]) {
+      if (n in ultimaVez) ultimaVez[n] = idx;
+    }
+  });
+  const atrasos = combo.map(n => ultimaVez[n] === -1 ? total : total - 1 - ultimaVez[n]);
+  const atrasoMedio = Math.round(atrasos.reduce((s,v) => s+v, 0) / atrasos.length);
+  const atrasoMax   = Math.max(...atrasos);
+  // Limiar de atraso crítico por loteria (p90 do histórico)
+  // Mega p90≈22, Quina p90≈38, Loto p90≈2
+  const atrasoP90 = cfg.qtd <= 6 ? 22 : (cfg.qtd <= 10 ? 38 : 2);
+
+  // H. Dezenas primas
+  const PRIMOS = new Set([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79]);
+  const nPrimos = combo.filter(n => PRIMOS.has(n)).length;
+  // Mega: 1-2 primos = 66.2% dos sorteios; 0 ou 5+ é raro
+  // Referência: distrib. Mega: 0p=11.6% 1p=32.8% 2p=33.4% 3p=16.8% 4p=4.6% 5p+=0.7%
+
+  // ── 7. Pontuação geral — sistema por critérios com vetos ─
+  //
+  // FILOSOFIA: cada critério contribui com uma fatia (0–25 pts).
+  // Vetos hard calibrados por loteria com base na série histórica real.
+  //
+  // CALIBRAÇÃO PA por loteria (variância das diffs adjacentes):
+  //   Mega-Sena (6/60):   mediana=36.6 → var≤1.0 = 0.13% → veto válido
+  //   Quina (5/80):       mediana=79.2 → var≤1.0 = 0.27% → veto válido
+  //   Lotofácil (15/25):  mediana=0.80 → var≤1.0 = 69.3% → NÃO aplicar PA
+
+  const [pMin, pMax] = cfg.parIdeal;
+  const [sMin, sMax] = cfg.somaIdeal;
+  const k = cfg.qtd;
+  const maxBlocoIdeal = k <= 6 ? 2 : (k <= 10 ? 3 : 4);
+
+  // ── VETOS ABSOLUTOS ──────────────────────────────────────
+  let veto = null;
+
+  // 1. Bloco consecutivo longo
+  if (maxBloco >= k - 1 && k >= 5) {
+    veto = `Sequência de ${maxBloco} números consecutivos — nunca saiu na série histórica`;
+  }
+  // 2. Soma extrema (>30% fora dos limites)
+  const somaMargemDura = (sMax - sMin) * 0.30;
+  if (soma < sMin - somaMargemDura || soma > sMax + somaMargemDura) {
+    veto = veto || `Soma ${soma} muito distante do intervalo histórico (${sMin}–${sMax})`;
+  }
+  // 3. Todos pares ou todos ímpares
+  if (k >= 5 && (pares === k || pares === 0)) {
+    veto = veto || `${pares === k ? 'Todos pares' : 'Todos ímpares'} — nunca ocorreu na série histórica`;
+  }
+  // 4. Progressão aritmética — APENAS Mega e Quina (não Lotofácil)
+  // Lotofácil: 69% dos sorteios reais têm var≤1, PA é inerente ao range curto
+  const usarVetoPA = cfg.id !== 'lotofacil';
+  if (usarVetoPA && diffs.length >= 4 && diffVariancia <= 1.0) {
+    veto = veto || `Progressão aritmética — padrão de "escada/diagonal" que ocorreu apenas ${k <= 6 ? '4' : '~19'} vezes na história`;
+  }
+  // 5. Concentração de unidade
+  const limiteUnidade = k <= 6 ? 5 : (k <= 10 ? 7 : 10);
+  if (maxUnidade >= limiteUnidade) {
+    const digitoRep = Object.entries(uCount).find(([,v]) => v >= limiteUnidade)?.[0];
+    veto = veto || `${maxUnidade} dezenas terminando em ${digitoRep} — padrão nunca registrado na série histórica`;
+  }
+
+  let score;
+  if (veto) {
+    let penBase = 25;
+    if (maxBloco >= k) penBase -= 15;
+    else if (maxBloco >= k - 1) penBase -= 10;
+    if (soma < sMin * 0.6 || soma > sMax * 1.4) penBase -= 8;
+    if (usarVetoPA && diffVariancia <= 0.5) penBase -= 8;
+    score = Math.max(5, penBase);
+  } else {
+    // ── PONTUAÇÃO ADITIVA POR CRITÉRIO ──────────────────────
+
+    // A. Consecutivos / bloco (0–25 pts)
+    let ptsCons;
+    if (maxBloco === 1)                      ptsCons = 25;
+    else if (maxBloco === 2)                 ptsCons = 20;
+    else if (maxBloco === 3)                 ptsCons = 6;
+    else if (maxBloco === 4 && k >= 15)      ptsCons = 8;
+    else if (maxBloco === maxBlocoIdeal + 1) ptsCons = 3;
+    else                                     ptsCons = 0;
+
+    // B. Paridade (0–25 pts)
+    let ptsPar;
+    if (pares >= pMin && pares <= pMax)                    ptsPar = 25;
+    else if (pares >= pMin - 1 && pares <= pMax + 1)       ptsPar = 18;
+    else if (pares >= pMin - 2 && pares <= pMax + 2)       ptsPar = 8;
+    else                                                   ptsPar = 0;
+
+    // C. Soma (0–25 pts)
+    let ptsSoma;
+    if (soma >= sMin && soma <= sMax)                                            ptsSoma = 25;
+    else if (soma >= sMin-(sMax-sMin)*0.08 && soma <= sMax+(sMax-sMin)*0.08)    ptsSoma = 18;
+    else if (soma >= sMin-(sMax-sMin)*0.15 && soma <= sMax+(sMax-sMin)*0.15)    ptsSoma = 8;
+    else                                                                         ptsSoma = 0;
+
+    // D. Grupos (0–25 pts)
+    const gruposMin = Math.floor(cfg.grupos * 0.55);
+    const gruposIdealMin = Math.floor(cfg.grupos * 0.75);
+    let ptsGrupo;
+    if (gruposUsados >= gruposIdealMin)      ptsGrupo = 25;
+    else if (gruposUsados >= gruposMin)      ptsGrupo = 15;
+    else if (gruposUsados >= gruposMin - 1)  ptsGrupo = 5;
+    else                                     ptsGrupo = 0;
+
+    // Frequência ±5 pts
+    let ptsFreq = 0;
+    if (freqPctMedio >= 35 && freqPctMedio <= 82) ptsFreq = 5;
+    else if (freqPctMedio >= 20 && freqPctMedio <= 92) ptsFreq = 2;
+    else ptsFreq = -5;
+
+    score = Math.max(0, Math.min(100, ptsCons + ptsPar + ptsSoma + ptsGrupo + ptsFreq));
+
+    // Penalidades pós-score
+    if (maxBloco > maxBlocoIdeal && maxBloco < k - 1) {
+      score = Math.max(0, score - (maxBloco - maxBlocoIdeal) * 12);
+    }
+    if (span < spanAlertaMin) {
+      score = Math.max(0, score - 35);
+    } else if (span < spanOkMin) {
+      score = Math.max(0, score - 18);
+    }
+    // PA: penalidade suave apenas para loterias onde é aplicável
+    if (usarVetoPA && diffs.length >= 4) {
+      if (diffVariancia <= 2.0) score = Math.max(0, score - 30);
+      else if (diffVariancia <= 4.0) score = Math.max(0, score - 15);
+    }
+
+    // PG: progressão geométrica — ratioVariancia baixa
+    // PG quasi (var≤0.05): 17-24% dos sorteios → penalidade moderada, não veto
+    if (ratios.length >= 3 && ratioVariancia <= 0.02) {
+      score = Math.max(0, score - 20);
+    } else if (ratioVariancia <= 0.08) {
+      score = Math.max(0, score - 10);
+    }
+
+    // Buraco excessivo: distância muito grande entre duas dezenas consecutivas
+    // Mega p90=28, Quina p90≈40, Loto p90≈3 — buraco ≥ p90 é sinal ruim
+    if (maxBuraco > maxBuracoAlerta) {
+      score = Math.max(0, score - 20);
+    } else if (maxBuraco > maxBuracoIdeal) {
+      score = Math.max(0, score - 10);
+    }
+
+    // Cobertura de metades: todas num único lado do volante
+    // Mega: ocorreu 62x (2.06%) → penalidade forte, mas não veto
+    if (todasUmaMetade) {
+      score = Math.max(0, score - 25);
+    }
+
+    const limiteUnidadeAlerta = k <= 6 ? 4 : (k <= 10 ? 6 : 9);
+    if (maxUnidade >= limiteUnidadeAlerta) {
+      score = Math.max(0, score - 25);
+    }
+  }
+
+  // Veto estendido: bloco >= k-2
+  if (!veto && maxBloco >= k - 2 && k >= 6) {
+    veto = `Bloco de ${maxBloco} números consecutivos — padrão muito incomum na série histórica`;
+  }
+  if (!veto && span < spanAlertaMin && score < 20) {
+    veto = `Todas as dezenas concentradas numa janela de ${span} números — ocorreu apenas 5 vezes em 3.009 concursos`;
+  }
+
+  let classificacao;
+  if (veto || score < 35)  classificacao = 'fraca';
+  else if (score < 65)     classificacao = 'media';
+  else                     classificacao = 'boa';
+
+  // ── 8. Buscar premiações na série histórica ───────────
+  // Faixas "relevantes" por loteria (usadas para override de classificação)
+  const faixasRelevantes = {
+    mega:      [5, 6],
+    quina:     [4, 5],
+    lotofacil: [14, 15]
+  };
+  const faixasRelev = faixasRelevantes[cfg.id] || [];
+
+  const premiados = [];
+  let temPremioRelevante = false;  // se combo já ganhou faixa alta historicamente
+
+  for (const d of draws) {
+    let numConcurso, dataSorteio, dezenas;
+    if (Array.isArray(d)) {
+      [numConcurso, dataSorteio, dezenas] = d;
+    } else {
+      numConcurso = d.concurso || d.numero;
+      dataSorteio = d.data || d.dataApuracao;
+      dezenas = d.dezenas || d.numeros;
+    }
+    if (!dezenas) continue;
+    const acertos = combo.filter(n => dezenas.includes(n) || dezenas.map(Number).includes(n)).length;
+    if (acertos >= cfg.minAcertos) {
+      const premiosJson = Array.isArray(d) ? (d[4] || null) : null;
+
+      // Registrar se esta combo já teve premiação relevante (faixa alta)
+      if (faixasRelev.includes(acertos)) {
+        temPremioRelevante = true;
+      }
+
+      // Excluir faixa MÍNIMA quando valor é 0 ou chave ausente no JSON:
+      // — Duque Quina pré-4085: chave '2' ausente ou = 0 → não era pago
+      if (acertos === cfg.minAcertos) {
+        const chaveAcerto = getChaveAcertos(acertos, cfg);
+        if (chaveAcerto) {
+          if (!premiosJson) continue; // sem JSON → faixa mínima não registrada
+          if (premiosJson[chaveAcerto] === undefined) continue; // chave ausente
+          if (premiosJson[chaveAcerto] === 0) continue; // valor zerado
+        }
+      }
+
+      premiados.push({ concurso: numConcurso, data: dataSorteio, acertos, dezenas, premiosJson });
+    }
+  }
+
+  // ── Override de classificação por histórico ────────────
+  // Se a combo ganhou uma faixa relevante (14/15 na Loto, 4/5 na Quina,
+  // 5/6 na Mega), ela NUNCA pode ser classificada como "fraca".
+  // Justificativa: o histórico real supera qualquer análise estatística.
+  if (temPremioRelevante) {
+    if (classificacao === 'fraca') {
+      classificacao = 'media';
+      veto = null; // remove o veto — o histórico prova que a combo é viável
+      score = Math.max(score, 40); // eleva score ao mínimo de "média"
+    }
+  }
+
+  // Detecta se JSON já tem prêmios embutidos (v2 enriquecido)
+  const temPremiosNoJson = draws.some(d => Array.isArray(d) && d.length >= 5 && d[4] !== null && typeof d[4] === 'object');
+
+  return {
+    combo, score, classificacao,
+    freqCombo, freqPctMedio, freqMap, maxFreq, minFreq, total,
+    pares, impares, soma,
+    grupos, gruposUsados,
+    consecutivos, maxBloco,
+    span, diffVariancia, ratioVariancia,
+    maxUnidade, nUnidades,
+    maxBuraco,
+    nBaixas, nAltas, todasUmaMetade,
+    atrasos, atrasoMedio, atrasoMax, atrasoP90,
+    nPrimos,
+    veto,
+    temPremioRelevante,
+    premiados,
+    temPremiosNoJson
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER RELATÓRIO
+// ═══════════════════════════════════════════════════════════
+function renderReport(combo, r, cfg) {
+  // Combinação em bolas
+  const comboEl = document.getElementById('report-combo');
+  comboEl.innerHTML = combo.map(n =>
+    `<div class="report-ball">${String(n).padStart(2,'0')}</div>`
+  ).join('');
+
+  // Classification card
+  const banner = document.getElementById('class-banner');
+  banner.className = 'class-banner ' + r.classificacao;
+  const icons = { boa: '🟢', media: '🟡', fraca: '🔴' };
+  const labels = { boa: 'Combinação', media: 'Combinação', fraca: 'Combinação' };
+  const titles = { boa: 'Boa combinação', media: 'Combinação média', fraca: 'Combinação fraca' };
+
+  // Sub-título: override histórico tem prioridade
+  let subTexto;
+  if (r.temPremioRelevante && r.classificacao !== 'fraca') {
+    const nomesFaixa = { mega: '5 ou 6 acertos', quina: '4 ou 5 acertos', lotofacil: '14 ou 15 acertos' };
+    subTexto = `★ Esta combinação já teve premiação de ${nomesFaixa[cfg.id] || 'faixa alta'} na série histórica — classificação elevada`;
+  } else {
+    const subs = {
+      boa: 'Segue bem os padrões históricos da ' + cfg.nome,
+      media: 'Alguns critérios fora do padrão histórico',
+      fraca: r.veto ? r.veto : 'Diverge dos padrões mais frequentes da ' + cfg.nome
+    };
+    subTexto = subs[r.classificacao];
+  }
+
+  document.getElementById('class-icon').textContent = icons[r.classificacao];
+  document.getElementById('class-label').textContent = labels[r.classificacao];
+  document.getElementById('class-title').textContent = titles[r.classificacao];
+  document.getElementById('class-sub').textContent = subTexto;
+  document.getElementById('class-score').textContent = r.score;
+
+  // Métricas
+  const somaOk = r.soma >= cfg.somaIdeal[0] && r.soma <= cfg.somaIdeal[1];
+  const parOk = r.pares >= cfg.parIdeal[0] && r.pares <= cfg.parIdeal[1];
+  const freqOk = r.freqPctMedio >= 30 && r.freqPctMedio <= 85;
+  const grupoOk = r.gruposUsados >= Math.floor(cfg.grupos * 0.6);
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-cell">
+      <div class="metric-label">Soma total</div>
+      <div class="metric-value ${somaOk ? 'metric-ok' : 'metric-warn'}">${r.soma}</div>
+      <div class="metric-bench">ideal: ${cfg.somaIdeal[0]}–${cfg.somaIdeal[1]}</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Pares / Ímpares</div>
+      <div class="metric-value ${parOk ? 'metric-ok' : 'metric-warn'}">${r.pares}P · ${r.impares}I</div>
+      <div class="metric-bench">ideal: ${cfg.parIdeal[0]}–${cfg.parIdeal[1]} pares</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Freq. média</div>
+      <div class="metric-value ${freqOk ? 'metric-ok' : 'metric-warn'}">p${r.freqPctMedio}</div>
+      <div class="metric-bench">percentil vs. todas</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Grupos cobertos</div>
+      <div class="metric-value ${grupoOk ? 'metric-ok' : 'metric-warn'}">${r.gruposUsados}/${cfg.grupos}</div>
+      <div class="metric-bench">${cfg.descFaixas.join(', ')}</div>
+    </div>
+  `;
+
+  // Barras de frequência
+  const freqBars = document.getElementById('freq-bars');
+  // Normaliza em relação ao máximo do universo
+  freqBars.innerHTML = r.freqCombo.map(f => {
+    const pctWidth = (f.freq / r.maxFreq * 100).toFixed(1);
+    const percentilVal = f.freq / r.maxFreq;
+    const cls = percentilVal >= 0.65 ? 'hot' : (percentilVal >= 0.35 ? 'warm' : 'cold');
+    return `
+      <div class="freq-row">
+        <div class="freq-num">${String(f.num).padStart(2,'0')}</div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar ${cls}" style="width:${pctWidth}%"></div>
+        </div>
+        <div class="freq-pct">${f.freq}×</div>
+      </div>`;
+  }).join('');
+
+  // ── Badges das métricas ──────────────────────────────────
+  const parBadge  = parOk ? 'badge-ok' : (Math.abs(r.pares-(cfg.parIdeal[0]+cfg.parIdeal[1])/2)<=1 ? 'badge-warn' : 'badge-bad');
+  const somaBadge = somaOk ? 'badge-ok' : (r.soma<cfg.somaIdeal[0]*0.9||r.soma>cfg.somaIdeal[1]*1.1 ? 'badge-bad' : 'badge-warn');
+  const freqBadge = freqOk ? 'badge-ok' : (r.freqPctMedio<15||r.freqPctMedio>95 ? 'badge-bad' : 'badge-warn');
+  const maxBlocoIdealRender = cfg.qtd<=6 ? 2 : (cfg.qtd<=10 ? 3 : 4);
+  const consBadge = r.maxBloco<=maxBlocoIdealRender ? 'badge-ok' : (r.maxBloco>=cfg.qtd-1 ? 'badge-bad' : 'badge-warn');
+  const consLabel = r.maxBloco===1 ? 'Nenhum par consecutivo' : r.maxBloco===2 ? '1 par consecutivo' : `Bloco de ${r.maxBloco} seguidos`;
+  const consStatus = r.maxBloco<=maxBlocoIdealRender ? 'Normal' : r.maxBloco>=cfg.qtd-1 ? 'Sequência crítica' : 'Muitos seguidos';
+
+  // Span
+  const spanOkMinR    = Math.round((cfg.max-cfg.min)*0.50);
+  const spanAlertaMinR = Math.round((cfg.max-cfg.min)*0.30);
+  const spanBadge  = r.span>=spanOkMinR ? 'badge-ok' : (r.span<spanAlertaMinR ? 'badge-bad' : 'badge-warn');
+  const spanStatus = r.span>=spanOkMinR ? 'Bem distribuído' : (r.span<spanAlertaMinR ? 'Concentração crítica' : 'Pouco distribuído');
+
+  // PA (só exibe se aplicável)
+  const usarPA    = cfg.id !== 'lotofacil';
+  const paBadge   = !usarPA ? 'badge-ok' : (r.diffVariancia>4 ? 'badge-ok' : (r.diffVariancia<=1 ? 'badge-bad' : 'badge-warn'));
+  const paStatus  = !usarPA ? 'N/A para Lotofácil' : (r.diffVariancia>4 ? 'Normal' : (r.diffVariancia<=1 ? 'PA detectada' : 'Quasi-PA'));
+  const paProb    = cfg.id==='mega' ? {low:'0,13%',med:'0,60%'} : cfg.id==='quina' ? {low:'0,27%',med:'0,58%'} : null;
+
+  // PG
+  const pgBadge  = r.ratioVariancia>0.08 ? 'badge-ok' : (r.ratioVariancia<=0.02 ? 'badge-warn' : 'badge-warn');
+  const pgStatus = r.ratioVariancia>0.08 ? 'Normal' : (r.ratioVariancia<=0.02 ? 'PG detectada' : 'Quasi-PG');
+  const pgProbStr = cfg.id==='mega' ? '3,3% (var≤0,02)' : cfg.id==='quina' ? '4,3%' : '3,4%';
+
+  // Unidades (dígitos finais)
+  const unidLimAlerta = cfg.qtd<=6 ? 4 : (cfg.qtd<=10 ? 6 : 9);
+  const unidBadge  = r.maxUnidade<unidLimAlerta ? 'badge-ok' : (r.maxUnidade>=(cfg.qtd<=6?5:7) ? 'badge-bad' : 'badge-warn');
+  const unidStatus = r.maxUnidade<unidLimAlerta ? 'Normal' : (r.maxUnidade>=(cfg.qtd<=6?5:7) ? 'Concentração crítica' : 'Repetição notável');
+  const unidProb   = cfg.id==='mega' ? {m4:'0,43%',m5:'0%'} : cfg.id==='quina' ? {m4:'0,20%'} : null;
+
+  // Buraco
+  const maxBuracoIdealR  = Math.round((cfg.max-cfg.min)*0.55);
+  const maxBuracoAlertaR = Math.round((cfg.max-cfg.min)*0.70);
+  const buracoBadge  = r.maxBuraco<=maxBuracoIdealR ? 'badge-ok' : (r.maxBuraco>maxBuracoAlertaR ? 'badge-bad' : 'badge-warn');
+  const buracoStatus = r.maxBuraco<=maxBuracoIdealR ? 'Normal' : (r.maxBuraco>maxBuracoAlertaR ? 'Buraco excessivo' : 'Buraco largo');
+
+  // Metades
+  const metadeBadge  = !r.todasUmaMetade ? 'badge-ok' : 'badge-warn';
+  const metadeStatus = !r.todasUmaMetade ? `${r.nBaixas} baixas · ${r.nAltas} altas` : (r.nBaixas===0 ? 'Só dezenas altas' : 'Só dezenas baixas');
+  const metadeProb   = cfg.id==='mega' ? '2,1%' : cfg.id==='quina' ? '4,0%' : 'raro';
+
+  // Atraso
+  const atrasoBadge  = r.atrasoMax<=r.atrasoP90 ? 'badge-ok' : 'badge-warn';
+  const atrasoStatus = r.atrasoMax<=r.atrasoP90 ? `Máx. ${r.atrasoMax} conc.` : `${r.atrasoMax} conc. (fria!)`;
+
+  // Primos (só Mega e Quina — Lotofácil tem range pequeno demais)
+  const mostrarPrimos = cfg.id !== 'lotofacil';
+  const primosBadge   = (r.nPrimos>=1 && r.nPrimos<=3) ? 'badge-ok' : 'badge-warn';
+  const primosStatus  = r.nPrimos===0 ? 'Nenhum primo' : (r.nPrimos<=3 ? `${r.nPrimos} primos (normal)` : `${r.nPrimos} primos (alto)`);
+
+  const vetoHtml = r.veto ? `
+    <div class="analysis-row" style="background:rgba(196,69,45,.08);border-left:2px solid var(--red);">
+      <div class="ar-label" style="color:var(--red)">⚠ Penalidade crítica</div>
+      <div class="ar-val" style="color:var(--red)">${r.veto}</div>
+    </div>` : '';
+
+  document.getElementById('analysis-body').innerHTML = `
+    ${vetoHtml}
+
+    <div class="analysis-section-title">Padrões estatísticos</div>
+
+    <div class="analysis-row">
+      <div class="ar-label">Distribuição par/ímpar</div>
+      <div class="ar-val">${r.pares}P · ${r.impares}I
+        <span class="ar-badge ${parBadge}">${parOk?'Ideal':(r.pares<cfg.parIdeal[0]?'Poucos pares':'Muitos pares')}</span>
+        <span class="ar-prob">Histórico: ${cfg.parIdeal[0]}–${cfg.parIdeal[1]} pares cobre ~85% dos sorteios</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Soma das dezenas</div>
+      <div class="ar-val">${r.soma}
+        <span class="ar-badge ${somaBadge}">${somaOk?'Na faixa ideal':(r.soma<cfg.somaIdeal[0]?'Soma baixa':'Soma alta')}</span>
+        <span class="ar-prob">Faixa ideal: ${cfg.somaIdeal[0]}–${cfg.somaIdeal[1]}</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Frequência histórica</div>
+      <div class="ar-val">Percentil ${r.freqPctMedio}
+        <span class="ar-badge ${freqBadge}">${r.freqPctMedio>=30&&r.freqPctMedio<=85?'Equilibrada':(r.freqPctMedio<30?'Dezenas frias':'Dezenas quentes')}</span>
+        <span class="ar-prob">Atraso médio: ${r.atrasoMedio} conc. · máx: ${r.atrasoMax} <span class="ar-badge ${atrasoBadge}">${atrasoStatus}</span></span>
+      </div>
+    </div>
+
+    <div class="analysis-section-title">Distribuição no volante</div>
+
+    <div class="analysis-row">
+      <div class="ar-label">Amplitude (span)</div>
+      <div class="ar-val">Intervalo de ${r.span} números
+        <span class="ar-badge ${spanBadge}">${spanStatus}</span>
+        <span class="ar-prob">Ideal ≥ ${spanOkMinR} · abaixo de ${spanAlertaMinR} é raro (&lt;1%)</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Maior buraco</div>
+      <div class="ar-val">Gap de ${r.maxBuraco} entre consecutivas
+        <span class="ar-badge ${buracoBadge}">${buracoStatus}</span>
+        <span class="ar-prob">Normal ≤ ${maxBuracoIdealR} · p90 do histórico = ${Math.round((cfg.max-cfg.min)*0.55)}</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Cobertura de metades</div>
+      <div class="ar-val">${metadeStatus}
+        <span class="ar-badge ${metadeBadge}">${r.todasUmaMetade?'Concentrado':'Balanceado'}</span>
+        <span class="ar-prob">Todas numa metade: ocorreu em ${metadeProb} dos sorteios</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Consecutivos (bloco)</div>
+      <div class="ar-val">${consLabel}
+        <span class="ar-badge ${consBadge}">${consStatus}</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Cobertura de faixas</div>
+      <div class="ar-val">${r.gruposUsados} de ${cfg.grupos} grupos
+        <span class="ar-badge ${grupoOk?'badge-ok':'badge-warn'}">${grupoOk?'Bem distribuído':'Concentrado'}</span>
+        <span class="ar-prob">${cfg.descFaixas.join(' · ')}</span>
+      </div>
+    </div>
+
+    <div class="analysis-section-title">Padrões matemáticos</div>
+
+    ${usarPA ? `
+    <div class="analysis-row">
+      <div class="ar-label">Progressão aritmética</div>
+      <div class="ar-val">Variância dos espaçamentos: ${r.diffVariancia.toFixed(2)}
+        <span class="ar-badge ${paBadge}">${paStatus}</span>
+        ${paProb ? `<span class="ar-prob">PA quase perfeita ocorreu em ${paProb.low} dos sorteios</span>` : ''}
+      </div>
+    </div>` : ''}
+    <div class="analysis-row">
+      <div class="ar-label">Progressão geométrica</div>
+      <div class="ar-val">Variância dos ratios: ${r.ratioVariancia.toFixed(3)}
+        <span class="ar-badge ${pgBadge}">${pgStatus}</span>
+        <span class="ar-prob">PG quasi ocorreu em ~${pgProbStr} dos sorteios</span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Dígito final (unidade)</div>
+      <div class="ar-val">Máx. ${r.maxUnidade} dezenas com mesmo final · ${r.nUnidades} dígitos distintos
+        <span class="ar-badge ${unidBadge}">${unidStatus}</span>
+        ${unidProb ? `<span class="ar-prob">4 iguais: ${unidProb.m4} · 5+ iguais: nunca registrado</span>` : ''}
+      </div>
+    </div>
+    ${mostrarPrimos ? `
+    <div class="analysis-row">
+      <div class="ar-label">Números primos</div>
+      <div class="ar-val">${r.nPrimos} dezenas primas na combinação
+        <span class="ar-badge ${primosBadge}">${primosStatus}</span>
+        <span class="ar-prob">Histórico Mega: 1–2 primos em 66% dos sorteios · 5+ primos em 0,7%</span>
+      </div>
+    </div>` : ''}
+
+    <div class="analysis-row" style="opacity:.5;margin-top:4px">
+      <div class="ar-label">Base histórica</div>
+      <div class="ar-val" style="color:var(--ink-faint)">${r.total.toLocaleString('pt-BR')} concursos analisados</div>
+    </div>
+  `;
+
+  // PREMIAÇÕES HISTÓRICAS
+  const histBadge = document.getElementById('history-badge');
+  const histResults = document.getElementById('history-results');
+
+  if (r.premiados.length === 0) {
+    histBadge.className = 'history-badge none';
+    histBadge.textContent = 'Nenhuma premiação encontrada';
+    document.getElementById('total-premiado-wrap').innerHTML = '';
+    document.getElementById('history-controls').style.display = 'none';
+    histResults.innerHTML = `<div class="history-empty">
+      Esta combinação não registrou premiação nos ${r.total.toLocaleString('pt-BR')} concursos históricos analisados.<br>
+      <span style="color:var(--ink-faint);font-size:10px">Combinações exatas raramente se repetem — isso é estatisticamente esperado.</span>
+    </div>`;
+  } else {
+    histBadge.className = 'history-badge found';
+    histBadge.textContent = `${r.premiados.length} concurso${r.premiados.length > 1 ? 's' : ''} premiado${r.premiados.length > 1 ? 's' : ''}`;
+
+    // Calcula totalização
+    renderTotalPremiado(r.premiados, r.temPremiosNoJson, cfg);
+
+    // Mostra controles de ordenação
+    document.getElementById('history-controls').style.display = r.premiados.length > 1 ? 'flex' : 'none';
+
+    // Guarda premiados globalmente para reordenação
+    window._premiadosAtual = r.premiados;
+    window._temPremiosNoJson = r.temPremiosNoJson;
+    window._cfgAtual = cfg;
+    window._comboAtual = r.combo.map(Number);
+    window._expandido = false;
+
+    renderListaPremiados('antigo');
+  }
+}
+
+// Guarda ordenação atual
+window._sortAtual = 'antigo';
+
+function sortPremiados(modo) {
+  window._sortAtual = modo;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort-' + modo).classList.add('active');
+  window._expandido = false; // reset ao reordenar
+  renderListaPremiados(modo);
+}
+
+function getValorPremiado(p, cfg) {
+  if (!p.premiosJson) return 0;
+  const chaveUsuario = getChaveAcertos(p.acertos, cfg);
+  return chaveUsuario ? (p.premiosJson[chaveUsuario] || 0) : 0;
+}
+
+function getChaveAcertos(acertos, cfg) {
+  const mapa = {
+    mega:      { 6:'s', 5:'qn', 4:'qd' },
+    lotofacil: { 15:'15', 14:'14', 13:'13', 12:'12', 11:'11' },
+    quina:     { 5:'5', 4:'4', 3:'3', 2:'2' }
+  };
+  return (mapa[cfg.id] || {})[acertos] || null;
+}
+
+function ordenarPremiados(lista, modo) {
+  const copia = [...lista];
+  if (modo === 'recente') return copia.sort((a,b) => b.concurso - a.concurso);
+  if (modo === 'antigo')  return copia.sort((a,b) => a.concurso - b.concurso);
+  if (modo === 'valor')   return copia.sort((a,b) => getValorPremiado(b, window._cfgAtual) - getValorPremiado(a, window._cfgAtual));
+  if (modo === 'faixa')   return copia.sort((a,b) => b.acertos - a.acertos);
+  return copia;
+}
+
+function renderListaPremiados(modo) {
+  const lista = ordenarPremiados(window._premiadosAtual, modo);
+  const cfg = window._cfgAtual;
+  const temPremios = window._temPremiosNoJson;
+  const limite = window._expandido ? lista.length : 20;
+  const histResults = document.getElementById('history-results');
+  const comboUsuario = (window._comboAtual || []).map(Number);
+
+  histResults.innerHTML = lista.slice(0, limite).map(p => {
+    const faixaNome = getNomeFaixa(p.acertos, cfg);
+    const faixaClass = getFaixaColor(p.acertos, cfg);
+    let gridHtml = '';
+
+    if (temPremios && p.premiosJson) {
+      const nomes   = NOMES_FAIXA[cfg.id] || {};
+      const nomesG  = CHAVES_GANHADORES[cfg.id] || {};
+      const chaves  = CHAVES_PREMIO[cfg.id] || [];
+      const chaveUs = getChaveAcertos(p.acertos, cfg);
+
+      chaves.forEach(k => {
+        const isD  = k === chaveUs;
+        const nome = nomes[k] || k;
+        const chG  = nomesG[k];
+        const badgeHtml = isD ? '<div class="award-sua-faixa">\u2605 SUA FAIXA</div>' : '';
+
+        // Chave ausente no JSON
+        if (p.premiosJson[k] === undefined) {
+          const sub = (k === '2') ? 'faixa n\u00e3o existia' : 'n\u00e3o dispon\u00edvel';
+          gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + ' acumulado">' +
+            badgeHtml +
+            '<div class="award-cell">' +
+              '<div class="award-cell-label">' + nome + '</div>' +
+              '<div class="award-cell-val">\u2014</div>' +
+              '<div class="award-cell-sub">' + sub + '</div>' +
+            '</div></div>';
+          return;
+        }
+
+        // Faixa zerada
+        if (p.premiosJson[k] === 0) {
+          const ehDuqueAntigo = (k === '2' && p.concurso < 4085);
+          const subZero = ehDuqueAntigo ? 'faixa n\u00e3o existia' : 'sem ganhador';
+          const valZero = ehDuqueAntigo ? '\u2014' : 'Acumulado';
+          gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + ' acumulado">' +
+            badgeHtml +
+            '<div class="award-cell">' +
+              '<div class="award-cell-label">' + nome + '</div>' +
+              '<div class="award-cell-val">' + valZero + '</div>' +
+              '<div class="award-cell-sub">' + subZero + '</div>' +
+            '</div></div>';
+          return;
+        }
+
+        // Faixa com valor
+        const val  = formatarMoeda(p.premiosJson[k]);
+        const g    = chG ? (p.premiosJson[chG] !== undefined ? p.premiosJson[chG] : '\u2014') : '\u2014';
+        const gStr = g + ' ganhad' + (g == 1 ? 'or' : 'ores');
+        gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + '">' +
+          badgeHtml +
+          '<div class="award-cell">' +
+            '<div class="award-cell-label">' + nome + '</div>' +
+            '<div class="award-cell-val">' + val + '</div>' +
+            '<div class="award-cell-sub">' + gStr + '</div>' +
+          '</div></div>';
+      });
+    } else if (!temPremios) {
+      gridHtml = '<div class="award-loading" id="rateio-loading-' + p.concurso + '">' +
+        '<div class="mini-spinner"></div><span>Buscando rateio\u2026</span>' +
+        '</div><div class="award-rateio" id="rateio-data-' + p.concurso + '"></div>';
+    }
+
+    // Coluna dezenas sorteadas
+    if (p.dezenas && p.dezenas.length > 0) {
+      const sorted = [...p.dezenas].map(Number).sort((a, b) => a - b);
+      const bolinhas = sorted.map(n => {
+        const hit = comboUsuario.includes(n);
+        return '<span class="award-dez' + (hit ? ' acerto' : '') + '">' + String(n).padStart(2,'0') + '</span>';
+      }).join('');
+      const numStr = sorted.map(n => {
+        const s = String(n).padStart(2,'0');
+        return comboUsuario.includes(n) ? '<span>' + s + '</span>' : s;
+      }).join('\u00b7');
+      gridHtml += '<div class="award-cell-wrap">' +
+        '<div class="award-cell">' +
+          '<div class="award-cell-label">Dezenas sorteadas</div>' +
+          '<div class="award-cell-dezenas">' + bolinhas + '</div>' +
+          '<div class="award-dez-nums">(' + numStr + ')</div>' +
+        '</div></div>';
+    }
+
+    return '<div class="award-card" id="award-' + p.concurso + '">' +
+      '<div class="award-top">' +
+        '<div class="award-concurso">Concurso ' + p.concurso + '</div>' +
+        '<div class="award-date">' + formatarData(p.data) + '</div>' +
+        '<div class="award-faixa ' + faixaClass + '">' + p.acertos + ' acertos \u00b7 ' + faixaNome + '</div>' +
+      '</div>' +
+      '<div class="award-grid">' + gridHtml + '</div>' +
+    '</div>';
+  }).join('');
+
+  if (!window._expandido && lista.length > 20) {
+    histResults.innerHTML += '<button class="btn-expandir" onclick="expandirTodos()">' +
+      '\u2193 Mostrar todos os ' + lista.length + ' concursos premiados' +
+    '</button>';
+  }
+  if (!temPremios) {
+    lista.slice(0, limite).forEach(p => buscarRateioUnico(p.concurso, cfg));
+  }
+}
+function expandirTodos() {
+  window._expandido = true;
+  renderListaPremiados(window._sortAtual);
+  // Scroll suave para manter contexto
+  setTimeout(() => {
+    const btn = document.querySelector('.btn-expandir');
+    if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+function renderTotalPremiado(premiados, temPremios, cfg) {
+  const wrap = document.getElementById('total-premiado-wrap');
+  if (!temPremios) { wrap.innerHTML = ''; return; }
+
+  let totalGanho = 0;
+  let concursosComValor = 0;
+  let maiorPremio = 0;
+  let maiorConcurso = null;
+  const contadorFaixas = {};
+
+  for (const p of premiados) {
+    const chave = getChaveAcertos(p.acertos, cfg);
+    const valor = chave && p.premiosJson ? (p.premiosJson[chave] || 0) : 0;
+    if (valor > 0) {
+      totalGanho += valor;
+      concursosComValor++;
+      if (valor > maiorPremio) { maiorPremio = valor; maiorConcurso = p.concurso; }
+    }
+    const faixaNome = getNomeFaixa(p.acertos, cfg);
+    contadorFaixas[faixaNome] = (contadorFaixas[faixaNome] || 0) + 1;
+  }
+
+  const media = concursosComValor > 0 ? totalGanho / concursosComValor : 0;
+  const faixasStr = Object.entries(contadorFaixas)
+    .sort((a,b) => b[1] - a[1])
+    .map(([nome, qtd]) => qtd + '\u00d7 ' + nome)
+    .join(' \u00b7 ');
+
+  wrap.innerHTML =
+    '<div class="total-premiado-card">' +
+      '<div>' +
+        '<div class="total-premiado-label">Total acumulado (valor por ganhador)</div>' +
+        '<div class="total-premiado-val">' + formatarMoeda(totalGanho) + '</div>' +
+        '<div class="total-premiado-sub">' + faixasStr + '</div>' +
+      '</div>' +
+      '<div class="total-stats">' +
+        '<div class="total-stat">' +
+          '<div class="total-stat-val">' + premiados.length + '</div>' +
+          '<div class="total-stat-label">Concursos<br>premiados</div>' +
+        '</div>' +
+        (concursosComValor > 0
+          ? '<div class="total-stat">' +
+              '<div class="total-stat-val">' + formatarMoeda(media).replace('R$ ','R$') + '</div>' +
+              '<div class="total-stat-label">M\u00e9dia por<br>concurso pago</div>' +
+            '</div>'
+          : '') +
+        (maiorConcurso
+          ? '<div class="total-stat">' +
+              '<div class="total-stat-val">' + formatarMoeda(maiorPremio).replace('R$ ','R$') + '</div>' +
+              '<div class="total-stat-label">Maior pr\u00eamio<br>conc. ' + maiorConcurso + '</div>' +
+            '</div>'
+          : '') +
+      '</div>' +
+    '</div>';
+}
+function getNomeFaixa(acertos, cfg) {
+  return cfg.faixas[acertos] || (acertos + ' acertos');
+}
+
+function getFaixaColor(acertos, cfg) {
+  const total = cfg.qtd;
+  const ratio = acertos / total;
+  if (ratio >= 0.9) return 'award-faixa' + ' badge-ok';
+  if (ratio >= 0.7) return 'award-faixa' + ' badge-warn';
+  return 'award-faixa badge-bad';
+}
+
+function formatarData(data) {
+  if (!data) return '—';
+  try {
+    const d = new Date(data + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  } catch { return data; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RATEIO: lê do JSON enriquecido (principal) ou API (fallback)
+// ═══════════════════════════════════════════════════════════
+
+// Mapa de chaves curtas → nome legível por loteria
+const NOMES_FAIXA = {
+  mega:       { s:'Sena', qn:'Quina', qd:'Quadra', gs:'gs', gqn:'gqn', gqd:'gqd' },
+  lotofacil:  { '15':'15 acertos','14':'14 acertos','13':'13 acertos','12':'12 acertos','11':'11 acertos' },
+  quina:      { '5':'Quina','4':'Quadra','3':'Terno','2':'Duque' }
+};
+const CHAVES_PREMIO = {
+  mega:      ['s','qn','qd'],
+  lotofacil: ['15','14','13','12','11'],
+  quina:     ['5','4','3','2']
+};
+const CHAVES_GANHADORES = {
+  mega:      { s:'gs', qn:'gqn', qd:'gqd' },
+  lotofacil: { '15':'g15','14':'g14','13':'g13','12':'g12','11':'g11' },
+  quina:     { '5':'g5','4':'g4','3':'g3','2':'g2' }
+};
+
+function renderRateioDoJson(premiosJson, acertosUsuario, cfg) {
+  if (!premiosJson || Object.keys(premiosJson).length === 0) {
+    return `<div class="award-rateio" style="display:block">
+      <div class="rateio-error">Dados de prêmio não disponíveis para este concurso.</div>
+    </div>`;
+  }
+
+  const chaves = CHAVES_PREMIO[cfg.id] || [];
+  const nomesG = CHAVES_GANHADORES[cfg.id] || {};
+  const nomes  = NOMES_FAIXA[cfg.id] || {};
+
+  // Determina a chave correspondente à faixa do usuário
+  const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
+
+  const itens = chaves
+    .filter(k => premiosJson[k] !== undefined)
+    .filter(k => {
+      // Não exibir faixas com valor zerado — indica que a faixa não era paga
+      // naquele concurso (ex: Duque da Quina antes do concurso 4085)
+      return premiosJson[k] !== 0;
+    })
+    .map(k => {
+      const nome = nomes[k] || k;
+      const valor = premiosJson[k];
+      const chaveG = nomesG[k];
+      const ganhadores = chaveG ? (premiosJson[chaveG] ?? '—') : '—';
+      const isDestaque = k === chaveUsuario;
+      return `
+        <div class="rateio-item${isDestaque ? ' destaque' : ''}">
+          <div class="rateio-faixa">${nome}</div>
+          <div class="rateio-val">${formatarMoeda(valor)}</div>
+          <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
+        </div>`;
+    }).join('');
+
+  return `<div class="award-rateio" style="display:block">
+    <div class="rateio-grid">${itens}</div>
+  </div>`;
+}
+
+// Fallback via API Netlify — só usado se JSON não for enriquecido
+async function buscarRateios(premiados, cfg) {
+  for (const p of premiados.slice(0, 20)) {
+    await buscarRateioUnico(p.concurso, cfg);
+    await sleep(300);
+  }
+}
+
+async function buscarRateioUnico(concurso, cfg) {
+  const loadingEl = document.getElementById('rateio-loading-' + concurso);
+  const dataEl = document.getElementById('rateio-data-' + concurso);
+  if (!loadingEl || !dataEl) return;
+
+  try {
+    const url = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    loadingEl.style.display = 'none';
+
+    const rateio = data.listaRateioPremio || data.premiacoes || [];
+    if (!rateio.length) {
+      dataEl.innerHTML = `<div class="rateio-error">Dados de rateio não disponíveis para este concurso.</div>`;
+      dataEl.style.display = 'block';
+      return;
+    }
+
+    const itens = rateio.map(item => {
+      const faixa = item.descricaoFaixa || item.faixa || '';
+      const ganhadores = item.numeroDeGanhadores ?? item.ganhadores ?? '—';
+      const valor = item.valorPremio ?? item.premio ?? 0;
+      return `
+        <div class="rateio-item">
+          <div class="rateio-faixa">${faixa}</div>
+          <div class="rateio-val">${formatarMoeda(valor)}</div>
+          <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
+        </div>`;
+    }).join('');
+
+    dataEl.innerHTML = `<div class="rateio-grid">${itens}</div>`;
+    dataEl.style.display = 'block';
+
+  } catch(e) {
+    loadingEl.style.display = 'none';
+    dataEl.innerHTML = `<div class="rateio-error">Rateio não disponível (${e.message}).</div>`;
+    dataEl.style.display = 'block';
+  }
+}
+
+function formatarMoeda(valor) {
+  if (!valor && valor !== 0) return '—';
+  const n = typeof valor === 'string' ? parseFloat(valor.replace(',', '.')) : valor;
+  if (isNaN(n)) return valor;
+  return 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
+</body>
+</html>

@@ -51,7 +51,7 @@
   /* NAV */
   .site-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:48px;flex-wrap:wrap;gap:12px}
   .site-nav-logo{font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none}
-  .site-nav-logo em{color:var(--gold);font-style:normal}
+  .site-nav-logo em{color:var(--gold);font-style:normal}.site-nav-logo img{height:32px;width:auto;display:block}
   .site-nav-links{display:flex;gap:6px;flex-wrap:wrap}
   .site-nav-link{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:7px 14px;border-radius:2px;text-decoration:none;color:var(--ink-dim);transition:all .2s;border:1px solid transparent}
   .site-nav-link:hover{color:var(--ink);border-color:var(--line)}
@@ -123,17 +123,26 @@
     .site-nav-link{padding:6px 10px;font-size:9px}
   }
 </style>
+  <!-- Google Analytics -->
+  <script>
+    window.GA_ID      = 'G-M8Y0LMDHM4';
+    window.ADSENSE_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+  </script>
+  <script src="/cookies.js" defer></script>
 </head>
 <body>
 <div class="wrap">
 
   <nav class="site-nav">
-    <a class="site-nav-logo" href="/index.html">Palpit<em>ia</em>r</a>
+    <a class="site-nav-logo" href="/index.html">
+    <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
+  </a>
     <div class="site-nav-links">
       <a class="site-nav-link" href="/index.html">← Início</a>
       <a class="site-nav-link" href="/mega-sena.html">Mega-Sena</a>
       <a class="site-nav-link" href="/lotofacil.html">Lotofácil</a>
       <a class="site-nav-link" href="/quina.html">Quina</a>
+      <a class="site-nav-link" href="/analisar.html">Analisador</a>
       <a class="site-nav-link blog-active" href="/blog.html">Blog</a>
     </div>
   </nav>
@@ -279,6 +288,87 @@
         <div class="card-footer">
           <span class="card-date">28 mai 2026</span>
           <span class="card-read">9 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 10: Aposta Consciente -->
+    <a class="article-card" href="/artigo-aposta-consciente.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Geral · Jogo Responsável</span>
+        <h2 class="card-title">Aposta Consciente: Como Jogar na Loteria com Responsabilidade e Prazer</h2>
+        <p class="card-excerpt">Orçamento, frequência de jogo, expectativa realista e os sinais de alerta do jogo problemático. Tudo o que você precisa saber para jogar bem sem comprometer as finanças.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 11: IA e estratégia de loteria -->
+    <a class="article-card" href="/artigo-ia-estrategia-loterias.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Inteligência Artificial · Estratégia</span>
+        <h2 class="card-title">Como a IA Auxilia nas Estratégias de Loteria — e Por Que Vai Além de Sortear Dezenas</h2>
+        <p class="card-excerpt">Entenda o que a Inteligência Artificial realmente faz ao gerar combinações: análise de frequência, paridade, soma e distribuição sobre 13.700+ concursos históricos reais.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">9 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 12: Análise histórica da Quina -->
+    <a class="article-card" href="/artigo-analise-historica-quina.html" data-cat="quina">
+      <div class="card-top qn"></div>
+      <div class="card-body">
+        <span class="card-tag qn">Quina · Análise Estatística</span>
+        <h2 class="card-title">Análise Completa da Série Histórica da Quina: o Que 7.031 Concursos Revelam</h2>
+        <p class="card-excerpt">Dezenas mais frequentes, distribuição par/ímpar, intervalos de soma, cobertura do universo 1–80 e padrões históricos consolidados em mais de 32 anos de sorteios da Quina.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">10 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-como-funciona-mega-sena.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Guia Completo</span>
+        <h2 class="card-title">Como Funciona a Mega-Sena: Regras, Apostas e Como Ganhar</h2>
+        <p class="card-excerpt">Entenda como funciona a Mega-Sena: regras oficiais, tipos de aposta, faixas de premiação, probabilidades e dicas baseadas em dados históricos de 3.000+ concursos.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-mega-da-virada-2026.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Concurso Especial</span>
+        <h2 class="card-title">Mega da Virada 2026: Data, Prêmio Estimado e Como Apostar</h2>
+        <p class="card-excerpt">Mega da Virada 2026: saiba quando é, qual o prêmio estimado, como apostar, regras do concurso especial e por que esse sorteio é diferente dos demais.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">7 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-probabilidade-mega-sena.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Matemática</span>
+        <h2 class="card-title">Probabilidade de Ganhar na Mega-Sena: Os Números Reais</h2>
+        <p class="card-excerpt">Qual a probabilidade real de ganhar na Mega-Sena? Analisamos os números de todas as faixas, comparamos com outros eventos e explicamos o que a matemática diz sobre suas chances.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">8 min →</span>
         </div>
       </div>
     </a>
