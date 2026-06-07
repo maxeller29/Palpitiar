@@ -1105,15 +1105,15 @@ footer a:hover { color: var(--gold); }
     <div class="lottery-selector">
       <button class="lottery-btn" id="btn-mega" onclick="selectLoteria('mega')">
         <div class="lb-name">Mega-Sena</div>
-        <div class="lb-info">6 dezenas · 1–60 · 3.009 concursos</div>
+        <div class="lb-info" id="info-mega">6 dezenas · 1–60 · 3.009 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-lotofacil" onclick="selectLoteria('lotofacil')">
         <div class="lb-name">Lotofácil</div>
-        <div class="lb-info">15 dezenas · 1–25 · 3.690 concursos</div>
+        <div class="lb-info" id="info-lotofacil">15 dezenas · 1–25 · 3.690 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-quina" onclick="selectLoteria('quina')">
         <div class="lb-name">Quina</div>
-        <div class="lb-info">5 dezenas · 1–80 · 7.031 concursos</div>
+        <div class="lb-info" id="info-quina">5 dezenas · 1–80 · 7.031 concursos</div>
       </button>
     </div>
   </div>
@@ -2364,6 +2364,31 @@ function formatarMoeda(valor) {
   if (isNaN(n)) return valor;
   return 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+// ── Atualizar contadores de concursos nos cards ──────────
+// Lê apenas os primeiros bytes de cada JSON para pegar totalConcursos
+(async function atualizarContadores() {
+  const loterias = [
+    { arquivo: 'mega-sena-historico.json',  info: '6 dezenas · 1–60',  elId: 'info-mega'      },
+    { arquivo: 'lotofacil-historico.json',  info: '15 dezenas · 1–25', elId: 'info-lotofacil' },
+    { arquivo: 'quina-historico.json',       info: '5 dezenas · 1–80',  elId: 'info-quina'     }
+  ];
+  for (const lot of loterias) {
+    try {
+      const res = await fetch(lot.arquivo + '?v=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Range': 'bytes=0-499' }
+      });
+      const texto = await res.text();
+      const match = texto.match(/"totalConcursos"\s*:\s*(\d+)/);
+      if (match) {
+        const total = Number(match[1]).toLocaleString('pt-BR');
+        const el = document.getElementById(lot.elId);
+        if (el) el.textContent = lot.info + ' · ' + total + ' concursos';
+      }
+    } catch (_) { /* mantém valor padrão */ }
+  }
+})();
 </script>
 </body>
 </html>
