@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Lotoia</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#090f09; --ink:#f0ece0; --ink-dim:rgba(240,236,224,.62); --ink-faint:rgba(240,236,224,.25);
+  --gold:#d4a84b; --green:#4caf7d; --blue:#6b8cda; --red:#c4452d; --line:rgba(240,236,224,.11);
+  --display:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 80% 20%,rgba(212,168,75,.06),transparent 60%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:24px}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.hdr-logo{font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;text-decoration:none;color:var(--ink)}
+.hdr-logo em{color:var(--gold);font-style:normal}
+.hdr-badge{font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;background:rgba(212,168,75,.15);border:1px solid rgba(212,168,75,.3);color:var(--gold);padding:5px 12px;border-radius:999px}
+.back{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);text-decoration:none}
+.back:hover{color:var(--ink)}
+
+/* TOTAIS GERAIS */
+.totais{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;margin-bottom:28px}
+.totais-cell{padding:18px 22px;border-right:1px solid var(--line);background:rgba(255,255,255,.02)}
+.totais-cell:last-child{border-right:none;background:rgba(76,175,125,.06)}
+.tc-label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px}
+.tc-value{font-family:var(--display);font-weight:600;font-size:26px;letter-spacing:-.02em;color:var(--gold)}
+.tc-value.green{color:var(--green)}
+.tc-meta{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:3px}
+
+/* CONFERÊNCIA POR LOTERIA */
+.conferir-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.loteria-card-admin{border:1px solid var(--line);border-radius:2px;overflow:hidden;background:rgba(255,255,255,.02)}
+.lca-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+.lca-nome{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.01em}
+.ms .lca-nome{color:var(--gold)}
+.lf .lca-nome{color:var(--green)}
+.qn .lca-nome{color:var(--blue)}
+.lca-pendentes{font-family:var(--mono);font-size:10px;color:var(--ink-dim)}
+.lca-body{padding:16px 20px}
+.lca-input-row{display:flex;gap:8px;margin-bottom:12px;align-items:flex-end}
+.lca-field{display:flex;flex-direction:column;gap:4px;flex:1}
+.lca-field label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)}
+.lca-field input{padding:8px 12px;background:var(--bg);border:1px solid var(--line);border-radius:2px;color:var(--ink);font-family:var(--display);font-size:16px;font-weight:600;outline:none;width:100%;transition:border-color .2s}
+.lca-field input:focus{border-color:var(--gold)}
+.btn{padding:10px 18px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
+.btn-ms{background:var(--gold);color:var(--bg)}
+.btn-ms:hover{background:#e8c474;transform:translateY(-1px)}
+.btn-lf{background:var(--green);color:var(--bg)}
+.btn-lf:hover{background:#6fcf97;transform:translateY(-1px)}
+.btn-qn{background:var(--blue);color:var(--bg)}
+.btn-qn:hover{background:#8aaaf0;transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1px solid var(--line);color:var(--ink-dim)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:7px 14px;font-size:9px}
+.lca-log{font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--ink-dim);min-height:40px;padding:10px 12px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:2px;white-space:pre-line}
+.log-ok{color:var(--green)}
+.log-err{color:var(--red)}
+.log-info{color:var(--gold)}
+
+/* RESUMO POR FAIXA */
+.resumo-section{margin-bottom:28px}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
+.resumo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.resumo-card{border:1px solid var(--line);border-radius:2px;overflow:hidden;background:rgba(255,255,255,.02)}
+.rc-header{padding:12px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.ms .rc-header{color:var(--gold);background:rgba(212,168,75,.06)}
+.lf .rc-header{color:var(--green);background:rgba(76,175,125,.06)}
+.qn .rc-header{color:var(--blue);background:rgba(107,140,218,.06)}
+.rc-body{padding:0}
+.faixa-row{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
+.faixa-row:last-child{border-bottom:none}
+.faixa-nome{color:var(--ink-dim)}
+.faixa-count{color:var(--ink);font-weight:600;min-width:40px;text-align:center}
+.faixa-valor{color:var(--green);font-weight:600;min-width:100px;text-align:right}
+.faixa-valor.zero{color:var(--ink-faint)}
+
+/* TABELA */
+.tabela-section{margin-bottom:28px}
+.tabela-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-dim);cursor:pointer;transition:all .2s}
+.filter-btn.active-all,.filter-btn.f-active{background:rgba(212,168,75,.15);border-color:rgba(212,168,75,.4);color:var(--gold)}
+.filter-btn.ms.f-active{background:rgba(212,168,75,.15);border-color:rgba(212,168,75,.4);color:var(--gold)}
+.filter-btn.lf.f-active{background:rgba(76,175,125,.15);border-color:rgba(76,175,125,.4);color:var(--green)}
+.filter-btn.qn.f-active{background:rgba(107,140,218,.15);border-color:rgba(107,140,218,.4);color:var(--blue)}
+.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+thead th{padding:11px 14px;text-align:left;background:rgba(212,168,75,.06);color:var(--gold);font-size:9px;letter-spacing:.16em;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink-dim);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(212,168,75,.03);color:var(--ink)}
+.td-ms{color:var(--gold);font-weight:600}
+.td-lf{color:var(--green);font-weight:600}
+.td-qn{color:var(--blue);font-weight:600}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:9px;font-weight:600;letter-spacing:.08em}
+.badge-pendente{background:rgba(240,236,224,.05);color:var(--ink-faint);border:1px solid var(--line)}
+.badge-premiada{background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3)}
+.badge-expirada{background:rgba(196,69,45,.1);color:var(--red);border:1px solid rgba(196,69,45,.3)}
+.pagination{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--ink-dim);flex-wrap:wrap;gap:10px}
+.page-btns{display:flex;gap:6px}
+.page-btn{padding:6px 14px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--ink-dim);cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;transition:all .2s}
+.page-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+.empty{text-align:center;padding:40px;color:var(--ink-faint);font-family:var(--mono);font-size:11px}
+
+/* PRÊMIO MANUAL */
+.manual-panel{border:1px solid rgba(212,168,75,.3);border-radius:2px;padding:18px 22px;background:rgba(212,168,75,.04);margin-bottom:28px}
+.manual-title{font-family:var(--display);font-weight:600;font-size:16px;color:var(--gold);margin-bottom:14px}
+.manual-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.manual-field{display:flex;flex-direction:column;gap:4px}
+.manual-field label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)}
+.manual-field input{padding:8px 12px;background:var(--bg);border:1px solid var(--line);border-radius:2px;color:var(--ink);font-family:var(--mono);font-size:15px;font-weight:600;outline:none;transition:border-color .2s}
+.manual-field input:focus{border-color:var(--gold)}
+.manual-log{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+
+/* HISTÓRICO DE SORTEIOS */
+.historico-section{margin-bottom:28px}
+
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-align:center}
+
+@media(max-width:900px){
+  .conferir-grid,.resumo-grid{grid-template-columns:1fr}
+  .totais{grid-template-columns:1fr 1fr}
+  .totais-cell:nth-child(2){border-right:none}
+  .totais-cell:nth-child(3){border-top:1px solid var(--line)}
+}
+@media(max-width:600px){
+  .wrap{padding:14px}
+  .totais{grid-template-columns:1fr}
+  .totais-cell{border-right:none;border-bottom:1px solid var(--line)}
+  .totais-cell:last-child{border-bottom:none}
+}
+</style>
+  <!-- Google Analytics -->
+  <script>
+    window.GA_ID      = 'G-M8Y0LMDHM4';
+    window.ADSENSE_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+  </script>
+  <script src="/cookies.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hdr">
+  <div style="display:flex;align-items:center;gap:14px">
+    <a class="hdr-logo" href="index.html">Palpit<em>ar</em></a>
+    <span class="hdr-badge">Administração</span>
+  </div>
+  <a class="back" href="index.html">← Voltar ao site</a>
+</header>
+
+<!-- TOTAIS GERAIS -->
+<div class="totais" id="totaisGerais" style="grid-template-columns:repeat(4,1fr)">
+  <div class="totais-cell">
+    <div class="tc-label">Combinações salvas</div>
+    <div class="tc-value" id="tcTotal">—</div>
+    <div class="tc-meta">atualmente no banco</div>
+  </div>
+  <div class="totais-cell">
+    <div class="tc-label">Pendentes</div>
+    <div class="tc-value" id="tcPendentes">—</div>
+    <div class="tc-meta">aguardam conferência</div>
+  </div>
+  <div class="totais-cell">
+    <div class="tc-label">Premiadas</div>
+    <div class="tc-value" id="tcPremiadas">—</div>
+    <div class="tc-meta">combinações com prêmio</div>
+  </div>
+  <div class="totais-cell">
+    <div class="tc-label">💰 Total em prêmios</div>
+    <div class="tc-value green" id="tcValor">R$ 0,00</div>
+    <div class="tc-meta" id="tcSorteios">0 sorteios conferidos</div>
+  </div>
+</div>
+
+<!-- Contadores de geradas por loteria -->
+<div class="sec-title" style="margin-top:0">Combinações geradas (histórico total)</div>
+<div class="totais" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px">
+  <div class="totais-cell ms" style="border-top:3px solid #009a44">
+    <div class="tc-label" style="color:#009a44">Mega-Sena geradas</div>
+    <div class="tc-value" id="ctMS" style="color:#009a44">—</div>
+    <div class="tc-meta">combinações desde o início</div>
+  </div>
+  <div class="totais-cell lf" style="border-top:3px solid #8e24aa">
+    <div class="tc-label" style="color:#8e24aa">Lotofácil geradas</div>
+    <div class="tc-value" id="ctLF" style="color:#8e24aa">—</div>
+    <div class="tc-meta">combinações desde o início</div>
+  </div>
+  <div class="totais-cell qn" style="border-top:3px solid #1565c0">
+    <div class="tc-label" style="color:#1565c0">Quina geradas</div>
+    <div class="tc-value" id="ctQN" style="color:#1565c0">—</div>
+    <div class="tc-meta">combinações desde o início</div>
+  </div>
+</div>
+
+<!-- CONFERÊNCIA POR LOTERIA -->
+<div class="sec-title">Conferir sorteios</div>
+<div class="conferir-grid">
+
+  <!-- MEGA-SENA -->
+  <div class="loteria-card-admin ms">
+    <div class="lca-header">
+      <span class="lca-nome">Mega-Sena</span>
+      <span class="lca-pendentes" id="pendMS">— pendentes</span>
+    </div>
+    <div class="lca-body">
+      <div class="lca-input-row">
+        <div class="lca-field">
+          <label>Concurso (opcional)</label>
+          <input type="number" id="concMS" placeholder="automático" min="1">
+        </div>
+        <button class="btn btn-ms" id="btnMS">Conferir</button>
+        <button class="btn btn-outline btn-sm" id="btnTodosMS" title="Confere todos os concursos pendentes">Todos</button>
+      </div>
+      <div class="lca-log" id="logMS">Aguardando...</div>
+    </div>
+  </div>
+
+  <!-- LOTOFÁCIL -->
+  <div class="loteria-card-admin lf">
+    <div class="lca-header">
+      <span class="lca-nome">Lotofácil</span>
+      <span class="lca-pendentes" id="pendLF">— pendentes</span>
+    </div>
+    <div class="lca-body">
+      <div class="lca-input-row">
+        <div class="lca-field">
+          <label>Concurso (opcional)</label>
+          <input type="number" id="concLF" placeholder="automático" min="1">
+        </div>
+        <button class="btn btn-lf" id="btnLF">Conferir</button>
+        <button class="btn btn-outline btn-sm" id="btnTodosLF" title="Confere todos os concursos pendentes">Todos</button>
+      </div>
+      <div class="lca-log" id="logLF">Aguardando...</div>
+    </div>
+  </div>
+
+  <!-- QUINA -->
+  <div class="loteria-card-admin qn">
+    <div class="lca-header">
+      <span class="lca-nome">Quina</span>
+      <span class="lca-pendentes" id="pendQN">— pendentes</span>
+    </div>
+    <div class="lca-body">
+      <div class="lca-input-row">
+        <div class="lca-field">
+          <label>Concurso (opcional)</label>
+          <input type="number" id="concQN" placeholder="automático" min="1">
+        </div>
+        <button class="btn btn-qn" id="btnQN">Conferir</button>
+        <button class="btn btn-outline btn-sm" id="btnTodosQN" title="Confere todos os concursos pendentes">Todos</button>
+      </div>
+      <div class="lca-log" id="logQN">Aguardando...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RESUMO POR FAIXA -->
+<div class="resumo-section">
+  <div class="sec-title">Prêmios acumulados por faixa</div>
+  <div class="resumo-grid">
+    <div class="resumo-card ms">
+      <div class="rc-header">Mega-Sena</div>
+      <div class="rc-body" id="resumoMS"><div class="empty">Carregando...</div></div>
+    </div>
+    <div class="resumo-card lf">
+      <div class="rc-header">Lotofácil</div>
+      <div class="rc-body" id="resumoLF"><div class="empty">Carregando...</div></div>
+    </div>
+    <div class="resumo-card qn">
+      <div class="rc-header">Quina</div>
+      <div class="rc-body" id="resumoQN"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRÊMIO VARIÁVEL MANUAL -->
+<div class="manual-panel">
+  <div class="manual-title">★ Registrar prêmio variável manualmente</div>
+  <div class="manual-row">
+    <div class="manual-field">
+      <label>ID da combinação (coluna # abaixo)</label>
+      <input type="number" id="mId" placeholder="ex: 42" min="1" style="width:130px">
+    </div>
+    <div class="manual-field" style="flex:1">
+      <label>Valor do prêmio (R$)</label>
+      <input type="number" id="mValor" placeholder="ex: 1967.29" min="0.01" step="0.01">
+    </div>
+    <button class="btn btn-outline" id="btnManual" style="border-color:var(--gold);color:var(--gold)">Registrar</button>
+  </div>
+  <div class="manual-log" id="logManual"></div>
+</div>
+
+<!-- TABELA DE COMBINAÇÕES -->
+<div class="tabela-section">
+  <div class="sec-title">Combinações</div>
+  <div class="tabela-controls">
+    <span style="font-family:var(--mono);font-size:10px;color:var(--ink-dim)">Filtrar:</span>
+    <button class="filter-btn f-active" data-f="todas">Todas</button>
+    <button class="filter-btn" data-f="pendente">Pendentes</button>
+    <button class="filter-btn" data-f="premiada">Premiadas</button>
+    <button class="filter-btn ms" data-f="ms">Mega-Sena</button>
+    <button class="filter-btn lf" data-f="lf">Lotofácil</button>
+    <button class="filter-btn qn" data-f="qn">Quina</button>
+    <button class="btn btn-outline btn-sm" id="btnRefresh" style="margin-left:auto">↻ Atualizar</button>
+    <button class="btn btn-outline btn-sm" id="btnExpirar" style="border-color:var(--red);color:var(--red)">Expirar antigas</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Loteria</th><th>Concurso</th><th>Dezenas</th>
+          <th>Estratégia</th><th>Gerado em</th><th>Status</th>
+          <th>Faixa</th><th>Acertos</th><th>Prêmio R$</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+  <div class="pagination">
+    <span id="pageInfo">—</span>
+    <div class="page-btns">
+      <button class="page-btn" id="btnPrev" disabled>← Anterior</button>
+      <button class="page-btn" id="btnNext" disabled>Próxima →</button>
+    </div>
+  </div>
+</div>
+
+<footer>Lotoia · Painel Administrativo · Dados via Supabase</footer>
+</div>
+
+<script src="/lotoia-db.js" defer></script>
+<script>
+const PAGE = 30;
+let allData = [];
+
+function fmtBRL(v) {
+  if (v == null) return '—';
+  return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2});
+}
+function fmtData(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function lotLabel(l) {
+  return {
+    'mega-sena':'Mega-Sena','lotofacil':'Lotofácil','quina':'Quina'
+  }[l]||l;
+}
+function lotClass(l) {
+  return {'mega-sena':'td-ms','lotofacil':'td-lf','quina':'td-qn'}[l]||'';
+}
+function setLog(id, html, cls='') {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<span class="${cls}">${html}</span>`;
+}
+
+function aguardar(fn, t=40) {
+  if (window.LotoiaDB?.configurado()) { fn(); return; }
+  if (t<=0) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="10" class="empty log-err">Erro: lotoia-db.js não carregado.</td></tr>';
+    return;
+  }
+  setTimeout(()=>aguardar(fn,t-1), 300);
+}
+
+// ===== TOTAIS =====
+async function carregarTotais() {
+  try {
+    const [t, contadores] = await Promise.all([
+      window.LotoiaDB.buscarTotaisGerais(),
+      window.LotoiaDB.buscarContadoresGerados(),
+    ]);
+    document.getElementById('tcTotal').textContent     = t.totalCombinacoes.toLocaleString('pt-BR');
+    document.getElementById('tcPremiadas').textContent = t.totalPremiadas.toLocaleString('pt-BR');
+    document.getElementById('tcValor').textContent     = fmtBRL(t.valorTotal);
+    document.getElementById('tcSorteios').textContent  = `${t.totalSorteios} sorteio${t.totalSorteios!==1?'s':''} conferido${t.totalSorteios!==1?'s':''}`;
+
+    // Contadores históricos por loteria
+    if (document.getElementById('ctMS')) {
+      document.getElementById('ctMS').textContent = (contadores['mega-sena']||0).toLocaleString('pt-BR');
+      document.getElementById('ctLF').textContent = (contadores['lotofacil']||0).toLocaleString('pt-BR');
+      document.getElementById('ctQN').textContent = (contadores['quina']||0).toLocaleString('pt-BR');
+    }
+
+    // Pendentes por loteria — usando count nativo do Supabase (sem limite de 1.000 linhas)
+    // SUPABASE_URL e SUPABASE_KEY são variáveis globais definidas em lotoia-db.js
+    async function contarPendentes(loteria) {
+      const url = `${SUPABASE_URL}/rest/v1/combinacoes?status=eq.pendente&loteria=eq.${loteria}&select=id`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'count=exact',
+          'Range': '0-0'
+        }
+      });
+      const range = res.headers.get('Content-Range') || '';
+      // Content-Range: 0-0/TOTAL  ou  */TOTAL
+      const match = range.match(/\/(\d+)$/);
+      return match ? parseInt(match[1], 10) : 0;
+    }
+
+    const [cntMS, cntLF, cntQN] = await Promise.all([
+      contarPendentes('mega-sena'),
+      contarPendentes('lotofacil'),
+      contarPendentes('quina'),
+    ]);
+    document.getElementById('tcPendentes').textContent =
+      (cntMS + cntLF + cntQN).toLocaleString('pt-BR');
+    document.getElementById('pendMS').textContent = `${cntMS.toLocaleString('pt-BR')} pendente${cntMS!==1?'s':''}`;
+    document.getElementById('pendLF').textContent = `${cntLF.toLocaleString('pt-BR')} pendente${cntLF!==1?'s':''}`;
+    document.getElementById('pendQN').textContent = `${cntQN.toLocaleString('pt-BR')} pendente${cntQN!==1?'s':''}`;
+  } catch(e) { console.warn('Totais err:', e); }
+}
+
+// ===== RESUMO POR FAIXA =====
+async function carregarResumo() {
+  try {
+    const resumo = await window.LotoiaDB.buscarResumoPorLoteria();
+    const ids = {'mega-sena':'resumoMS','lotofacil':'resumoLF','quina':'resumoQN'};
+
+    for (const [lot, faixas] of Object.entries(resumo)) {
+      const el = document.getElementById(ids[lot]);
+      if (!el) continue;
+      const temDados = faixas.some(f=>f.total>0);
+      el.innerHTML = faixas.map(f => `
+        <div class="faixa-row">
+          <span class="faixa-nome">${f.faixa}</span>
+          <span class="faixa-count">${f.total>0?f.total:'—'}</span>
+          <span class="faixa-valor ${f.valor===0?'zero':''}">${f.valor>0?fmtBRL(f.valor):'—'}</span>
+        </div>`).join('');
+      if (!temDados) el.innerHTML = '<div class="empty" style="padding:16px">Nenhum prêmio registrado</div>';
+    }
+  } catch(e) { console.warn('Resumo err:', e); }
+}
+
+// ===== TABELA DE COMBINAÇÕES =====
+// Paginação server-side: busca PAGE registros por vez direto do Supabase
+let serverPage = 0;
+let serverFilter = 'todas';
+let serverTotal = 0;
+
+function buildFilterQuery(filter) {
+  const parts = [];
+  if (filter === 'pendente') parts.push('status=eq.pendente');
+  else if (filter === 'premiada') parts.push('status=eq.premiada');
+  else if (filter === 'ms') parts.push('loteria=eq.mega-sena');
+  else if (filter === 'lf') parts.push('loteria=eq.lotofacil');
+  else if (filter === 'qn') parts.push('loteria=eq.quina');
+  return parts.join('&');
+}
+
+async function carregarTabela() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '<tr><td colspan="10" class="empty">Carregando...</td></tr>';
+  try {
+    // SUPABASE_URL e SUPABASE_KEY são variáveis globais definidas em lotoia-db.js
+    const filterQ = buildFilterQuery(serverFilter);
+    const from = serverPage * PAGE;
+    const to = from + PAGE - 1;
+    const qs = [filterQ, 'order=id.desc'].filter(Boolean).join('&');
+    const url = `${SUPABASE_URL}/rest/v1/combinacoes?${qs}&select=*`;
+
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'count=exact',
+        'Range': `${from}-${to}`,
+        'Range-Unit': 'items'
+      }
+    });
+
+    const range = res.headers.get('Content-Range') || '';
+    const match = range.match(/\/(\d+)$/);
+    serverTotal = match ? parseInt(match[1], 10) : 0;
+
+    allData = await res.json();
+    renderTabela();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty log-err">Erro: ${e.message}</td></tr>`;
+  }
+}
+
+function renderTabela() {
+  const dados = allData;
+  const total = serverTotal;
+  const start = serverPage * PAGE;
+  const tbody = document.getElementById('tbody');
+
+  if (!dados.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Nenhum registro.</td></tr>';
+  } else {
+    tbody.innerHTML = dados.map(d => {
+      const dez = Array.isArray(d.dezenas)
+        ? d.dezenas.map(n=>String(n).padStart(2,'0')).join(' · ')
+        : d.dezenas||'—';
+      const badge = d.status==='premiada'
+        ? '<span class="badge badge-premiada">Premiada</span>'
+        : d.status==='expirada'
+        ? '<span class="badge badge-expirada">Expirada</span>'
+        : '<span class="badge badge-pendente">Pendente</span>';
+      return `<tr>
+        <td style="color:var(--ink-faint)">${d.id}</td>
+        <td class="${lotClass(d.loteria)}">${lotLabel(d.loteria)}</td>
+        <td style="color:var(--ink);font-weight:600">${d.concurso}</td>
+        <td style="font-size:10px;color:var(--ink)">${dez}</td>
+        <td style="text-transform:capitalize">${d.estrategia||'—'}</td>
+        <td style="white-space:nowrap">${fmtData(d.gerado_em)}</td>
+        <td>${badge}</td>
+        <td>${d.faixa_premiada||'—'}</td>
+        <td style="text-align:center">${d.acertos??'—'}</td>
+        <td style="color:var(--green);font-weight:600">${d.valor_premio!=null?fmtBRL(d.valor_premio):(d.faixa_premiada?'<span style="color:var(--gold);font-size:9px">informar</span>':'—')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('pageInfo').textContent =
+    total>0 ? `${start+1}–${Math.min(start+PAGE,total)} de ${total}` : '0 registros';
+  document.getElementById('btnPrev').disabled = serverPage===0;
+  document.getElementById('btnNext').disabled = start+PAGE>=total;
+}
+
+// ===== CONFERÊNCIA =====
+function buildLogHtml(r, loteria) {
+  const dez = r.dezenas?.map(d=>String(d).padStart(2,'0')).join(' · ')||'—';
+  let html = `<span class="log-info">Concurso ${r.concurso}</span> · ${dez}\n`;
+  html += `Conferidas: <b>${r.conferidas}</b>  `;
+  html += `<span class="log-ok">Premiadas: ${r.premiadas}${r.premiadas>0?' ★':''}</span>  `;
+  html += `<span style="color:var(--ink-faint)">Removidas: ${r.deletadas}</span>\n`;
+  if (r.detalhes?.length) {
+    r.detalhes.forEach(d=>{
+      html += `  → ${d.faixa} (${d.acertos} acertos)`;
+      if (d.valor!=null) html += ` = <span class="log-ok">${fmtBRL(d.valor)}</span>`;
+      else html += ` <span style="color:var(--gold)">— valor a informar manualmente</span>`;
+      html += `\n`;
+    });
+  }
+  return html;
+}
+
+async function conferir(loteria, logId, concursoInput, btn) {
+  const concursoStr = document.getElementById(concursoInput).value.trim();
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Conferindo...';
+  setLog(logId, 'Buscando resultado da Caixa...', 'log-info');
+
+  try {
+    let resultado;
+    if (concursoStr) {
+      resultado = await window.LotoiaDB.conferirConcurso(loteria, parseInt(concursoStr,10));
+    } else {
+      // Busca o concurso pendente mais antigo
+      const sb = window.LotoiaDB._sb;
+      const pend = await sb.select('combinacoes',
+        `?loteria=eq.${loteria}&status=eq.pendente&select=concurso&order=concurso.asc&limit=1`
+      );
+      if (!pend?.length) {
+        setLog(logId, 'Nenhum concurso pendente para esta loteria.', '');
+        return;
+      }
+      resultado = await window.LotoiaDB.conferirConcurso(loteria, pend[0].concurso);
+    }
+    document.getElementById(logId).innerHTML = buildLogHtml(resultado, loteria);
+    await carregarTotais();
+    await carregarResumo();
+    await carregarTabela();
+  } catch(e) {
+    setLog(logId, `Erro: ${e.message}`, 'log-err');
+  }
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+async function conferirTodos(loteria, logId, btn) {
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '...';
+  setLog(logId, 'Buscando todos os concursos pendentes...', 'log-info');
+
+  try {
+    const resultado = await window.LotoiaDB.conferirTodosPendentes(loteria, msg => {
+      document.getElementById(logId).textContent = msg;
+    });
+
+    if (resultado.concursos === 0) {
+      setLog(logId, 'Nenhum concurso pendente.', '');
+      return;
+    }
+
+    let html = `<span class="log-info">${resultado.concursos} concurso${resultado.concursos!==1?'s':''} conferido${resultado.concursos!==1?'s':''}:</span>\n`;
+    for (const r of resultado.resultados) {
+      if (r.erro) {
+        html += `Concurso ${r.concurso}: <span class="log-err">Erro — ${r.erro}</span>\n`;
+      } else {
+        html += buildLogHtml(r, loteria);
+      }
+    }
+    document.getElementById(logId).innerHTML = html;
+    await carregarTotais();
+    await carregarResumo();
+    await carregarTabela();
+  } catch(e) {
+    setLog(logId, `Erro: ${e.message}`, 'log-err');
+  }
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+// Wiring dos botões de conferência
+aguardar(() => {
+  document.getElementById('btnMS').addEventListener('click', () =>
+    conferir('mega-sena','logMS','concMS',document.getElementById('btnMS')));
+  document.getElementById('btnLF').addEventListener('click', () =>
+    conferir('lotofacil','logLF','concLF',document.getElementById('btnLF')));
+  document.getElementById('btnQN').addEventListener('click', () =>
+    conferir('quina','logQN','concQN',document.getElementById('btnQN')));
+
+  document.getElementById('btnTodosMS').addEventListener('click', () =>
+    conferirTodos('mega-sena','logMS',document.getElementById('btnTodosMS')));
+  document.getElementById('btnTodosLF').addEventListener('click', () =>
+    conferirTodos('lotofacil','logLF',document.getElementById('btnTodosLF')));
+  document.getElementById('btnTodosQN').addEventListener('click', () =>
+    conferirTodos('quina','logQN',document.getElementById('btnTodosQN')));
+
+  // Prêmio manual
+  document.getElementById('btnManual').addEventListener('click', async () => {
+    const id    = parseInt(document.getElementById('mId').value, 10);
+    const valor = parseFloat(document.getElementById('mValor').value);
+    const log   = document.getElementById('logManual');
+    if (!id || valor<=0) { log.innerHTML='<span class="log-err">Informe ID e valor válidos.</span>'; return; }
+    try {
+      await window.LotoiaDB.registrarPremioManual(id, valor);
+      log.innerHTML = `<span class="log-ok">✔ Prêmio ${fmtBRL(valor)} registrado para combinação #${id}</span>`;
+      document.getElementById('mId').value='';
+      document.getElementById('mValor').value='';
+      await carregarTotais();
+      await carregarResumo();
+      await carregarTabela();
+    } catch(e) { log.innerHTML=`<span class="log-err">Erro: ${e.message}</span>`; }
+  });
+
+  // Filtros
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('f-active'));
+      btn.classList.add('f-active');
+      serverFilter = btn.dataset.f;
+      serverPage = 0;
+      carregarTabela();
+    });
+  });
+
+  // Paginação
+  document.getElementById('btnPrev').addEventListener('click', () => { serverPage--; carregarTabela(); });
+  document.getElementById('btnNext').addEventListener('click', () => { serverPage++; carregarTabela(); });
+
+  // Refresh e expirar
+  document.getElementById('btnRefresh').addEventListener('click', async () => {
+    await Promise.all([carregarTotais(), carregarResumo(), carregarTabela()]);
+  });
+  document.getElementById('btnExpirar').addEventListener('click', async () => {
+    if (!confirm('Marcar como expiradas todas as combinações com mais de 90 dias?')) return;
+    await window.LotoiaDB.expirarAntigas();
+    await Promise.all([carregarTotais(), carregarTabela()]);
+  });
+
+  // Carrega tudo ao iniciar
+  Promise.all([carregarTotais(), carregarResumo(), carregarTabela()]);
+  setLog('logMS', 'Pronto. Informe o concurso ou deixe em branco para o mais antigo pendente.', '');
+  setLog('logLF', 'Pronto. Informe o concurso ou deixe em branco para o mais antigo pendente.', '');
+  setLog('logQN', 'Pronto. Informe o concurso ou deixe em branco para o mais antigo pendente.', '');
+});
+</script>
+</body>
+</html>

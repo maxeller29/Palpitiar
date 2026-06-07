@@ -1,0 +1,9 @@
+# Palpitiar · robots.txt
+User-agent: *
+Allow: /
+
+# Bloqueia painel administrativo
+Disallow: /admin.html
+
+# Sitemap
+Sitemap: https://palpitiar.com.br/sitemap.xml

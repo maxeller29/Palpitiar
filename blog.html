@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog · Estatísticas e Análises de Loterias · Palpitiar</title>
+<meta name="description" content="Artigos sobre estatísticas, análises e estratégias para Mega-Sena, Lotofácil e Quina. Conteúdo baseado em dados históricos reais de 13.700+ concursos.">
+<meta name="keywords" content="blog loterias, estatísticas mega-sena, análise lotofácil, estratégias quina, dados históricos loterias">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Palpitiar">
+<link rel="canonical" href="https://palpitiar.com.br/blog.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://palpitiar.com.br/blog.html">
+<meta property="og:title" content="Blog · Estatísticas e Análises de Loterias · Palpitiar">
+<meta property="og:description" content="Artigos sobre estatísticas, análises e estratégias para Mega-Sena, Lotofácil e Quina.">
+<meta property="og:image" content="https://palpitiar.com.br/icon-512.png">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Palpitiar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Blog · Palpitiar">
+<meta name="twitter:description" content="Artigos sobre estatísticas e análises de Mega-Sena, Lotofácil e Quina.">
+<meta name="twitter:image" content="https://palpitiar.com.br/icon-512.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Blog Palpitiar",
+  "url": "https://palpitiar.com.br/blog.html",
+  "description": "Artigos sobre estatísticas, análises e estratégias para loterias brasileiras.",
+  "inLanguage": "pt-BR",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Palpitiar",
+    "url": "https://palpitiar.com.br"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+  :root{--bg:#0a1a14;--bg-2:#0f2419;--ink:#f4ebd0;--ink-dim:rgba(244,235,208,.62);--ink-faint:rgba(244,235,208,.28);--gold:#d4a84b;--green:#4caf7d;--blue:#6b8cda;--line:rgba(244,235,208,.1);--display:'Fraunces',Georgia,serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:16px;line-height:1.7;min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 800px 500px at 80% 10%,rgba(212,168,75,.05),transparent 60%)}
+  .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 60px}
+
+  /* NAV */
+  .site-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:48px;flex-wrap:wrap;gap:12px}
+  .site-nav-logo{font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+  .site-nav-logo em{color:var(--gold);font-style:normal}.site-nav-logo img{height:32px;width:auto;display:block}
+  .site-nav-links{display:flex;gap:6px;flex-wrap:wrap}
+  .site-nav-link{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:7px 14px;border-radius:2px;text-decoration:none;color:var(--ink-dim);transition:all .2s;border:1px solid transparent}
+  .site-nav-link:hover{color:var(--ink);border-color:var(--line)}
+  .site-nav-link.blog-active{color:var(--gold);background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.3)}
+
+  /* HERO */
+  .blog-hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--line)}
+  .blog-tag{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:block}
+  .blog-title{font-family:var(--display);font-weight:600;font-size:clamp(32px,5vw,52px);letter-spacing:-.02em;line-height:1.1;color:var(--ink);margin-bottom:16px}
+  .blog-subtitle{font-family:var(--mono);font-size:12px;color:var(--ink-dim);line-height:1.7;max-width:600px}
+
+  /* FILTROS */
+  .filters{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap;align-items:center}
+  .filter-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
+  .filter-btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 16px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-dim);cursor:pointer;transition:all .2s}
+  .filter-btn:hover,.filter-btn.active{background:rgba(212,168,75,.12);border-color:rgba(212,168,75,.35);color:var(--gold)}
+  .filter-btn.ms.active{background:rgba(212,168,75,.12);border-color:rgba(212,168,75,.35);color:var(--gold)}
+  .filter-btn.lf.active{background:rgba(76,175,125,.12);border-color:rgba(76,175,125,.35);color:var(--green)}
+  .filter-btn.qn.active{background:rgba(107,140,218,.12);border-color:rgba(107,140,218,.35);color:var(--blue)}
+
+  /* GRID DE ARTIGOS */
+  .articles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:48px}
+  .article-card{border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,.02);overflow:hidden;transition:all .25s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+  .article-card:hover{border-color:rgba(212,168,75,.35);background:rgba(212,168,75,.04);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+  .card-top{height:4px;width:100%}
+  .card-top.ms{background:linear-gradient(90deg,var(--gold),rgba(212,168,75,.3))}
+  .card-top.lf{background:linear-gradient(90deg,var(--green),rgba(76,175,125,.3))}
+  .card-top.qn{background:linear-gradient(90deg,var(--blue),rgba(107,140,218,.3))}
+  .card-top.geral{background:linear-gradient(90deg,rgba(212,168,75,.6),rgba(76,175,125,.3))}
+  .card-body{padding:22px 22px 20px;flex:1;display:flex;flex-direction:column}
+  .card-tag{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+  .card-tag.ms{color:var(--gold)}
+  .card-tag.lf{color:var(--green)}
+  .card-tag.qn{color:var(--blue)}
+  .card-tag.geral{color:var(--ink-dim)}
+  .card-title{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.35;color:var(--ink);margin-bottom:10px;letter-spacing:-.01em}
+  .card-excerpt{font-family:var(--mono);font-size:11px;color:var(--ink-dim);line-height:1.65;flex:1;margin-bottom:16px}
+  .card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--line)}
+  .card-date{font-family:var(--mono);font-size:10px;color:var(--ink-faint)}
+  .card-read{font-family:var(--mono);font-size:10px;color:var(--gold)}
+
+  /* VAZIO */
+  .empty-state{grid-column:1/-1;text-align:center;padding:60px 24px}
+  .empty-state p{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+
+  /* CTA GERADORES */
+  .generators-cta{border:1px solid var(--line);border-radius:4px;padding:32px;background:rgba(212,168,75,.04);text-align:center;margin-bottom:48px}
+  .generators-cta h2{font-family:var(--display);font-weight:600;font-size:24px;color:var(--ink);margin-bottom:8px;letter-spacing:-.01em}
+  .generators-cta p{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-bottom:24px}
+  .cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .cta-btn{display:inline-block;padding:11px 22px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;transition:all .2s}
+  .cta-btn.ms{background:var(--gold);color:#0a1a14}
+  .cta-btn.ms:hover{background:#e8c474}
+  .cta-btn.lf{background:var(--green);color:#0a1a14}
+  .cta-btn.lf:hover{background:#6fcf97}
+  .cta-btn.qn{background:var(--blue);color:#0a1a14}
+  .cta-btn.qn:hover{background:#8aaaf0}
+
+  /* FOOTER */
+  footer{margin-top:40px;padding:24px 0;border-top:1px solid var(--line);display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
+  footer a,footer span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);text-decoration:none;transition:color .2s}
+  footer a:hover{color:var(--ink-dim)}
+
+  @media(max-width:900px){.articles-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){
+    .articles-grid{grid-template-columns:1fr}
+    .wrap{padding:0 16px 40px}
+    .cta-btns{flex-direction:column;align-items:center}
+    .site-nav-link{padding:6px 10px;font-size:9px}
+  }
+</style>
+  <!-- Google Analytics -->
+  <script>
+    window.GA_ID      = 'G-M8Y0LMDHM4';
+    window.ADSENSE_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+  </script>
+  <script src="/cookies.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="site-nav">
+    <a class="site-nav-logo" href="/index.html">
+    <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
+  </a>
+    <div class="site-nav-links">
+      <a class="site-nav-link" href="/index.html">← Início</a>
+      <a class="site-nav-link" href="/mega-sena.html">Mega-Sena</a>
+      <a class="site-nav-link" href="/lotofacil.html">Lotofácil</a>
+      <a class="site-nav-link" href="/quina.html">Quina</a>
+      <a class="site-nav-link" href="/analisar.html">Analisador</a>
+      <a class="site-nav-link blog-active" href="/blog.html">Blog</a>
+    </div>
+  </nav>
+
+  <header class="blog-hero">
+    <span class="blog-tag">Análises · Estatísticas · Estratégias</span>
+    <h1 class="blog-title">Blog Palpitiar</h1>
+    <p class="blog-subtitle">Artigos baseados em dados reais de 13.700+ concursos históricos. Estatísticas, análises e tudo o que você precisa saber sobre Mega-Sena, Lotofácil e Quina.</p>
+  </header>
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <span class="filter-label">Filtrar:</span>
+    <button class="filter-btn active" data-cat="todos">Todos</button>
+    <button class="filter-btn ms" data-cat="mega-sena">Mega-Sena</button>
+    <button class="filter-btn lf" data-cat="lotofacil">Lotofácil</button>
+    <button class="filter-btn qn" data-cat="quina">Quina</button>
+    <button class="filter-btn" data-cat="geral">Geral</button>
+  </div>
+
+  <!-- GRID DE ARTIGOS -->
+  <div class="articles-grid" id="articlesGrid">
+
+    <!-- ARTIGO 1 -->
+    <a class="article-card" href="/artigo-dezenas-mais-sorteadas-lotofacil.html" data-cat="lotofacil">
+      <div class="card-top lf"></div>
+      <div class="card-body">
+        <span class="card-tag lf">Lotofácil · Estatísticas</span>
+        <h2 class="card-title">Dezenas Mais Sorteadas na Lotofácil: Análise de 3.690 Concursos</h2>
+        <p class="card-excerpt">Quais números aparecem com mais frequência na Lotofácil? Analisamos o histórico completo e revelamos os padrões de distribuição par/ímpar e soma das dezenas.</p>
+        <div class="card-footer">
+          <span class="card-date">25 mai 2026</span>
+          <span class="card-read">7 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 2 -->
+    <a class="article-card" href="/artigo-quina-de-sao-joao-2026.html" data-cat="quina">
+      <div class="card-top qn"></div>
+      <div class="card-body">
+        <span class="card-tag qn">Concurso Especial · Quina</span>
+        <h2 class="card-title">Quina de São João 2026: R$ 250 Milhões no Maior Arraiá das Loterias</h2>
+        <p class="card-excerpt">O concurso especial nº 7051 sorteia R$ 250 milhões em 28 de junho — e o prêmio não acumula. Saiba como apostar, entenda as regras e veja a análise estatística do maior sorteio da Quina.</p>
+        <div class="card-footer">
+          <span class="card-date">26 mai 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 3 -->
+    <a class="article-card" href="/artigo-maiores-premios-loteria-mundo.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Loterias do Mundo · Recordes</span>
+        <h2 class="card-title">Os 5 Maiores Prêmios de Loteria Já Pagos no Mundo</h2>
+        <p class="card-excerpt">De US$ 2,04 bilhões na Powerball ao recorde da Mega da Virada brasileira. Conheça as histórias reais por trás dos maiores jackpots da história, com dados verificados e contexto estatístico.</p>
+        <div class="card-footer">
+          <span class="card-date">26 mai 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 4: Dezenas mais sorteadas na Mega-Sena -->
+    <a class="article-card" href="/artigo-dezenas-mais-sorteadas-megasena.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Estatísticas</span>
+        <h2 class="card-title">Dezenas mais sorteadas na Mega-Sena</h2>
+        <p class="card-excerpt">Análise de 3.010+ concursos históricos revela quais números aparecem com mais frequência. Estatísticas, padrões e dados para informar suas escolhas.</p>
+        <div class="card-footer">
+          <span class="card-date">27 mai 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 5: Como funciona a Lotofácil -->
+    <a class="article-card" href="/artigo-como-funciona-lotofacil.html" data-cat="lotofacil">
+      <div class="card-top lf"></div>
+      <div class="card-body">
+        <span class="card-tag lf">Lotofácil · Guia Completo</span>
+        <h2 class="card-title">Como funciona a Lotofácil — guia completo</h2>
+        <p class="card-excerpt">Aprenda as regras, como jogar, estrutura de prêmios, probabilidades e estratégias. Guia ideal para iniciantes que querem entender a loteria.</p>
+        <div class="card-footer">
+          <span class="card-date">27 mai 2026</span>
+          <span class="card-read">9 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 6: Quina vs Lotofácil -->
+    <a class="article-card" href="/artigo-quina-vs-lotofacil.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Comparação · Probabilidades</span>
+        <h2 class="card-title">Quina vs Lotofácil: qual tem mais chances?</h2>
+        <p class="card-excerpt">Comparação detalhada entre as duas loterias. Regras, probabilidades, frequência de prêmios e qual é melhor para seu perfil de jogador.</p>
+        <div class="card-footer">
+          <span class="card-date">27 mai 2026</span>
+          <span class="card-read">10 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 7: Prós e contras do bolão -->
+    <a class="article-card" href="/artigo-pros-contras-bolao.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Estratégia · Loterias</span>
+        <h2 class="card-title">Bolão de Loteria: Prós e Contras que Você Precisa Conhecer</h2>
+        <p class="card-excerpt">Jogar em bolão multiplica suas chances mas divide o prêmio. Entenda as vantagens, os riscos reais e como formalizar um bolão sem conflitos.</p>
+        <div class="card-footer">
+          <span class="card-date">28 mai 2026</span>
+          <span class="card-read">7 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 8: Gerador com IA e estatística -->
+    <a class="article-card" href="/artigo-gerador-ia-estatistica-loteria.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Tecnologia · Estratégia</span>
+        <h2 class="card-title">Gerador com IA e Estatística Histórica: o que Muda na Prática?</h2>
+        <p class="card-excerpt">Como a análise de milhares de concursos reais e a Inteligência Artificial transformam a forma de escolher combinações — e quais são os limites honestos dessa abordagem.</p>
+        <div class="card-footer">
+          <span class="card-date">28 mai 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 9: Cartão simples vs. mais dezenas -->
+    <a class="article-card" href="/artigo-cartao-simples-vs-mais-dezenas.html" data-cat="lotofacil">
+      <div class="card-top lf"></div>
+      <div class="card-body">
+        <span class="card-tag lf">Matemática · Estratégia</span>
+        <h2 class="card-title">Cartão Simples ou Mais Dezenas com o Mesmo Orçamento?</h2>
+        <p class="card-excerpt">1 cartão de 17 dezenas na Lotofácil equivale a 136 jogos simples. Análise matemática completa: quando cada estratégia faz mais sentido e qual garante mais prêmios secundários.</p>
+        <div class="card-footer">
+          <span class="card-date">28 mai 2026</span>
+          <span class="card-read">9 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 10: Aposta Consciente -->
+    <a class="article-card" href="/artigo-aposta-consciente.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Geral · Jogo Responsável</span>
+        <h2 class="card-title">Aposta Consciente: Como Jogar na Loteria com Responsabilidade e Prazer</h2>
+        <p class="card-excerpt">Orçamento, frequência de jogo, expectativa realista e os sinais de alerta do jogo problemático. Tudo o que você precisa saber para jogar bem sem comprometer as finanças.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 11: IA e estratégia de loteria -->
+    <a class="article-card" href="/artigo-ia-estrategia-loterias.html" data-cat="geral">
+      <div class="card-top geral"></div>
+      <div class="card-body">
+        <span class="card-tag geral">Inteligência Artificial · Estratégia</span>
+        <h2 class="card-title">Como a IA Auxilia nas Estratégias de Loteria — e Por Que Vai Além de Sortear Dezenas</h2>
+        <p class="card-excerpt">Entenda o que a Inteligência Artificial realmente faz ao gerar combinações: análise de frequência, paridade, soma e distribuição sobre 13.700+ concursos históricos reais.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">9 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- ARTIGO 12: Análise histórica da Quina -->
+    <a class="article-card" href="/artigo-analise-historica-quina.html" data-cat="quina">
+      <div class="card-top qn"></div>
+      <div class="card-body">
+        <span class="card-tag qn">Quina · Análise Estatística</span>
+        <h2 class="card-title">Análise Completa da Série Histórica da Quina: o Que 7.031 Concursos Revelam</h2>
+        <p class="card-excerpt">Dezenas mais frequentes, distribuição par/ímpar, intervalos de soma, cobertura do universo 1–80 e padrões históricos consolidados em mais de 32 anos de sorteios da Quina.</p>
+        <div class="card-footer">
+          <span class="card-date">1 jun 2026</span>
+          <span class="card-read">10 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-como-funciona-mega-sena.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Guia Completo</span>
+        <h2 class="card-title">Como Funciona a Mega-Sena: Regras, Apostas e Como Ganhar</h2>
+        <p class="card-excerpt">Entenda como funciona a Mega-Sena: regras oficiais, tipos de aposta, faixas de premiação, probabilidades e dicas baseadas em dados históricos de 3.000+ concursos.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-mega-da-virada-2026.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Concurso Especial</span>
+        <h2 class="card-title">Mega da Virada 2026: Data, Prêmio Estimado e Como Apostar</h2>
+        <p class="card-excerpt">Mega da Virada 2026: saiba quando é, qual o prêmio estimado, como apostar, regras do concurso especial e por que esse sorteio é diferente dos demais.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">7 min →</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="article-card" href="/artigo-probabilidade-mega-sena.html" data-cat="mega-sena">
+      <div class="card-top ms"></div>
+      <div class="card-body">
+        <span class="card-tag ms">Mega-Sena · Matemática</span>
+        <h2 class="card-title">Probabilidade de Ganhar na Mega-Sena: Os Números Reais</h2>
+        <p class="card-excerpt">Qual a probabilidade real de ganhar na Mega-Sena? Analisamos os números de todas as faixas, comparamos com outros eventos e explicamos o que a matemática diz sobre suas chances.</p>
+        <div class="card-footer">
+          <span class="card-date">2 jun 2026</span>
+          <span class="card-read">8 min →</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- CTA GERADORES -->
+  <div class="generators-cta">
+    <h2>Coloque a análise em prática</h2>
+    <p>Gere combinações com Inteligência Artificial baseadas em todo o histórico. Grátis e sem cadastro.</p>
+    <div class="cta-btns">
+      <a class="cta-btn ms" href="/mega-sena.html">Mega-Sena →</a>
+      <a class="cta-btn lf" href="/lotofacil.html">Lotofácil →</a>
+      <a class="cta-btn qn" href="/quina.html">Quina →</a>
+    </div>
+  </div>
+
+  <footer>
+    <a href="/index.html">Início</a>
+    <a href="/blog.html">Blog</a>
+    <a href="/sobre.html">Sobre</a>
+    <a href="/privacidade.html">Privacidade</a>
+    <a href="/termos.html">Termos de Uso</a>
+    <a href="/contato.html">Contato</a>
+    <span>Palpitiar · 2026</span>
+  </footer>
+
+</div>
+
+<script>
+/* Filtro de categorias */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.article-card').forEach(card => {
+      card.style.display = (cat === 'todos' || card.dataset.cat === cat) ? 'flex' : 'none';
+    });
+  });
+});
+</script>
+
+</body>
+</html>

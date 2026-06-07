@@ -1,0 +1,51 @@
+{
+  "name": "Lotoia · Gerador Estatístico de Loterias",
+  "short_name": "Lotoia",
+  "description": "Combinações para Mega-Sena, Lotofácil e Quina geradas por IA com base na série histórica completa.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090f09",
+  "theme_color": "#d4a84b",
+  "lang": "pt-BR",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Mega-Sena",
+      "short_name": "Mega-Sena",
+      "description": "Gerar combinações para a Mega-Sena",
+      "url": "/mega-sena.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Lotofácil",
+      "short_name": "Lotofácil",
+      "description": "Gerar combinações para a Lotofácil",
+      "url": "/lotofacil.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quina",
+      "short_name": "Quina",
+      "description": "Gerar combinações para a Quina",
+      "url": "/quina.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
