@@ -35,7 +35,7 @@
   </url>
   <url>
     <loc>https://palpitiar.com.br/blog.html</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -150,6 +150,12 @@
   <url>
     <loc>https://palpitiar.com.br/artigo-probabilidade-mega-sena.html</loc>
     <lastmod>2026-06-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://palpitiar.com.br/artigo-dezenas-quentes-nao-bastam.html</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
