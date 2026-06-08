@@ -1082,20 +1082,20 @@ function qualidadeOk(dz,estrategia) {
   if(a.maxSeq>Math.max(HIST.consec_max,Math.ceil(k*.4)))return false;
   if(k>=5&&a.faixas20.filter(f=>f>0).length<2)return false;
 
-  // ── Novos filtros alinhados com o analisador ──────────
+  // ── Filtros calibrados na série histórica da Quina ──────
   const s=a.sorted;
-  // Span: rejeitar span < 24 (30% de 80)
-  if(s[s.length-1]-s[0]<24)return false;
-  // PA: variância das diffs ≤ 1 → 0.27% dos sorteios reais
+  // Span: span < 20 = 1.15% dos sorteios reais
+  if(s[s.length-1]-s[0]<20)return false;
+  // PA: variância das diffs <= 1.0 = 0.27% dos sorteios (19 em 7044)
   const dfs=s.slice(1).map((v,i)=>v-s[i]);
   const dm=dfs.reduce((t,x)=>t+x,0)/dfs.length;
   if(dfs.reduce((t,x)=>t+(x-dm)**2,0)/dfs.length<=1.0)return false;
-  // Unidade: 4+ dezenas mesmo dígito final
+  // Unidade: 4+ dezenas mesmo dígito = 0.20% dos sorteios
   const uc={}; for(const n of s){const u=n%10;uc[u]=(uc[u]||0)+1;}
   if(Math.max(...Object.values(uc))>=4)return false;
-  // Buraco: gap > 50 é raro
+  // Buraco: gap > 50 entre adjacentes
   if(Math.max(...dfs)>50)return false;
-  // Metades: exige pelo menos 1 dezena em cada metade (1-40, 41-80)
+  // Metades: pelo menos 1 dezena em cada metade (1-40 e 41-80)
   if(s.filter(n=>n<=40).length===0||s.filter(n=>n>40).length===0)return false;
 
   return true;

@@ -1216,6 +1216,7 @@ function analisar(draws) {
 
   return { freq, atraso, quentes, frias, mediaPares, somaMedia,
            somaMin: Math.min(...somas), somaMax: Math.max(...somas),
+           top10: new Set([...Array.from({length:80},(_,i)=>({n:i+1,f:freq[i+1]})).sort((a,b)=>b.f-a.f).slice(0,10).map(x=>x.n)]),
            sorteadas5, comAcertadores: draws.filter(d=>d[3]>0).length,
            totalAnalisado: N, acumuladoQtd };
 }
@@ -1260,37 +1261,37 @@ function qualidadeCartao(dz, estrategia) {
   const faixasUsadas = a.faixas20.filter(f=>f>0).length;
   if (k >= 5 && faixasUsadas < 2) return false;
 
-  // ── NOVOS FILTROS: alinhados com o analisador ────────────
-  const sorted = a.sorted;
+  // ── NOVOS FILTROS calibrados na série histórica (7044 concursos) ──
+  const s = a.sorted;
 
-  // Span geográfico: amplitude entre menor e maior dezena
-  // Quina range 1-80: span ≤ 24 (30% de 80) é raríssimo
-  const span = sorted[sorted.length - 1] - sorted[0];
-  const spanMin = Math.round(80 * 0.30); // 24
-  if (span < spanMin) return false;
+  // 5. Span: span < 20 = 1.15% dos sorteios reais → rejeitar
+  const span = s[s.length-1] - s[0];
+  if (span < 20) return false;
 
-  // PA (progressão aritmética): variância das diffs entre consecutivas
-  // Quina var≤1.0: ocorreu apenas 0.27% dos sorteios (19 em 7031)
-  const diffs = sorted.slice(1).map((v, i) => v - sorted[i]);
-  const diffMean = diffs.reduce((s, x) => s + x, 0) / diffs.length;
-  const diffVar  = diffs.reduce((s, x) => s + (x - diffMean) ** 2, 0) / diffs.length;
-  if (diffVar <= 1.0) return false;
+  // 6. PA (progressão aritmética): var <= 1.0 = 0.27% dos sorteios (19 em 7044)
+  const dfs = s.slice(1).map((v,i)=>v-s[i]);
+  const dm = dfs.reduce((t,x)=>t+x,0)/dfs.length;
+  const dv = dfs.reduce((t,x)=>t+(x-dm)**2,0)/dfs.length;
+  if (dv <= 1.0) return false;
 
-  // Unidade (dígito final): rejeitar 4+ dezenas com mesmo dígito
-  // 4 iguais de 5: 0.20% dos sorteios; 5 iguais: nunca
-  const uCount = {};
-  for (const n of sorted) { const u = n % 10; uCount[u] = (uCount[u] || 0) + 1; }
-  if (Math.max(...Object.values(uCount)) >= 4) return false;
+  // 7. Unidade: 4+ dezenas com mesmo dígito final = 0.20% (14x em 7044)
+  const uc = {};
+  for (const n of s) { const u=n%10; uc[u]=(uc[u]||0)+1; }
+  if (Math.max(...Object.values(uc)) >= 4) return false;
 
-  // Buraco máximo: gap excessivo entre duas dezenas adjacentes
-  // Quina range 80: buraco > 50 (63% do range) é raro
-  if (Math.max(...diffs) > 50) return false;
+  // 8. Buraco: gap > 46 (p95 real) = 4.6% dos sorteios → threshold conservador
+  if (Math.max(...dfs) > 50) return false;
 
-  // Cobertura de metades: pelo menos 1 dezena em cada metade (1-40 e 41-80)
-  // Todas numa metade: ocorreu ~4% dos sorteios
-  const nBaixas = sorted.filter(n => n <= 40).length;
-  const nAltas  = sorted.filter(n => n > 40).length;
-  if (nBaixas === 0 || nAltas === 0) return false;
+  // 9. Cobertura de metades (1-40 e 41-80): todas numa metade = ~4%
+  const nBaixas = s.filter(n=>n<=40).length;
+  if (nBaixas === 0 || nBaixas === k) return false;
+
+  // 10. Top-10 mais frequentes: 4 do top-10 juntos = 2x em 7044 (0.03%) → veto
+  //     3 do top-10 = 117x (1.63%) → penalidade no analisador, não veto aqui
+  if (STATS && STATS.top10) {
+    const nTop10 = s.filter(n=>STATS.top10.has(n)).length;
+    if (nTop10 >= 4) return false;  // praticamente nunca ocorreu (2x)
+  }
 
   return true;
 }

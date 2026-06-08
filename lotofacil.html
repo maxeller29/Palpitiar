@@ -1273,25 +1273,29 @@ function qualidadeCartao(dz, estrategia) {
   const maxConsecPermitido = Math.max(HIST.consec_max, Math.ceil(k * 0.6));
   if (a.maxSeq > maxConsecPermitido) return false;
 
-  // ── NOVOS FILTROS: alinhados com o analisador ────────────
+  // ── NOVOS FILTROS calibrados na série histórica (3704 concursos) ──
   const sorted = a.sorted;
 
-  // Span geográfico: amplitude entre menor e maior dezena
-  // Lotofácil range 1-25: span ≤ 7 (28% de 25) é muito concentrado
-  const span = sorted[sorted.length - 1] - sorted[0];
+  // 5. Span: range 1-25, span < 7 nunca ocorreu (p5=20, min=16)
+  const span = sorted[sorted.length-1] - sorted[0];
   if (span < 7) return false;
 
-  // Unidade (dígito final): rejeitar 7+ dezenas com mesmo dígito
-  // Na Loto (15 dezenas, 10 dígitos), 7 iguais é impossível, mas 5+ é raro
-  // Calibrado: faixas5 já cobre distribuição; filtrar só extremos
+  // 6. Unidade: range 1-25 tem apenas 2-3 dezenas por dígito.
+  //    max=3 ocorre em 73.7% dos sorteios (natural do range)
+  //    max=4 seria impossível (só existe dígito 1: 1,11,21 = apenas 3)
+  //    Filtro não aplicável — o próprio range impede concentração
+  //    (manter apenas como verificação de segurança: nunca >= 5)
   const uCount = {};
-  for (const n of sorted) { const u = n % 10; uCount[u] = (uCount[u] || 0) + 1; }
+  for (const n of sorted) { const u=n%10; uCount[u]=(uCount[u]||0)+1; }
   if (Math.max(...Object.values(uCount)) >= 5) return false;
 
-  // Buraco máximo: na Loto (range 25) um buraco > 8 concentra demais
-  // O range é 24 unidades: buraco > 10 (42% do range) é indesejável
-  const diffs = sorted.slice(1).map((v, i) => v - sorted[i]);
+  // 7. Buraco: range de 25, buraco > 10 (42%) é incomum
+  //    p90=5, p95=6, p99=7 → buraco > 10 praticamente não existe
+  const diffs = sorted.slice(1).map((v,i)=>v-sorted[i]);
   if (Math.max(...diffs) > 10) return false;
+
+  // 8. Top-10 NÃO filtrar: na Lotofácil, 6 do top-10 é o padrão mais COMUM (32%)
+  //    O top-10 representa 40% das dezenas disponíveis — critério inválido aqui
 
   return true;
 }

@@ -1225,9 +1225,9 @@ const LOTERIAS = {
     caixaSlug: 'megasena',
     faixas: { 4: 'Quadra', 5: 'Quina', 6: 'Sena' },
     minAcertos: 4,
-    somaIdeal: [100, 220],
+    somaIdeal: [132, 234],   // p10–p90 real (3015 concursos)
     parIdeal: [2, 4],
-    grupos: 5, // grupos de 12 dezenas
+    grupos: 5,
     descFaixas: ['1–12', '13–24', '25–36', '37–48', '49–60'],
     grupoTam: 12,
   },
@@ -1240,7 +1240,7 @@ const LOTERIAS = {
     caixaSlug: 'lotofacil',
     faixas: { 11: '11 acertos', 12: '12 acertos', 13: '13 acertos', 14: '14 acertos', 15: '15 acertos' },
     minAcertos: 11,
-    somaIdeal: [140, 225],
+    somaIdeal: [172, 218],   // p10–p90 real (3704 concursos)
     parIdeal: [6, 9],
     grupos: 5,
     descFaixas: ['1–5', '6–10', '11–15', '16–20', '21–25'],
@@ -1255,7 +1255,7 @@ const LOTERIAS = {
     caixaSlug: 'quina',
     faixas: { 2: 'Duque', 3: 'Terno', 4: 'Quadra', 5: 'Quina' },
     minAcertos: 2,
-    somaIdeal: [100, 290],
+    somaIdeal: [137, 267],   // p10–p90 real (7044 concursos)
     parIdeal: [2, 3],
     grupos: 8,
     descFaixas: ['1–10', '11–20', '21–30', '31–40', '41–50', '51–60', '61–70', '71–80'],
@@ -1509,7 +1509,17 @@ function analisarCombo(combo, historico, cfg) {
   // Mega: 1-2 primos = 66.2% dos sorteios; 0 ou 5+ é raro
   // Referência: distrib. Mega: 0p=11.6% 1p=32.8% 2p=33.4% 3p=16.8% 4p=4.6% 5p+=0.7%
 
-  // ── 7. Pontuação geral — sistema por critérios com vetos ─
+  // I. Concentração nas dezenas mais frequentes (top-10)
+  // Calibração histórica:
+  //   Mega: 5+ do top-10 = nunca (0x); 4 = 23x (0.8%) → penalizar ≥4, vetar ≥5
+  //   Quina: 4+ do top-10 = 4x (0.06%) → vetar ≥4; penalizar ≥3 (1.5%)
+  //   Lotofácil: estrutura diferente — 6 do top-10 é o mais comum (32%); penalizar apenas ≥10
+  const top10Sorted = Object.entries(freqMap).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n])=>Number(n));
+  const top10Set = new Set(top10Sorted);
+  const nTop10 = combo.filter(n => top10Set.has(n)).length;
+  // Thresholds de veto e penalidade por loteria
+  const top10VetoMin    = k <= 6 ? 5 : (k <= 10 ? 4 : 11); // nunca ocorreu
+  const top10PenMin     = k <= 6 ? 4 : (k <= 10 ? 3 : 10); // muito raro (<1.5%)
   //
   // FILOSOFIA: cada critério contribui com uma fatia (0–25 pts).
   // Vetos hard calibrados por loteria com base na série histórica real.
@@ -1551,6 +1561,12 @@ function analisarCombo(combo, historico, cfg) {
   if (maxUnidade >= limiteUnidade) {
     const digitoRep = Object.entries(uCount).find(([,v]) => v >= limiteUnidade)?.[0];
     veto = veto || `${maxUnidade} dezenas terminando em ${digitoRep} — padrão nunca registrado na série histórica`;
+  }
+  // 6. Concentração nas dezenas mais frequentes (top-10)
+  // Mega: 5+ do top-10 juntas = nunca ocorreu em 3.015 sorteios
+  // Quina: 4+ do top-10 juntas = 2x em 7.044 sorteios (0.03%) → praticamente nunca
+  if (nTop10 >= top10VetoMin) {
+    veto = veto || `${nTop10} das 10 dezenas mais sorteadas na mesma combinação — padrão que nunca ocorreu na série histórica`;
   }
 
   let score;
@@ -1628,10 +1644,14 @@ function analisarCombo(combo, historico, cfg) {
     }
 
     // Buraco excessivo: distância muito grande entre duas dezenas consecutivas
-    // Mega p90=28, Quina p90≈40, Loto p90≈3 — buraco ≥ p90 é sinal ruim
-    if (maxBuraco > maxBuracoAlerta) {
+    // Mega p90=27 p95=31 p99=38 → buraco > 35 = 1.8% → penalidade; > 40 = 0.4%
+    // Quina p90=41 p95=46 p99=55 → buraco > 50 = 2.6% → penalidade; > 55 = 0.7%
+    // Lotofácil p90=5 p95=6 → buraco > 10 = nunca ocorreu
+    const buracoP90 = k <= 6 ? 27 : (k <= 10 ? 41 : 5);
+    const buracoP99 = k <= 6 ? 38 : (k <= 10 ? 55 : 8);
+    if (maxBuraco > buracoP99) {
       score = Math.max(0, score - 20);
-    } else if (maxBuraco > maxBuracoIdeal) {
+    } else if (maxBuraco > buracoP90) {
       score = Math.max(0, score - 10);
     }
 
@@ -1644,6 +1664,13 @@ function analisarCombo(combo, historico, cfg) {
     const limiteUnidadeAlerta = k <= 6 ? 4 : (k <= 10 ? 6 : 9);
     if (maxUnidade >= limiteUnidadeAlerta) {
       score = Math.max(0, score - 25);
+    }
+
+    // Concentração no top-10: penalidade forte quando abaixo do veto mas ainda raro
+    // Mega: 4 do top-10 = 23x (0.8%) → -30pts; Quina: 3 = 107x (1.5%) → -20pts
+    if (nTop10 >= top10PenMin && nTop10 < top10VetoMin) {
+      const penTop10 = k <= 6 ? 30 : (k <= 10 ? 20 : 15);
+      score = Math.max(0, score - penTop10);
     }
   }
 
@@ -1733,6 +1760,7 @@ function analisarCombo(combo, historico, cfg) {
     nBaixas, nAltas, todasUmaMetade,
     atrasos, atrasoMedio, atrasoMax, atrasoP90,
     nPrimos,
+    nTop10, top10VetoMin, top10PenMin,
     veto,
     temPremioRelevante,
     premiados,
@@ -1905,6 +1933,13 @@ function renderReport(combo, r, cfg) {
       <div class="ar-val">Percentil ${r.freqPctMedio}
         <span class="ar-badge ${freqBadge}">${r.freqPctMedio>=30&&r.freqPctMedio<=85?'Equilibrada':(r.freqPctMedio<30?'Dezenas frias':'Dezenas quentes')}</span>
         <span class="ar-prob">Atraso médio: ${r.atrasoMedio} conc. · máx: ${r.atrasoMax} <span class="ar-badge ${atrasoBadge}">${atrasoStatus}</span></span>
+      </div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Popularidade (top-10)</div>
+      <div class="ar-val">${r.nTop10} dezenas entre as 10 mais sorteadas
+        <span class="ar-badge ${r.nTop10 >= r.top10VetoMin ? 'badge-bad' : r.nTop10 >= r.top10PenMin ? 'badge-warn' : 'badge-ok'}">${r.nTop10 >= r.top10VetoMin ? 'Concentração crítica' : r.nTop10 >= r.top10PenMin ? 'Combinação popular' : 'Normal'}</span>
+        <span class="ar-prob">${cfg.id === 'mega' ? '5+ do top-10 juntas: nunca ocorreu · 4 juntas: 0,8% dos sorteios' : cfg.id === 'quina' ? '4+ do top-10 juntas: 2x em 7.044 sorteios (0,03%) · 3 juntas: 1,6%' : 'top-10 = 40% do universo — critério não aplicável na Lotofácil'}</span>
       </div>
     </div>
 

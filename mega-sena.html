@@ -1412,6 +1412,7 @@ function analisar(draws) {
   return {
     freq, atraso, quentes, frias, mediaPares, somaMedia,
     somaMin: Math.min(...somas), somaMax: Math.max(...somas),
+    top10: new Set(ranking.slice(0, 10).map(x => x.n)),
     sorteadas6, comAcertadores, semAcertadores: N - comAcertadores,
     totalAnalisado: N
   };
@@ -1476,31 +1477,33 @@ function qualidadeCartao(dz, estrategia) {
   const maxFaixaPermitido = Math.max(3, Math.ceil(k / 6) + 2);
   if (a.maxFaixa10 > maxFaixaPermitido) return false;
 
-  // ── NOVOS FILTROS: alinhados com o analisador ────────────
+  // ── NOVOS FILTROS calibrados na série histórica ───────────────
   const sorted = a.sorted;
 
-  // Span geográfico: amplitude entre menor e maior dezena
-  // Mega span ≤ 18 (30% de 60): ocorreu apenas 5x em 3009 sorteios (0.17%)
+  // 1. Span geográfico: span < 18 ocorreu apenas 14x em 3015 sorteios (0.5%)
   const span = sorted[sorted.length - 1] - sorted[0];
-  const spanMin = Math.round(60 * 0.30); // 18
-  if (span < spanMin) return false;
+  if (span < 18) return false;
 
-  // Unidade (dígito final): rejeitar 4+ dezenas com mesmo dígito
-  // 4 iguais: 0.43% dos sorteios; 5+: nunca ocorreu
+  // 2. Unidade (dígito final): 4+ iguais = 0.43% dos sorteios; 5+ = nunca
   const uCount = {};
   for (const n of sorted) { const u = n % 10; uCount[u] = (uCount[u] || 0) + 1; }
   if (Math.max(...Object.values(uCount)) >= 4) return false;
 
-  // Buraco máximo: gap excessivo entre duas dezenas adjacentes
-  // Buraco > 35 (58% do range de 60): menos de 3% dos sorteios
+  // 3. Buraco máximo: gap > 35 entre duas dezenas adjacentes = 1.8% dos sorteios
+  // (p99 = 38; >35 exclui apenas casos muito raros sem excluir legítimos)
   const diffs = sorted.slice(1).map((v, i) => v - sorted[i]);
   if (Math.max(...diffs) > 35) return false;
 
-  // Cobertura de metades: pelo menos 1 dezena em cada metade (1-30 e 31-60)
-  // Todas numa metade: ocorreu 2.06% dos sorteios
+  // 4. Cobertura de metades (1-30 e 31-60): todas numa metade = 2.06%
   const nBaixas = sorted.filter(n => n <= 30).length;
-  const nAltas  = sorted.filter(n => n > 30).length;
-  if (nBaixas === 0 || nAltas === 0) return false;
+  if (nBaixas === 0 || nBaixas === k) return false;
+
+  // 5. Top-10 mais frequentes: 5+ nunca ocorreu em 3015 sorteios
+  //    (calculado dinamicamente via stats carregado)
+  if (STATS && STATS.top10) {
+    const nTop10 = sorted.filter(n => STATS.top10.has(n)).length;
+    if (nTop10 >= 5) return false;  // nunca ocorreu
+  }
 
   return true;
 }
