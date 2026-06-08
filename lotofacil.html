@@ -1289,13 +1289,18 @@ function qualidadeCartao(dz, estrategia) {
   for (const n of sorted) { const u=n%10; uCount[u]=(uCount[u]||0)+1; }
   if (Math.max(...Object.values(uCount)) >= 5) return false;
 
-  // 7. Buraco: range de 25, buraco > 10 (42%) é incomum
-  //    p90=5, p95=6, p99=7 → buraco > 10 praticamente não existe
-  const diffs = sorted.slice(1).map((v,i)=>v-sorted[i]);
+  // 8. Buraco: range de 25, buraco > 10 praticamente não existe (p99=7)
+  const diffs = sorted.slice(1).map((v, i) => v - sorted[i]);
   if (Math.max(...diffs) > 10) return false;
 
-  // 8. Top-10 NÃO filtrar: na Lotofácil, 6 do top-10 é o padrão mais COMUM (32%)
-  //    O top-10 representa 40% das dezenas disponíveis — critério inválido aqui
+  // 9. Cobertura de metades (1-12 e 13-25): todas numa metade é incomum
+  // Range pequeno torna isso possível mas ainda penalizável
+  const nBaixasL = sorted.filter(n => n <= 12).length;
+  const nAltasL  = sorted.filter(n => n > 12).length;
+  if (nBaixasL === 0 || nAltasL === 0) return false;
+
+  // 10. Top-10 NÃO filtrar: na Lotofácil, 6 do top-10 é o padrão mais COMUM (32%)
+  //     O top-10 representa 40% das dezenas disponíveis — critério inválido aqui
 
   return true;
 }

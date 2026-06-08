@@ -1510,29 +1510,21 @@ function analisarCombo(combo, historico, cfg) {
   // Referência: distrib. Mega: 0p=11.6% 1p=32.8% 2p=33.4% 3p=16.8% 4p=4.6% 5p+=0.7%
 
   // I. Concentração nas dezenas mais frequentes (top-10)
-  // Calibração histórica:
-  //   Mega: 5+ do top-10 = nunca (0x); 4 = 23x (0.8%) → penalizar ≥4, vetar ≥5
-  //   Quina: 4+ do top-10 = 4x (0.06%) → vetar ≥4; penalizar ≥3 (1.5%)
-  //   Lotofácil: estrutura diferente — 6 do top-10 é o mais comum (32%); penalizar apenas ≥10
   const top10Sorted = Object.entries(freqMap).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n])=>Number(n));
   const top10Set = new Set(top10Sorted);
   const nTop10 = combo.filter(n => top10Set.has(n)).length;
-  // Thresholds de veto e penalidade por loteria
-  const top10VetoMin    = k <= 6 ? 5 : (k <= 10 ? 4 : 11); // nunca ocorreu
-  const top10PenMin     = k <= 6 ? 4 : (k <= 10 ? 3 : 10); // muito raro (<1.5%)
-  //
-  // FILOSOFIA: cada critério contribui com uma fatia (0–25 pts).
-  // Vetos hard calibrados por loteria com base na série histórica real.
-  //
-  // CALIBRAÇÃO PA por loteria (variância das diffs adjacentes):
-  //   Mega-Sena (6/60):   mediana=36.6 → var≤1.0 = 0.13% → veto válido
-  //   Quina (5/80):       mediana=79.2 → var≤1.0 = 0.27% → veto válido
-  //   Lotofácil (15/25):  mediana=0.80 → var≤1.0 = 69.3% → NÃO aplicar PA
 
   const [pMin, pMax] = cfg.parIdeal;
   const [sMin, sMax] = cfg.somaIdeal;
   const k = cfg.qtd;
   const maxBlocoIdeal = k <= 6 ? 2 : (k <= 10 ? 3 : 4);
+
+  // Thresholds top-10 por loteria (precisam de k para calcular)
+  // Mega: 5+ nunca ocorreu; 4 = 0.8% → penalizar ≥4, vetar ≥5
+  // Quina: 4+ = 2x em 7044 (0.03%) → vetar ≥4; penalizar ≥3 (1.6%)
+  // Lotofácil: top-10 = 40% do universo — critério inválido (≥10 apenas)
+  const top10VetoMin = k <= 6 ? 5 : (k <= 10 ? 4 : 11);
+  const top10PenMin  = k <= 6 ? 4 : (k <= 10 ? 3 : 10);
 
   // ── VETOS ABSOLUTOS ──────────────────────────────────────
   let veto = null;

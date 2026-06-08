@@ -1490,7 +1490,6 @@ function qualidadeCartao(dz, estrategia) {
   if (Math.max(...Object.values(uCount)) >= 4) return false;
 
   // 3. Buraco máximo: gap > 35 entre duas dezenas adjacentes = 1.8% dos sorteios
-  // (p99 = 38; >35 exclui apenas casos muito raros sem excluir legítimos)
   const diffs = sorted.slice(1).map((v, i) => v - sorted[i]);
   if (Math.max(...diffs) > 35) return false;
 
@@ -1498,11 +1497,15 @@ function qualidadeCartao(dz, estrategia) {
   const nBaixas = sorted.filter(n => n <= 30).length;
   if (nBaixas === 0 || nBaixas === k) return false;
 
-  // 5. Top-10 mais frequentes: 5+ nunca ocorreu em 3015 sorteios
-  //    (calculado dinamicamente via stats carregado)
+  // 5. PA (progressão aritmética): var<=1.0 = 0.13% dos sorteios (4x em 3015)
+  const diffMean = diffs.reduce((s, x) => s + x, 0) / diffs.length;
+  const diffVar  = diffs.reduce((s, x) => s + (x - diffMean) ** 2, 0) / diffs.length;
+  if (diffVar <= 1.0) return false;
+
+  // 6. Top-10 mais frequentes: 5+ nunca ocorreu em 3015 sorteios
   if (STATS && STATS.top10) {
     const nTop10 = sorted.filter(n => STATS.top10.has(n)).length;
-    if (nTop10 >= 5) return false;  // nunca ocorreu
+    if (nTop10 >= 5) return false;
   }
 
   return true;
