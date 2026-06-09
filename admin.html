@@ -273,10 +273,10 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-fa
 
 <!-- RESUMO POR FAIXA -->
 <div class="resumo-section">
-  <div class="sec-title">Prêmios acumulados por faixa <span style="color:#ff3b30;font-weight:700">[TESTE v2 - SE VOCE VE ISTO, O ADMIN NOVO ESTA NO AR]</span></div>
+  <div class="sec-title">Prêmios acumulados por faixa</div>
   <div class="resumo-grid">
     <div class="resumo-card ms">
-      <div class="rc-header">Mega-Sena <span class="rc-header-total" id="totalMS">[TESTE-MS]</span></div>
+      <div class="rc-header">Mega-Sena <span class="rc-header-total" id="totalMS"></span></div>
       <div class="rc-body" id="resumoMS"><div class="empty">Carregando...</div></div>
     </div>
     <div class="resumo-card lf">
@@ -435,8 +435,8 @@ async function carregarTotais() {
 // ===== RESUMO POR FAIXA =====
 async function carregarResumo() {
   try {
-    const SB_URL = window.SUPABASE_URL || '';
-    const SB_KEY = window.SUPABASE_KEY || '';
+    const SB_URL = (typeof SUPABASE_URL !== 'undefined') ? SUPABASE_URL : '';
+    const SB_KEY = (typeof SUPABASE_KEY !== 'undefined') ? SUPABASE_KEY : '';
     if (!SB_URL || SB_URL.includes('SEU_PROJETO')) throw new Error('Supabase não configurado');
 
     // Busca TODAS as premiadas paginando (evita truncamento em 1.000)
