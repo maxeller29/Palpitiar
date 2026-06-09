@@ -430,22 +430,109 @@ async function carregarTotais() {
 // ===== RESUMO POR FAIXA =====
 async function carregarResumo() {
   try {
-    const resumo = await window.LotoiaDB.buscarResumoPorLoteria();
-    const ids = {'mega-sena':'resumoMS','lotofacil':'resumoLF','quina':'resumoQN'};
-
-    for (const [lot, faixas] of Object.entries(resumo)) {
-      const el = document.getElementById(ids[lot]);
-      if (!el) continue;
-      const temDados = faixas.some(f=>f.total>0);
-      el.innerHTML = faixas.map(f => `
-        <div class="faixa-row">
-          <span class="faixa-nome">${f.faixa}</span>
-          <span class="faixa-count">${f.total>0?f.total:'—'}</span>
-          <span class="faixa-valor ${f.valor===0?'zero':''}">${f.valor>0?fmtBRL(f.valor):'—'}</span>
-        </div>`).join('');
-      if (!temDados) el.innerHTML = '<div class="empty" style="padding:16px">Nenhum prêmio registrado</div>';
+    // Calcular direto da tabela combinacoes para garantir totalização completa.
+    // A tabela resumo_por_faixa é incremental e fica desatualizada quando há
+    // pendentes não conferidos. Aqui buscamos todas as premiadas paginando.
+    // Usar as variáveis globais definidas pelo lotoia-db.js
+    // (SUPABASE_URL e SUPABASE_KEY ficam no escopo global do script)
+    const SB_URL = window.SUPABASE_URL || '';
+    const SB_KEY = window.SUPABASE_KEY || '';
+    if (!SB_URL || SB_URL.includes('SEU_PROJETO')) {
+      throw new Error('Supabase não configurado');
     }
-  } catch(e) { console.warn('Resumo err:', e); }
+
+    // Buscar todas as combinações premiadas (paginando de 1000 em 1000)
+    const premiadas = [];
+    let page = 0;
+    const size = 1000;
+    while (true) {
+      const from = page * size;
+      const to   = from + size - 1;
+      const res  = await fetch(
+        `${SB_URL}/rest/v1/combinacoes?status=eq.premiada&select=loteria,faixa_premiada,valor_premio`,
+        {
+          headers: {
+            'apikey': SB_KEY,
+            'Authorization': `Bearer ${SB_KEY}`,
+            'Range': `${from}-${to}`,
+            'Range-Unit': 'items',
+          },
+        }
+      );
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) break;
+      premiadas.push(...rows);
+      if (rows.length < size) break;
+      page++;
+    }
+
+    // Agrupar por loteria → faixa
+    const resumo = {};
+    for (const row of premiadas) {
+      const lot   = row.loteria;
+      const faixa = row.faixa_premiada || '—';
+      const valor = parseFloat(row.valor_premio || 0);
+      if (!resumo[lot]) resumo[lot] = {};
+      if (!resumo[lot][faixa]) resumo[lot][faixa] = { total: 0, valor: 0 };
+      resumo[lot][faixa].total++;
+      resumo[lot][faixa].valor += valor;
+    }
+
+    // Ordem de exibição das faixas por loteria
+    const ordemFaixas = {
+      'mega-sena': ['sena', 'quina', 'quadra'],
+      'lotofacil': ['15 acertos', '14 acertos', '13 acertos', '12 acertos', '11 acertos'],
+      'quina':     ['quina', 'quadra', 'terno', 'duque'],
+    };
+
+    const ids = { 'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN' };
+
+    for (const [lot, elId] of Object.entries(ids)) {
+      const el = document.getElementById(elId);
+      if (!el) continue;
+      const faixasLot = resumo[lot] || {};
+      const ordem = ordemFaixas[lot] || Object.keys(faixasLot);
+      // Incluir todas as faixas da ordem, mesmo sem dados
+      const linhas = ordem.map(faixa => {
+        const d = faixasLot[faixa] || { total: 0, valor: 0 };
+        return `
+          <div class="faixa-row">
+            <span class="faixa-nome">${faixa}</span>
+            <span class="faixa-count">${d.total > 0 ? d.total : '—'}</span>
+            <span class="faixa-valor ${d.valor === 0 ? 'zero' : ''}">${d.valor > 0 ? fmtBRL(d.valor) : '—'}</span>
+          </div>`;
+      });
+      // Adicionar faixas extras que não estavam na ordem padrão
+      for (const [faixa, d] of Object.entries(faixasLot)) {
+        if (!ordem.includes(faixa)) {
+          linhas.push(`
+            <div class="faixa-row">
+              <span class="faixa-nome">${faixa}</span>
+              <span class="faixa-count">${d.total}</span>
+              <span class="faixa-valor">${d.valor > 0 ? fmtBRL(d.valor) : '—'}</span>
+            </div>`);
+        }
+      }
+      el.innerHTML = linhas.join('') || '<div class="empty" style="padding:16px">Nenhum prêmio registrado</div>';
+    }
+  } catch(e) {
+    console.warn('Resumo err:', e);
+    // Fallback: tentar a tabela incremental original
+    try {
+      const resumo = await window.LotoiaDB.buscarResumoPorLoteria();
+      const ids = { 'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN' };
+      for (const [lot, faixas] of Object.entries(resumo)) {
+        const el = document.getElementById(ids[lot]);
+        if (!el) continue;
+        el.innerHTML = faixas.map(f => `
+          <div class="faixa-row">
+            <span class="faixa-nome">${f.faixa}</span>
+            <span class="faixa-count">${f.total > 0 ? f.total : '—'}</span>
+            <span class="faixa-valor ${f.valor === 0 ? 'zero' : ''}">${f.valor > 0 ? fmtBRL(f.valor) : '—'}</span>
+          </div>`).join('');
+      }
+    } catch(e2) { console.warn('Fallback err:', e2); }
+  }
 }
 
 // ===== TABELA DE COMBINAÇÕES =====
