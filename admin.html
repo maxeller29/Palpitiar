@@ -73,13 +73,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
 .resumo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .resumo-card{border:1px solid var(--line);border-radius:2px;overflow:hidden;background:rgba(255,255,255,.02)}
-.rc-header{padding:12px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.rc-header{padding:10px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.rc-header-total{font-size:13px;font-weight:600;letter-spacing:0;text-transform:none}
 .ms .rc-header{color:var(--gold);background:rgba(212,168,75,.06)}
 .lf .rc-header{color:var(--green);background:rgba(76,175,125,.06)}
 .qn .rc-header{color:var(--blue);background:rgba(107,140,218,.06)}
 .rc-body{padding:0}
 .faixa-row{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px}
 .faixa-row:last-child{border-bottom:none}
+.faixa-row.sem-faixa{opacity:.5;font-style:italic}
 .faixa-nome{color:var(--ink-dim)}
 .faixa-count{color:var(--ink);font-weight:600;min-width:40px;text-align:center}
 .faixa-valor{color:var(--green);font-weight:600;min-width:100px;text-align:right}
@@ -271,15 +273,15 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-fa
   <div class="sec-title">Prêmios acumulados por faixa</div>
   <div class="resumo-grid">
     <div class="resumo-card ms">
-      <div class="rc-header">Mega-Sena</div>
+      <div class="rc-header">Mega-Sena <span class="rc-header-total" id="totalMS"></span></div>
       <div class="rc-body" id="resumoMS"><div class="empty">Carregando...</div></div>
     </div>
     <div class="resumo-card lf">
-      <div class="rc-header">Lotofácil</div>
+      <div class="rc-header">Lotofácil <span class="rc-header-total" id="totalLF"></span></div>
       <div class="rc-body" id="resumoLF"><div class="empty">Carregando...</div></div>
     </div>
     <div class="resumo-card qn">
-      <div class="rc-header">Quina</div>
+      <div class="rc-header">Quina <span class="rc-header-total" id="totalQN"></span></div>
       <div class="rc-body" id="resumoQN"><div class="empty">Carregando...</div></div>
     </div>
   </div>
@@ -430,34 +432,20 @@ async function carregarTotais() {
 // ===== RESUMO POR FAIXA =====
 async function carregarResumo() {
   try {
-    // Calcular direto da tabela combinacoes para garantir totalização completa.
-    // A tabela resumo_por_faixa é incremental e fica desatualizada quando há
-    // pendentes não conferidos. Aqui buscamos todas as premiadas paginando.
-    // Usar as variáveis globais definidas pelo lotoia-db.js
-    // (SUPABASE_URL e SUPABASE_KEY ficam no escopo global do script)
     const SB_URL = window.SUPABASE_URL || '';
     const SB_KEY = window.SUPABASE_KEY || '';
-    if (!SB_URL || SB_URL.includes('SEU_PROJETO')) {
-      throw new Error('Supabase não configurado');
-    }
+    if (!SB_URL || SB_URL.includes('SEU_PROJETO')) throw new Error('Supabase não configurado');
 
-    // Buscar todas as combinações premiadas (paginando de 1000 em 1000)
+    // Busca TODAS as premiadas paginando (evita truncamento em 1.000)
     const premiadas = [];
     let page = 0;
     const size = 1000;
     while (true) {
-      const from = page * size;
-      const to   = from + size - 1;
-      const res  = await fetch(
+      const from = page * size, to = from + size - 1;
+      const res = await fetch(
         `${SB_URL}/rest/v1/combinacoes?status=eq.premiada&select=loteria,faixa_premiada,valor_premio`,
-        {
-          headers: {
-            'apikey': SB_KEY,
-            'Authorization': `Bearer ${SB_KEY}`,
-            'Range': `${from}-${to}`,
-            'Range-Unit': 'items',
-          },
-        }
+        { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+                     'Range': `${from}-${to}`, 'Range-Unit': 'items' } }
       );
       const rows = await res.json();
       if (!Array.isArray(rows) || rows.length === 0) break;
@@ -467,10 +455,11 @@ async function carregarResumo() {
     }
 
     // Agrupar por loteria → faixa
+    // faixa_premiada null → exibir como '(sem faixa)'
     const resumo = {};
     for (const row of premiadas) {
       const lot   = row.loteria;
-      const faixa = row.faixa_premiada || '—';
+      const faixa = row.faixa_premiada || '(sem faixa)';
       const valor = parseFloat(row.valor_premio || 0);
       if (!resumo[lot]) resumo[lot] = {};
       if (!resumo[lot][faixa]) resumo[lot][faixa] = { total: 0, valor: 0 };
@@ -478,33 +467,48 @@ async function carregarResumo() {
       resumo[lot][faixa].valor += valor;
     }
 
-    // Ordem de exibição das faixas por loteria
+    // Ordem padrão de exibição
     const ordemFaixas = {
       'mega-sena': ['sena', 'quina', 'quadra'],
       'lotofacil': ['15 acertos', '14 acertos', '13 acertos', '12 acertos', '11 acertos'],
       'quina':     ['quina', 'quadra', 'terno', 'duque'],
     };
-
-    const ids = { 'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN' };
+    const ids       = { 'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN' };
+    const totalIds  = { 'mega-sena': 'totalMS',  'lotofacil': 'totalLF',  'quina': 'totalQN'  };
 
     for (const [lot, elId] of Object.entries(ids)) {
-      const el = document.getElementById(elId);
+      const el      = document.getElementById(elId);
+      const elTotal = document.getElementById(totalIds[lot]);
       if (!el) continue;
+
       const faixasLot = resumo[lot] || {};
-      const ordem = ordemFaixas[lot] || Object.keys(faixasLot);
-      // Incluir todas as faixas da ordem, mesmo sem dados
-      const linhas = ordem.map(faixa => {
+
+      // Total por loteria (count + valor)
+      const totalCount = Object.values(faixasLot).reduce((s, d) => s + d.total, 0);
+      const totalValor = Object.values(faixasLot).reduce((s, d) => s + d.valor, 0);
+      if (elTotal) {
+        elTotal.textContent = totalCount > 0
+          ? `${totalCount} · ${fmtBRL(totalValor)}`
+          : '';
+      }
+
+      const ordem = ordemFaixas[lot] || [];
+      const linhas = [];
+
+      // Linhas na ordem padrão (incluindo faixas com zero)
+      for (const faixa of ordem) {
         const d = faixasLot[faixa] || { total: 0, valor: 0 };
-        return `
+        linhas.push(`
           <div class="faixa-row">
             <span class="faixa-nome">${faixa}</span>
             <span class="faixa-count">${d.total > 0 ? d.total : '—'}</span>
             <span class="faixa-valor ${d.valor === 0 ? 'zero' : ''}">${d.valor > 0 ? fmtBRL(d.valor) : '—'}</span>
-          </div>`;
-      });
-      // Adicionar faixas extras que não estavam na ordem padrão
+          </div>`);
+      }
+
+      // Faixas extras fora da ordem padrão (ex: nomes inesperados no banco)
       for (const [faixa, d] of Object.entries(faixasLot)) {
-        if (!ordem.includes(faixa)) {
+        if (faixa !== '(sem faixa)' && !ordem.includes(faixa)) {
           linhas.push(`
             <div class="faixa-row">
               <span class="faixa-nome">${faixa}</span>
@@ -513,11 +517,24 @@ async function carregarResumo() {
             </div>`);
         }
       }
+
+      // Linha "sem faixa": registros premiados sem faixa_premiada gravada
+      // (conferidos antes do campo existir ou com erro de gravação)
+      if (faixasLot['(sem faixa)']?.total > 0) {
+        const d = faixasLot['(sem faixa)'];
+        linhas.push(`
+          <div class="faixa-row sem-faixa">
+            <span class="faixa-nome">sem faixa registrada</span>
+            <span class="faixa-count">${d.total}</span>
+            <span class="faixa-valor ${d.valor === 0 ? 'zero' : ''}">${d.valor > 0 ? fmtBRL(d.valor) : '—'}</span>
+          </div>`);
+      }
+
       el.innerHTML = linhas.join('') || '<div class="empty" style="padding:16px">Nenhum prêmio registrado</div>';
     }
   } catch(e) {
     console.warn('Resumo err:', e);
-    // Fallback: tentar a tabela incremental original
+    // Fallback: tabela incremental original
     try {
       const resumo = await window.LotoiaDB.buscarResumoPorLoteria();
       const ids = { 'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN' };
