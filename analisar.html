@@ -49,50 +49,59 @@ body {
 }
 
 /* ─── NAV ─────────────────────────────────── */
-  .site-nav {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 0; border-bottom: 1px solid var(--line);
-    margin-bottom: 24px;
-  }
-  .site-nav-logo {
-    font-family: var(--display); font-weight: 800; font-style: italic;
-    font-size: 22px; letter-spacing: -0.02em; color: var(--ink);
-    text-decoration: none; transition: opacity 0.2s;
-  }
-  .site-nav-logo:hover { opacity: 0.8; }
-  .site-nav-logo img { height: 32px; width: auto; display: block; }
-  .site-nav-logo em { color: var(--gold); font-style: normal; }
-  .site-nav-links { display: flex; gap: 6px; align-items: center; }
-  .site-nav-link {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
-    text-transform: uppercase; padding: 8px 16px; border-radius: 2px;
-    text-decoration: none; color: var(--ink-dim); transition: all 0.2s;
-    border: 1px solid transparent; position: relative;
-  }
-  .site-nav-link:hover { color: var(--ink); border-color: var(--line); }
-  .site-nav-link.back { color: var(--ink-faint); font-size: 9px; }
-  .site-nav-link.back:hover { color: var(--ink-dim); }
-  .site-nav-link.ms { color: rgba(212,168,75,0.7); }
-  .site-nav-link.ms:hover, .site-nav-link.ms-active {
-    color: #d4a84b !important;
-    background: rgba(212,168,75,0.1) !important;
-    border-color: rgba(212,168,75,0.35) !important;
-  }
-  .site-nav-link.ms-active { font-weight: 700; box-shadow: 0 2px 0 0 #d4a84b; }
-  .site-nav-link.lf { color: rgba(76,175,125,0.7); }
-  .site-nav-link.lf:hover, .site-nav-link.lf-active {
-    color: #4caf7d !important;
-    background: rgba(76,175,125,0.1) !important;
-    border-color: rgba(76,175,125,0.35) !important;
-  }
-  .site-nav-link.lf-active { font-weight: 700; box-shadow: 0 2px 0 0 #4caf7d; }
-  .site-nav-link.qn { color: rgba(107,140,218,0.7); }
-  .site-nav-link.qn:hover, .site-nav-link.qn-active {
-    color: #6b8cda !important;
-    background: rgba(107,140,218,0.1) !important;
-    border-color: rgba(107,140,218,0.35) !important;
-  }
-  .site-nav-link.qn-active { font-weight: 700; box-shadow: 0 2px 0 0 #6b8cda; }
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,26,20,.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+}
+.site-nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity .2s;
+  flex-shrink: 0;
+}
+.site-nav-logo:hover { opacity: .85; }
+.site-nav-logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+.site-nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 8px;
+}
+.site-nav-spacer { flex: 1; }
+.site-nav-link {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border-radius: 2px;
+  text-decoration: none;
+  color: var(--ink-faint);
+  transition: all .2s;
+  border: 1px solid transparent;
+}
+.site-nav-link:hover { color: var(--ink-dim); border-color: var(--line); }
+.site-nav-link.back { font-size: 9px; letter-spacing: .08em; }
+.site-nav-link.ms { color: rgba(212,168,75,.7); }
+.site-nav-link.ms:hover { color: var(--gold); background: rgba(212,168,75,.08); border-color: rgba(212,168,75,.3); }
+.site-nav-link.lf { color: rgba(76,175,125,.7); }
+.site-nav-link.lf:hover { color: var(--green); background: rgba(76,175,125,.08); border-color: rgba(76,175,125,.3); }
+.site-nav-link.qn { color: rgba(107,140,218,.7); }
+.site-nav-link.qn:hover { color: var(--blue); background: rgba(107,140,218,.08); border-color: rgba(107,140,218,.3); }
 
 /* ─── HERO ────────────────────────────────── */
 .hero {
@@ -601,25 +610,6 @@ h1 em { color: var(--gold); font-style: normal; }
 .badge-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(76,175,125,.3); }
 .badge-warn { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212,168,75,.3); }
 .badge-bad { background: var(--red-dim); color: var(--red); border: 1px solid rgba(196,69,45,.3); }
-.analysis-section-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: .55;
-  padding: 12px 20px 2px;
-  border-top: 1px solid var(--line);
-}
-.ar-prob {
-  display: block;
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--ink-faint);
-  margin-top: 3px;
-  line-height: 1.5;
-  opacity: .75;
-}
 
 /* ─── SEÇÃO DE HISTÓRICO ──────────────────── */
 .history-section {
@@ -713,196 +703,73 @@ h1 em { color: var(--gold); font-style: normal; }
   animation: spin .7s linear infinite;
   flex-shrink: 0;
 }
-/* ─── CARD DE PREMIAÇÃO ───────────────────── */
-.award-card {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 14px;
-  transition: border-color .2s;
-}
-.award-card:hover { border-color: rgba(212,168,75,.25); }
-.award-top {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  background: rgba(0,0,0,.25);
-  border-bottom: 1px solid var(--line);
-}
-.award-concurso {
-  font-family: var(--display);
-  font-size: 15px;
-  font-weight: 700;
-  font-style: italic;
-  color: var(--gold);
-}
-.award-date {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-  flex: 1;
-}
-.award-faixa {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  letter-spacing: .08em;
-  border: 1px solid;
-}
-/* ─── GRID DE CÉLULAS ─────────────────────── */
-.award-grid {
-  display: flex;
-  background: rgba(0,0,0,.12);
-  overflow-x: auto;
-}
-.award-cell-wrap {
-  flex: 1;
-  min-width: 120px;
-  position: relative; /* para o badge flutuante */
-  border-right: 1px solid var(--line);
-}
-.award-cell-wrap:last-child { border-right: none; }
-.award-cell {
-  padding: 14px 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  height: 100%;
-}
-.award-cell-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-.award-cell-val {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--ink);
-  white-space: nowrap;
-  line-height: 1.1;
-}
-.award-cell-sub {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-/* ─── CÉLULA DESTAQUE (faixa do usuário) ──── */
-.award-cell-wrap.destaque {
-  background: rgba(212,168,75,.07);
-  border-right-color: rgba(212,168,75,.3);
-}
-.award-cell-wrap.destaque .award-cell-label { color: var(--gold); }
-.award-cell-wrap.destaque .award-cell-val   { color: var(--gold); font-size: 20px; }
-/* Badge "★ SUA FAIXA" flutuante */
-.award-sua-faixa {
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg2);
-  border: 1px solid rgba(212,168,75,.5);
-  border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  color: var(--gold);
-  padding: 2px 10px;
-  white-space: nowrap;
-}
-/* ─── CÉLULA ACUMULADA ────────────────────── */
-.award-cell-wrap.acumulado { background: rgba(255,255,255,.01); }
-.award-cell-wrap.acumulado .award-cell-label { color: rgba(180,180,180,.5); }
-.award-cell-wrap.acumulado .award-cell-val   { color: var(--ink-dim); font-size: 16px; }
-.award-cell-wrap.acumulado .award-cell-sub   { color: rgba(180,180,180,.4); }
-/* Acumulado + destaque */
-.award-cell-wrap.destaque.acumulado {
-  background: rgba(107,140,218,.07);
-  border-right-color: rgba(107,140,218,.3);
-}
-.award-cell-wrap.destaque.acumulado .award-cell-label { color: rgba(107,140,218,.8); }
-.award-cell-wrap.destaque.acumulado .award-cell-val   {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: rgba(107,140,218,.8);
-}
-.award-cell-wrap.destaque.acumulado .award-sua-faixa {
-  border-color: rgba(107,140,218,.5);
-  color: rgba(107,140,218,.9);
-}
-/* ─── CÉLULA DE DEZENAS ───────────────────── */
-.award-cell-dezenas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 3px;
-}
-.award-dez {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
-  border: 1px solid var(--line);
-  color: var(--ink-faint);
-  background: rgba(255,255,255,.03);
-  flex-shrink: 0;
-}
-.award-dez.acerto {
-  background: rgba(212,168,75,.2);
-  border-color: rgba(212,168,75,.8);
-  color: var(--gold);
-  font-weight: 700;
-}
-.award-dez-nums {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--ink-faint);
-  letter-spacing: .02em;
-  line-height: 1.6;
-  margin-top: 4px;
-}
-.award-dez-nums span { color: var(--gold); font-weight: 700; }
-/* ─── LOADING ─────────────────────────────── */
-.award-loading {
-  padding: 12px 18px;
+.award-rateio {
+  padding: 14px 18px;
   border-top: 1px solid var(--line);
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-  display: flex;
-  align-items: center;
+  background: rgba(0,0,0,.15);
+}
+.rateio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 10px;
 }
-.mini-spinner {
-  width: 12px; height: 12px;
-  border: 1.5px solid var(--line);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  flex-shrink: 0;
+.rateio-item {
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 10px 12px;
 }
-/* Mantido para fallback API */
-.award-rateio { display: none; }
-.rateio-grid  { display: none; }
-@media (max-width: 600px) {
-  .award-grid { flex-wrap: wrap; }
-  .award-cell-wrap { min-width: 44%; border-bottom: 1px solid var(--line); }
-  .award-cell-wrap:nth-last-child(-n+2) { border-bottom: none; }
+.rateio-faixa {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+.rateio-val {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gold);
+}
+.rateio-ganhadores {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+.rateio-error {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* ─── RATEIO DESTAQUE ─────────────────────── */
+.rateio-item.destaque {
+  background: rgba(212,168,75,.1);
+  border-color: rgba(212,168,75,.5);
+  position: relative;
+}
+.rateio-item.destaque::before {
+  content: '★ sua faixa';
+  position: absolute;
+  top: -8px; right: 8px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--bg2);
+  padding: 0 4px;
+}
+.rateio-item.destaque .rateio-val {
+  color: var(--gold);
+  font-size: 18px;
+}
+.rateio-item.destaque .rateio-faixa {
+  color: var(--gold);
 }
 
 /* ─── TOTALIZAÇÃO ─────────────────────────── */
@@ -1020,6 +887,101 @@ h1 em { color: var(--gold); font-style: normal; }
   border-color: var(--gold);
 }
 
+/* ─── BOLAS DO SORTEIO NO RATEIO ─────────── */
+.rateio-item.dezenas-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.rateio-balls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+/* Mega-Sena (6) e Quina (5) — linha única */
+.rateio-balls-row[data-qtd="5"],
+.rateio-balls-row[data-qtd="6"] {
+  flex-wrap: nowrap;
+}
+.award-ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(244,235,208,.15);
+  background: rgba(244,235,208,.04);
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.award-ball.acertou {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0a1a14;
+  font-weight: 700;
+  box-shadow: 0 0 6px rgba(212,168,75,.4);
+}
+
+.total-premiado-nota {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(244,235,208,.03);
+  max-width: 420px;
+}
+
+/* ─── BANNER DE SINCRONIZAÇÃO ─────────────── */
+.sync-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(107,140,218,.08);
+  border: 1px solid rgba(107,140,218,.25);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--ink-dim);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.sync-banner strong { color: #6b8cda; }
+.sync-banner-icon {
+  color: #6b8cda;
+  font-size: 14px;
+  animation: spin 1.5s linear 3;
+}
+.sync-banner-sub {
+  color: var(--ink-faint);
+  font-size: 10px;
+  flex: 1 1 100%;
+  margin-top: 2px;
+}
+.sync-banner-close {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  margin-left: auto;
+  transition: color .2s;
+}
+.sync-banner-close:hover { color: var(--ink); }
+
 /* ─── FOOTER ──────────────────────────────── */
 footer {
   border-top: 1px solid var(--line);
@@ -1038,14 +1000,15 @@ footer a:hover { color: var(--gold); }
 
 /* ─── RESPONSIVO ─────────────────────────── */
 @media (max-width: 680px) {
-  .site-nav { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .site-nav-links { flex-wrap: wrap; gap: 6px; }
+  .site-nav { padding: 0 16px; gap: 8px; height: auto; min-height: 56px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; }
+  .site-nav-links { gap: 4px; flex-wrap: wrap; }
   .hero { padding: 48px 20px 32px; }
   .main-wrap { padding: 0 20px 60px; }
   footer { padding: 24px 20px; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .num-ball { width: 38px; height: 38px; font-size: 12px; }
   .lottery-btn { min-width: 100%; }
+  .award-ball { width: 24px; height: 24px; font-size: 9px; }
 }
 
 /* ─── ANIMAÇÕES ───────────────────────────── */
@@ -1070,21 +1033,20 @@ footer a:hover { color: var(--gold); }
 <body>
 
 <!-- NAV -->
-<div style="max-width:960px;margin:0 auto;padding:0 40px;">
-  <nav class="site-nav">
-    <a class="site-nav-logo" href="index.html">
-      <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
-      <span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
-    </a>
-    <div class="site-nav-links">
-      <a class="site-nav-link" href="index.html">← Início</a>
-      <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
-      <a class="site-nav-link lf" href="lotofacil.html">Lotofácil</a>
-      <a class="site-nav-link qn" href="quina.html">Quina</a>
-      <a class="site-nav-link" href="blog.html">Blog</a>
-    </div>
-  </nav>
-</div>
+<nav class="site-nav">
+  <a href="index.html" class="site-nav-logo">
+    <img src="logo-horizontal.png" alt="Palpitiar" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
+  </a>
+  <div class="site-nav-links">
+    <a class="site-nav-link back" href="index.html">← Início</a>
+    <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
+    <a class="site-nav-link lf" href="lotofacil.html">Lotofácil</a>
+    <a class="site-nav-link qn" href="quina.html">Quina</a>
+    <div class="site-nav-spacer"></div>
+    <a class="site-nav-link" href="blog.html">Blog</a>
+  </div>
+</nav>
 
 <!-- HERO -->
 <div class="hero">
@@ -1105,15 +1067,15 @@ footer a:hover { color: var(--gold); }
     <div class="lottery-selector">
       <button class="lottery-btn" id="btn-mega" onclick="selectLoteria('mega')">
         <div class="lb-name">Mega-Sena</div>
-        <div class="lb-info" id="info-mega">6 dezenas · 1–60 · 3.009 concursos</div>
+        <div class="lb-info">6 dezenas · 1–60 · 3.009 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-lotofacil" onclick="selectLoteria('lotofacil')">
         <div class="lb-name">Lotofácil</div>
-        <div class="lb-info" id="info-lotofacil">15 dezenas · 1–25 · 3.690 concursos</div>
+        <div class="lb-info">15 dezenas · 1–25 · 3.690 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-quina" onclick="selectLoteria('quina')">
         <div class="lb-name">Quina</div>
-        <div class="lb-info" id="info-quina">5 dezenas · 1–80 · 7.031 concursos</div>
+        <div class="lb-info">5 dezenas · 1–80 · 7.031 concursos</div>
       </button>
     </div>
   </div>
@@ -1225,9 +1187,9 @@ const LOTERIAS = {
     caixaSlug: 'megasena',
     faixas: { 4: 'Quadra', 5: 'Quina', 6: 'Sena' },
     minAcertos: 4,
-    somaIdeal: [132, 234],   // p10–p90 real (3015 concursos)
+    somaIdeal: [100, 220],
     parIdeal: [2, 4],
-    grupos: 5,
+    grupos: 5, // grupos de 12 dezenas
     descFaixas: ['1–12', '13–24', '25–36', '37–48', '49–60'],
     grupoTam: 12,
   },
@@ -1240,7 +1202,7 @@ const LOTERIAS = {
     caixaSlug: 'lotofacil',
     faixas: { 11: '11 acertos', 12: '12 acertos', 13: '13 acertos', 14: '14 acertos', 15: '15 acertos' },
     minAcertos: 11,
-    somaIdeal: [172, 218],   // p10–p90 real (3704 concursos)
+    somaIdeal: [140, 225],
     parIdeal: [6, 9],
     grupos: 5,
     descFaixas: ['1–5', '6–10', '11–15', '16–20', '21–25'],
@@ -1255,7 +1217,7 @@ const LOTERIAS = {
     caixaSlug: 'quina',
     faixas: { 2: 'Duque', 3: 'Terno', 4: 'Quadra', 5: 'Quina' },
     minAcertos: 2,
-    somaIdeal: [137, 267],   // p10–p90 real (7044 concursos)
+    somaIdeal: [100, 290],
     parIdeal: [2, 3],
     grupos: 8,
     descFaixas: ['1–10', '11–20', '21–30', '31–40', '41–50', '51–60', '61–70', '71–80'],
@@ -1269,6 +1231,63 @@ const LOTERIAS = {
 let loteriaAtual = null;
 let selNumeros = new Set();
 let historicoCache = {};
+// Controle de sincronização: chave = cfg.id, valor = { dataSync: 'YYYY-MM-DD', novosInjetados: N }
+let syncCache = {};
+
+// ═══════════════════════════════════════════════════════════
+// SINCRONIZAÇÃO EM MEMÓRIA (não grava no arquivo)
+// ═══════════════════════════════════════════════════════════
+// Compara o último concurso do JSON local com a API da Caixa.
+// Se houver sorteios novos, injeta-os em memória no historicoCache.
+// Roda no máximo uma vez por loteria por dia (controle via syncCache).
+async function sincronizarHistorico(cfg, historico) {
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  // Já sincronizou hoje para esta loteria?
+  if (syncCache[cfg.id] && syncCache[cfg.id].dataSync === hoje) {
+    return syncCache[cfg.id].novosInjetados; // 0 = já estava atualizado
+  }
+
+  const draws = historico.draws || historico;
+  const ultimoLocal = Array.isArray(draws[draws.length - 1])
+    ? draws[draws.length - 1][0]
+    : (draws[draws.length - 1]?.concurso || 0);
+
+  try {
+    const url = `/.netlify/functions/ultimo-concurso?loteria=${cfg.caixaSlug}&desde=${ultimoLocal}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (!data.novos || data.novos.length === 0) {
+      syncCache[cfg.id] = { dataSync: hoje, novosInjetados: 0 };
+      return 0;
+    }
+
+    // Injeta os draws novos no historico em memória
+    for (const c of data.novos) {
+      const draw = [c.concurso, c.data, c.dezenas, c.ganhadores, c.premiosJson || {}];
+      draws.push(draw);
+    }
+
+    // Atualiza meta se existir
+    if (historico.meta) {
+      const ultimo = data.novos[data.novos.length - 1];
+      historico.meta.totalConcursos = draws.length;
+      historico.meta.ultimoConcurso = ultimo.concurso;
+      historico.meta.ultimaData = ultimo.data;
+    }
+
+    syncCache[cfg.id] = { dataSync: hoje, novosInjetados: data.novos.length };
+    return data.novos.length;
+
+  } catch (err) {
+    // Falha silenciosa: usa o JSON como está
+    console.warn(`[Palpitiar] Sincronização falhou (${cfg.id}): ${err.message}`);
+    syncCache[cfg.id] = { dataSync: hoje, novosInjetados: 0 };
+    return 0;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // SELECIONAR LOTERIA
@@ -1346,36 +1365,74 @@ async function startAnalysis() {
   document.getElementById('step-numbers').scrollIntoView({ behavior: 'smooth' });
 
   try {
-    // Carrega histórico — bust de cache para garantir versão atualizada do servidor
+    // 1. Carrega histórico do arquivo local (cache por loteria)
     if (!historicoCache[loteriaAtual]) {
-      const url = cfg.arquivo + '?v=' + Date.now();
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(cfg.arquivo);
       if (!res.ok) throw new Error('Falha ao carregar histórico');
       historicoCache[loteriaAtual] = await res.json();
     }
     const historico = historicoCache[loteriaAtual];
 
+    // 2. Sincroniza com a Caixa (uma vez por loteria por dia, em memória)
+    // Só tenta se ainda não sincronizou hoje — se falhar, segue normalmente
+    const jaSync = syncCache[loteriaAtual];
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (!jaSync || jaSync.dataSync !== hoje) {
+      document.getElementById('loading-text').textContent = 'Verificando sorteios recentes...';
+      await sleep(40);
+    }
+    const novosInjetados = await sincronizarHistorico(cfg, historico);
+
     document.getElementById('loading-text').textContent = 'Processando estatísticas...';
     await sleep(80);
 
-    const combo = Array.from(selNumeros).sort((a,b) => a - b);
+    const combo = Array.from(selNumeros).sort((a, b) => a - b);
     const resultado = analisarCombo(combo, historico, cfg);
 
     renderReport(combo, resultado, cfg);
+
+    // Banner de sincronização (aparece acima dos resultados se houve novidades)
+    renderSyncBanner(novosInjetados, loteriaAtual);
 
     document.getElementById('loading-overlay').classList.remove('active');
     document.getElementById('report-section').classList.add('visible');
     setTimeout(() => document.getElementById('report-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
-    // Busca rateio via API só se o JSON não tiver prêmios embutidos
-    if (resultado.premiados.length > 0 && !resultado.temPremiosNoJson) {
-      buscarRateios(resultado.premiados, cfg);
+    // 3. Busca rateio via API para draws sem premiosJson preenchido
+    if (resultado.premiados.length > 0) {
+      const semPremio = resultado.premiados.filter(
+        p => !p.premiosJson || Object.keys(p.premiosJson).length === 0
+      );
+      if (!resultado.temPremiosNoJson) {
+        buscarRateios(resultado.premiados, cfg);       // JSON antigo sem prêmios: busca tudo
+      } else if (semPremio.length > 0) {
+        buscarRateios(semPremio, cfg);                 // JSON novo: busca só os sem rateio
+      }
     }
 
   } catch(e) {
     document.getElementById('loading-overlay').classList.remove('active');
     alert('Erro ao carregar histórico: ' + e.message + '\n\nVerifique se os arquivos de histórico estão no mesmo diretório.');
   }
+}
+
+function renderSyncBanner(novos, loteriaId) {
+  // Remove banner anterior se existir
+  const old = document.getElementById('sync-banner');
+  if (old) old.remove();
+  if (novos === 0) return;
+
+  const section = document.getElementById('report-section');
+  const banner = document.createElement('div');
+  banner.id = 'sync-banner';
+  banner.className = 'sync-banner';
+  banner.innerHTML = `
+    <span class="sync-banner-icon">⟳</span>
+    Base atualizada com <strong>${novos}</strong> sorteio${novos > 1 ? 's' : ''} recente${novos > 1 ? 's' : ''} da Caixa
+    <span class="sync-banner-sub">(apenas em memória — JSON do servidor será atualizado pelo processo noturno)</span>
+    <button class="sync-banner-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  section.insertAdjacentElement('afterbegin', banner);
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -1430,267 +1487,46 @@ function analisarCombo(combo, historico, cfg) {
   }
   const gruposUsados = Object.values(grupos).filter(v => v > 0).length;
 
-  // ── 5. Consecutivos — máxima sequência ininterrupta ──
-  let consecutivos = 0; // pares consecutivos (para compatibilidade com render)
+  // ── 5. Consecutivos ───────────────────────────────────
+  let consecutivos = 0;
   for (let i = 1; i < combo.length; i++) {
     if (combo[i] - combo[i-1] === 1) consecutivos++;
   }
-  // Calcula o maior bloco ininterrupto (ex: 01,02,03,04,05 → maxBloco=5)
-  let maxBloco = 1, blocoAtual = 1;
-  for (let i = 1; i < combo.length; i++) {
-    if (combo[i] - combo[i-1] === 1) {
-      blocoAtual++;
-      if (blocoAtual > maxBloco) maxBloco = blocoAtual;
-    } else {
-      blocoAtual = 1;
-    }
-  }
 
-  // ── 6. Métricas estruturais adicionais ────────────────────
+  // ── 6. Pontuação geral (0-100) ────────────────────────
+  let score = 50;
 
-  // A. Span geográfico
-  const span = combo[combo.length - 1] - combo[0];
-  const spanOkMin     = Math.round((cfg.max - cfg.min) * 0.50);
-  const spanAlertaMin = Math.round((cfg.max - cfg.min) * 0.30);
+  // Frequência média (±15 pontos)
+  if (freqPctMedio >= 40 && freqPctMedio <= 80) score += 15;
+  else if (freqPctMedio >= 25 && freqPctMedio <= 90) score += 7;
+  else score -= 10;
 
-  // B. Progressão aritmética (PA) — variância das diffs
-  // Desativada para Lotofácil (mediana var=0.80, 69% dos sorteios têm var≤1)
-  const diffs = [];
-  for (let i = 1; i < combo.length; i++) diffs.push(combo[i] - combo[i-1]);
-  const diffMean     = diffs.reduce((s,x) => s+x, 0) / diffs.length;
-  const diffVariancia = diffs.reduce((s,x) => s+(x-diffMean)**2, 0) / diffs.length;
-
-  // C. Progressão geométrica (PG) — variância dos ratios
-  // PG exata (var≤0.01): Mega 3.3%, Loto 3.4%, Quina 4.3%
-  // PG quasi (var≤0.05): Mega 16.9%, Loto 24.2%, Quina 17.9%
-  const ratios = [];
-  for (let i = 1; i < combo.length; i++) ratios.push(combo[i] / combo[i-1]);
-  const ratioMean    = ratios.reduce((s,x) => s+x, 0) / ratios.length;
-  const ratioVariancia = ratios.reduce((s,x) => s+(x-ratioMean)**2, 0) / ratios.length;
-
-  // D. Concentração de unidade (último dígito)
-  const uCount = {};
-  for (const n of combo) { const u = n % 10; uCount[u] = (uCount[u] || 0) + 1; }
-  const maxUnidade   = Math.max(...Object.values(uCount));
-  const nUnidades    = Object.keys(uCount).length; // qtd de dígitos distintos
-
-  // E. Maior buraco entre dezenas consecutivas
-  // Mega: p10=12 p90=28 — buraco ≥ 35 é raro (<3% dos sorteios)
-  const maxBuraco = diffs.reduce((m, d) => Math.max(m, d), 0);
-  const maxBuracoIdeal = Math.round((cfg.max - cfg.min) * 0.55); // ~55% do range
-  const maxBuracoAlerta = Math.round((cfg.max - cfg.min) * 0.70);
-
-  // F. Cobertura de metades (baixa/alta)
-  const metade = Math.round((cfg.max + cfg.min) / 2);
-  const nBaixas = combo.filter(n => n <= metade).length;
-  const nAltas  = combo.filter(n => n > metade).length;
-  // "Todas numa metade": Mega ocorreu 62x (2.06%) — penalizar
-  const todasUmaMetade = nBaixas === 0 || nAltas === 0;
-
-  // G. Atraso médio das dezenas da combo (quantos concursos sem aparecer)
-  // Calculado a partir do histórico real
-  const ultimaVez = {};
-  for (const n of combo) ultimaVez[n] = -1;
-  draws.forEach((d, idx) => {
-    for (const n of d[2]) {
-      if (n in ultimaVez) ultimaVez[n] = idx;
-    }
-  });
-  const atrasos = combo.map(n => ultimaVez[n] === -1 ? total : total - 1 - ultimaVez[n]);
-  const atrasoMedio = Math.round(atrasos.reduce((s,v) => s+v, 0) / atrasos.length);
-  const atrasoMax   = Math.max(...atrasos);
-  // Limiar de atraso crítico por loteria (p90 do histórico)
-  // Mega p90≈22, Quina p90≈38, Loto p90≈2
-  const atrasoP90 = cfg.qtd <= 6 ? 22 : (cfg.qtd <= 10 ? 38 : 2);
-
-  // H. Dezenas primas
-  const PRIMOS = new Set([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79]);
-  const nPrimos = combo.filter(n => PRIMOS.has(n)).length;
-  // Mega: 1-2 primos = 66.2% dos sorteios; 0 ou 5+ é raro
-  // Referência: distrib. Mega: 0p=11.6% 1p=32.8% 2p=33.4% 3p=16.8% 4p=4.6% 5p+=0.7%
-
-  // I. Concentração nas dezenas mais frequentes (top-10)
-  const top10Sorted = Object.entries(freqMap).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n])=>Number(n));
-  const top10Set = new Set(top10Sorted);
-  const nTop10 = combo.filter(n => top10Set.has(n)).length;
-
+  // Paridade (±15 pontos)
   const [pMin, pMax] = cfg.parIdeal;
+  if (pares >= pMin && pares <= pMax) score += 15;
+  else if (pares >= pMin - 1 && pares <= pMax + 1) score += 7;
+  else score -= 8;
+
+  // Soma (±15 pontos)
   const [sMin, sMax] = cfg.somaIdeal;
-  const k = cfg.qtd;
-  const maxBlocoIdeal = k <= 6 ? 2 : (k <= 10 ? 3 : 4);
+  if (soma >= sMin && soma <= sMax) score += 15;
+  else if (soma >= sMin - (sMax-sMin)*0.1 && soma <= sMax + (sMax-sMin)*0.1) score += 7;
+  else score -= 10;
 
-  // Thresholds top-10 por loteria (precisam de k para calcular)
-  // Mega: 5+ nunca ocorreu; 4 = 0.8% → penalizar ≥4, vetar ≥5
-  // Quina: 4+ = 2x em 7044 (0.03%) → vetar ≥4; penalizar ≥3 (1.6%)
-  // Lotofácil: top-10 = 40% do universo — critério inválido (≥10 apenas)
-  const top10VetoMin = k <= 6 ? 5 : (k <= 10 ? 4 : 11);
-  const top10PenMin  = k <= 6 ? 4 : (k <= 10 ? 3 : 10);
+  // Distribuição de grupos (±5 pontos)
+  const grupoIdeal = Math.ceil(cfg.qtd / cfg.grupos);
+  if (gruposUsados >= Math.floor(cfg.grupos * 0.6)) score += 5;
+  else score -= 5;
 
-  // ── VETOS ABSOLUTOS ──────────────────────────────────────
-  let veto = null;
-
-  // 1. Bloco consecutivo longo
-  if (maxBloco >= k - 1 && k >= 5) {
-    veto = `Sequência de ${maxBloco} números consecutivos — nunca saiu na série histórica`;
-  }
-  // 2. Soma extrema (>30% fora dos limites)
-  const somaMargemDura = (sMax - sMin) * 0.30;
-  if (soma < sMin - somaMargemDura || soma > sMax + somaMargemDura) {
-    veto = veto || `Soma ${soma} muito distante do intervalo histórico (${sMin}–${sMax})`;
-  }
-  // 3. Todos pares ou todos ímpares
-  if (k >= 5 && (pares === k || pares === 0)) {
-    veto = veto || `${pares === k ? 'Todos pares' : 'Todos ímpares'} — nunca ocorreu na série histórica`;
-  }
-  // 4. Progressão aritmética — APENAS Mega e Quina (não Lotofácil)
-  // Lotofácil: 69% dos sorteios reais têm var≤1, PA é inerente ao range curto
-  const usarVetoPA = cfg.id !== 'lotofacil';
-  if (usarVetoPA && diffs.length >= 4 && diffVariancia <= 1.0) {
-    veto = veto || `Progressão aritmética — padrão de "escada/diagonal" que ocorreu apenas ${k <= 6 ? '4' : '~19'} vezes na história`;
-  }
-  // 5. Concentração de unidade
-  const limiteUnidade = k <= 6 ? 5 : (k <= 10 ? 7 : 10);
-  if (maxUnidade >= limiteUnidade) {
-    const digitoRep = Object.entries(uCount).find(([,v]) => v >= limiteUnidade)?.[0];
-    veto = veto || `${maxUnidade} dezenas terminando em ${digitoRep} — padrão nunca registrado na série histórica`;
-  }
-  // 6. Concentração nas dezenas mais frequentes (top-10)
-  // Mega: 5+ do top-10 juntas = nunca ocorreu em 3.015 sorteios
-  // Quina: 4+ do top-10 juntas = 2x em 7.044 sorteios (0.03%) → praticamente nunca
-  if (nTop10 >= top10VetoMin) {
-    veto = veto || `${nTop10} das 10 dezenas mais sorteadas na mesma combinação — padrão que nunca ocorreu na série histórica`;
-  }
-
-  let score;
-  if (veto) {
-    let penBase = 25;
-    if (maxBloco >= k) penBase -= 15;
-    else if (maxBloco >= k - 1) penBase -= 10;
-    if (soma < sMin * 0.6 || soma > sMax * 1.4) penBase -= 8;
-    if (usarVetoPA && diffVariancia <= 0.5) penBase -= 8;
-    score = Math.max(5, penBase);
-  } else {
-    // ── PONTUAÇÃO ADITIVA POR CRITÉRIO ──────────────────────
-
-    // A. Consecutivos / bloco (0–25 pts)
-    let ptsCons;
-    if (maxBloco === 1)                      ptsCons = 25;
-    else if (maxBloco === 2)                 ptsCons = 20;
-    else if (maxBloco === 3)                 ptsCons = 6;
-    else if (maxBloco === 4 && k >= 15)      ptsCons = 8;
-    else if (maxBloco === maxBlocoIdeal + 1) ptsCons = 3;
-    else                                     ptsCons = 0;
-
-    // B. Paridade (0–25 pts)
-    let ptsPar;
-    if (pares >= pMin && pares <= pMax)                    ptsPar = 25;
-    else if (pares >= pMin - 1 && pares <= pMax + 1)       ptsPar = 18;
-    else if (pares >= pMin - 2 && pares <= pMax + 2)       ptsPar = 8;
-    else                                                   ptsPar = 0;
-
-    // C. Soma (0–25 pts)
-    let ptsSoma;
-    if (soma >= sMin && soma <= sMax)                                            ptsSoma = 25;
-    else if (soma >= sMin-(sMax-sMin)*0.08 && soma <= sMax+(sMax-sMin)*0.08)    ptsSoma = 18;
-    else if (soma >= sMin-(sMax-sMin)*0.15 && soma <= sMax+(sMax-sMin)*0.15)    ptsSoma = 8;
-    else                                                                         ptsSoma = 0;
-
-    // D. Grupos (0–25 pts)
-    const gruposMin = Math.floor(cfg.grupos * 0.55);
-    const gruposIdealMin = Math.floor(cfg.grupos * 0.75);
-    let ptsGrupo;
-    if (gruposUsados >= gruposIdealMin)      ptsGrupo = 25;
-    else if (gruposUsados >= gruposMin)      ptsGrupo = 15;
-    else if (gruposUsados >= gruposMin - 1)  ptsGrupo = 5;
-    else                                     ptsGrupo = 0;
-
-    // Frequência ±5 pts
-    let ptsFreq = 0;
-    if (freqPctMedio >= 35 && freqPctMedio <= 82) ptsFreq = 5;
-    else if (freqPctMedio >= 20 && freqPctMedio <= 92) ptsFreq = 2;
-    else ptsFreq = -5;
-
-    score = Math.max(0, Math.min(100, ptsCons + ptsPar + ptsSoma + ptsGrupo + ptsFreq));
-
-    // Penalidades pós-score
-    if (maxBloco > maxBlocoIdeal && maxBloco < k - 1) {
-      score = Math.max(0, score - (maxBloco - maxBlocoIdeal) * 12);
-    }
-    if (span < spanAlertaMin) {
-      score = Math.max(0, score - 35);
-    } else if (span < spanOkMin) {
-      score = Math.max(0, score - 18);
-    }
-    // PA: penalidade suave apenas para loterias onde é aplicável
-    if (usarVetoPA && diffs.length >= 4) {
-      if (diffVariancia <= 2.0) score = Math.max(0, score - 30);
-      else if (diffVariancia <= 4.0) score = Math.max(0, score - 15);
-    }
-
-    // PG: progressão geométrica — ratioVariancia baixa
-    // PG quasi (var≤0.05): 17-24% dos sorteios → penalidade moderada, não veto
-    if (ratios.length >= 3 && ratioVariancia <= 0.02) {
-      score = Math.max(0, score - 20);
-    } else if (ratioVariancia <= 0.08) {
-      score = Math.max(0, score - 10);
-    }
-
-    // Buraco excessivo: distância muito grande entre duas dezenas consecutivas
-    // Mega p90=27 p95=31 p99=38 → buraco > 35 = 1.8% → penalidade; > 40 = 0.4%
-    // Quina p90=41 p95=46 p99=55 → buraco > 50 = 2.6% → penalidade; > 55 = 0.7%
-    // Lotofácil p90=5 p95=6 → buraco > 10 = nunca ocorreu
-    const buracoP90 = k <= 6 ? 27 : (k <= 10 ? 41 : 5);
-    const buracoP99 = k <= 6 ? 38 : (k <= 10 ? 55 : 8);
-    if (maxBuraco > buracoP99) {
-      score = Math.max(0, score - 20);
-    } else if (maxBuraco > buracoP90) {
-      score = Math.max(0, score - 10);
-    }
-
-    // Cobertura de metades: todas num único lado do volante
-    // Mega: ocorreu 62x (2.06%) → penalidade forte, mas não veto
-    if (todasUmaMetade) {
-      score = Math.max(0, score - 25);
-    }
-
-    const limiteUnidadeAlerta = k <= 6 ? 4 : (k <= 10 ? 6 : 9);
-    if (maxUnidade >= limiteUnidadeAlerta) {
-      score = Math.max(0, score - 25);
-    }
-
-    // Concentração no top-10: penalidade forte quando abaixo do veto mas ainda raro
-    // Mega: 4 do top-10 = 23x (0.8%) → -30pts; Quina: 3 = 107x (1.5%) → -20pts
-    if (nTop10 >= top10PenMin && nTop10 < top10VetoMin) {
-      const penTop10 = k <= 6 ? 30 : (k <= 10 ? 20 : 15);
-      score = Math.max(0, score - penTop10);
-    }
-  }
-
-  // Veto estendido: bloco >= k-2
-  if (!veto && maxBloco >= k - 2 && k >= 6) {
-    veto = `Bloco de ${maxBloco} números consecutivos — padrão muito incomum na série histórica`;
-  }
-  if (!veto && span < spanAlertaMin && score < 20) {
-    veto = `Todas as dezenas concentradas numa janela de ${span} números — ocorreu apenas 5 vezes em 3.009 concursos`;
-  }
+  score = Math.max(0, Math.min(100, score));
 
   let classificacao;
-  if (veto || score < 35)  classificacao = 'fraca';
-  else if (score < 65)     classificacao = 'media';
-  else                     classificacao = 'boa';
+  if (score >= 65) classificacao = 'boa';
+  else if (score >= 40) classificacao = 'media';
+  else classificacao = 'fraca';
 
-  // ── 8. Buscar premiações na série histórica ───────────
-  // Faixas "relevantes" por loteria (usadas para override de classificação)
-  const faixasRelevantes = {
-    mega:      [5, 6],
-    quina:     [4, 5],
-    lotofacil: [14, 15]
-  };
-  const faixasRelev = faixasRelevantes[cfg.id] || [];
-
+  // ── 7. Buscar premiações na série histórica ───────────
   const premiados = [];
-  let temPremioRelevante = false;  // se combo já ganhou faixa alta historicamente
-
   for (const d of draws) {
     let numConcurso, dataSorteio, dezenas;
     if (Array.isArray(d)) {
@@ -1704,59 +1540,43 @@ function analisarCombo(combo, historico, cfg) {
     const acertos = combo.filter(n => dezenas.includes(n) || dezenas.map(Number).includes(n)).length;
     if (acertos >= cfg.minAcertos) {
       const premiosJson = Array.isArray(d) ? (d[4] || null) : null;
-
-      // Registrar se esta combo já teve premiação relevante (faixa alta)
-      if (faixasRelev.includes(acertos)) {
-        temPremioRelevante = true;
-      }
-
-      // Excluir faixa MÍNIMA quando valor é 0 ou chave ausente no JSON:
-      // — Duque Quina pré-4085: chave '2' ausente ou = 0 → não era pago
-      if (acertos === cfg.minAcertos) {
-        const chaveAcerto = getChaveAcertos(acertos, cfg);
-        if (chaveAcerto) {
-          if (!premiosJson) continue; // sem JSON → faixa mínima não registrada
-          if (premiosJson[chaveAcerto] === undefined) continue; // chave ausente
-          if (premiosJson[chaveAcerto] === 0) continue; // valor zerado
-        }
-      }
-
       premiados.push({ concurso: numConcurso, data: dataSorteio, acertos, dezenas, premiosJson });
     }
   }
 
-  // ── Override de classificação por histórico ────────────
-  // Se a combo ganhou uma faixa relevante (14/15 na Loto, 4/5 na Quina,
-  // 5/6 na Mega), ela NUNCA pode ser classificada como "fraca".
-  // Justificativa: o histórico real supera qualquer análise estatística.
-  if (temPremioRelevante) {
-    if (classificacao === 'fraca') {
-      classificacao = 'media';
-      veto = null; // remove o veto — o histórico prova que a combo é viável
-      score = Math.max(score, 40); // eleva score ao mínimo de "média"
-    }
-  }
-
   // Detecta se JSON já tem prêmios embutidos (v2 enriquecido)
-  const temPremiosNoJson = draws.some(d => Array.isArray(d) && d.length >= 5 && d[4] !== null && typeof d[4] === 'object');
+  // Requer ao menos um draw com objeto de prêmios NÃO-VAZIO no índice [4]
+  // Draws recentes têm d[4]={} (vazio) enquanto conferir.js ainda não processou
+  const temPremiosNoJson = draws.some(d =>
+    Array.isArray(d) && d.length >= 5 && d[4] !== null &&
+    typeof d[4] === 'object' && Object.keys(d[4]).length > 0
+  );
+
+  // Para Quina: remove duques (2 acertos) com valor zero quando JSON tem prêmios
+  // A faixa de duque só passou a ser paga a partir do concurso 4085
+  const premiadosFinal = (cfg.id === 'quina' && temPremiosNoJson)
+    ? premiados.filter(p => {
+        if (p.acertos !== 2) return true;
+        const valor = p.premiosJson ? (p.premiosJson['2'] || 0) : 0;
+        return valor > 0;
+      })
+    : premiados;
+
+  // Último concurso na base
+  const ultimoDrawArr = draws[draws.length - 1];
+  const ultimoConcurso = Array.isArray(ultimoDrawArr)
+    ? ultimoDrawArr[0]
+    : (ultimoDrawArr?.concurso || ultimoDrawArr?.numero || '?');
 
   return {
     combo, score, classificacao,
     freqCombo, freqPctMedio, freqMap, maxFreq, minFreq, total,
     pares, impares, soma,
     grupos, gruposUsados,
-    consecutivos, maxBloco,
-    span, diffVariancia, ratioVariancia,
-    maxUnidade, nUnidades,
-    maxBuraco,
-    nBaixas, nAltas, todasUmaMetade,
-    atrasos, atrasoMedio, atrasoMax, atrasoP90,
-    nPrimos,
-    nTop10, top10VetoMin, top10PenMin,
-    veto,
-    temPremioRelevante,
-    premiados,
-    temPremiosNoJson
+    consecutivos,
+    premiados: premiadosFinal,
+    temPremiosNoJson,
+    ultimoConcurso
   };
 }
 
@@ -1776,25 +1596,15 @@ function renderReport(combo, r, cfg) {
   const icons = { boa: '🟢', media: '🟡', fraca: '🔴' };
   const labels = { boa: 'Combinação', media: 'Combinação', fraca: 'Combinação' };
   const titles = { boa: 'Boa combinação', media: 'Combinação média', fraca: 'Combinação fraca' };
-
-  // Sub-título: override histórico tem prioridade
-  let subTexto;
-  if (r.temPremioRelevante && r.classificacao !== 'fraca') {
-    const nomesFaixa = { mega: '5 ou 6 acertos', quina: '4 ou 5 acertos', lotofacil: '14 ou 15 acertos' };
-    subTexto = `★ Esta combinação já teve premiação de ${nomesFaixa[cfg.id] || 'faixa alta'} na série histórica — classificação elevada`;
-  } else {
-    const subs = {
-      boa: 'Segue bem os padrões históricos da ' + cfg.nome,
-      media: 'Alguns critérios fora do padrão histórico',
-      fraca: r.veto ? r.veto : 'Diverge dos padrões mais frequentes da ' + cfg.nome
-    };
-    subTexto = subs[r.classificacao];
-  }
-
+  const subs = {
+    boa: 'Segue bem os padrões históricos da ' + cfg.nome,
+    media: 'Alguns critérios fora do padrão histórico',
+    fraca: 'Diverge dos padrões mais frequentes da ' + cfg.nome
+  };
   document.getElementById('class-icon').textContent = icons[r.classificacao];
   document.getElementById('class-label').textContent = labels[r.classificacao];
   document.getElementById('class-title').textContent = titles[r.classificacao];
-  document.getElementById('class-sub').textContent = subTexto;
+  document.getElementById('class-sub').textContent = subs[r.classificacao];
   document.getElementById('class-score').textContent = r.score;
 
   // Métricas
@@ -1843,171 +1653,36 @@ function renderReport(combo, r, cfg) {
       </div>`;
   }).join('');
 
-  // ── Badges das métricas ──────────────────────────────────
-  const parBadge  = parOk ? 'badge-ok' : (Math.abs(r.pares-(cfg.parIdeal[0]+cfg.parIdeal[1])/2)<=1 ? 'badge-warn' : 'badge-bad');
-  const somaBadge = somaOk ? 'badge-ok' : (r.soma<cfg.somaIdeal[0]*0.9||r.soma>cfg.somaIdeal[1]*1.1 ? 'badge-bad' : 'badge-warn');
-  const freqBadge = freqOk ? 'badge-ok' : (r.freqPctMedio<15||r.freqPctMedio>95 ? 'badge-bad' : 'badge-warn');
-  const maxBlocoIdealRender = cfg.qtd<=6 ? 2 : (cfg.qtd<=10 ? 3 : 4);
-  const consBadge = r.maxBloco<=maxBlocoIdealRender ? 'badge-ok' : (r.maxBloco>=cfg.qtd-1 ? 'badge-bad' : 'badge-warn');
-  const consLabel = r.maxBloco===1 ? 'Nenhum par consecutivo' : r.maxBloco===2 ? '1 par consecutivo' : `Bloco de ${r.maxBloco} seguidos`;
-  const consStatus = r.maxBloco<=maxBlocoIdealRender ? 'Normal' : r.maxBloco>=cfg.qtd-1 ? 'Sequência crítica' : 'Muitos seguidos';
-
-  // Span
-  const spanOkMinR    = Math.round((cfg.max-cfg.min)*0.50);
-  const spanAlertaMinR = Math.round((cfg.max-cfg.min)*0.30);
-  const spanBadge  = r.span>=spanOkMinR ? 'badge-ok' : (r.span<spanAlertaMinR ? 'badge-bad' : 'badge-warn');
-  const spanStatus = r.span>=spanOkMinR ? 'Bem distribuído' : (r.span<spanAlertaMinR ? 'Concentração crítica' : 'Pouco distribuído');
-
-  // PA (só exibe se aplicável)
-  const usarPA    = cfg.id !== 'lotofacil';
-  const paBadge   = !usarPA ? 'badge-ok' : (r.diffVariancia>4 ? 'badge-ok' : (r.diffVariancia<=1 ? 'badge-bad' : 'badge-warn'));
-  const paStatus  = !usarPA ? 'N/A para Lotofácil' : (r.diffVariancia>4 ? 'Normal' : (r.diffVariancia<=1 ? 'PA detectada' : 'Quasi-PA'));
-  const paProb    = cfg.id==='mega' ? {low:'0,13%',med:'0,60%'} : cfg.id==='quina' ? {low:'0,27%',med:'0,58%'} : null;
-
-  // PG
-  const pgBadge  = r.ratioVariancia>0.08 ? 'badge-ok' : (r.ratioVariancia<=0.02 ? 'badge-warn' : 'badge-warn');
-  const pgStatus = r.ratioVariancia>0.08 ? 'Normal' : (r.ratioVariancia<=0.02 ? 'PG detectada' : 'Quasi-PG');
-  const pgProbStr = cfg.id==='mega' ? '3,3% (var≤0,02)' : cfg.id==='quina' ? '4,3%' : '3,4%';
-
-  // Unidades (dígitos finais)
-  const unidLimAlerta = cfg.qtd<=6 ? 4 : (cfg.qtd<=10 ? 6 : 9);
-  const unidBadge  = r.maxUnidade<unidLimAlerta ? 'badge-ok' : (r.maxUnidade>=(cfg.qtd<=6?5:7) ? 'badge-bad' : 'badge-warn');
-  const unidStatus = r.maxUnidade<unidLimAlerta ? 'Normal' : (r.maxUnidade>=(cfg.qtd<=6?5:7) ? 'Concentração crítica' : 'Repetição notável');
-  const unidProb   = cfg.id==='mega' ? {m4:'0,43%',m5:'0%'} : cfg.id==='quina' ? {m4:'0,20%'} : null;
-
-  // Buraco
-  const maxBuracoIdealR  = Math.round((cfg.max-cfg.min)*0.55);
-  const maxBuracoAlertaR = Math.round((cfg.max-cfg.min)*0.70);
-  const buracoBadge  = r.maxBuraco<=maxBuracoIdealR ? 'badge-ok' : (r.maxBuraco>maxBuracoAlertaR ? 'badge-bad' : 'badge-warn');
-  const buracoStatus = r.maxBuraco<=maxBuracoIdealR ? 'Normal' : (r.maxBuraco>maxBuracoAlertaR ? 'Buraco excessivo' : 'Buraco largo');
-
-  // Metades
-  const metadeBadge  = !r.todasUmaMetade ? 'badge-ok' : 'badge-warn';
-  const metadeStatus = !r.todasUmaMetade ? `${r.nBaixas} baixas · ${r.nAltas} altas` : (r.nBaixas===0 ? 'Só dezenas altas' : 'Só dezenas baixas');
-  const metadeProb   = cfg.id==='mega' ? '2,1%' : cfg.id==='quina' ? '4,0%' : 'raro';
-
-  // Atraso
-  const atrasoBadge  = r.atrasoMax<=r.atrasoP90 ? 'badge-ok' : 'badge-warn';
-  const atrasoStatus = r.atrasoMax<=r.atrasoP90 ? `Máx. ${r.atrasoMax} conc.` : `${r.atrasoMax} conc. (fria!)`;
-
-  // Primos (só Mega e Quina — Lotofácil tem range pequeno demais)
-  const mostrarPrimos = cfg.id !== 'lotofacil';
-  const primosBadge   = (r.nPrimos>=1 && r.nPrimos<=3) ? 'badge-ok' : 'badge-warn';
-  const primosStatus  = r.nPrimos===0 ? 'Nenhum primo' : (r.nPrimos<=3 ? `${r.nPrimos} primos (normal)` : `${r.nPrimos} primos (alto)`);
-
-  const vetoHtml = r.veto ? `
-    <div class="analysis-row" style="background:rgba(196,69,45,.08);border-left:2px solid var(--red);">
-      <div class="ar-label" style="color:var(--red)">⚠ Penalidade crítica</div>
-      <div class="ar-val" style="color:var(--red)">${r.veto}</div>
-    </div>` : '';
+  // Análise detalhada
+  const parBadge = parOk ? 'badge-ok' : (Math.abs(r.pares - (cfg.parIdeal[0]+cfg.parIdeal[1])/2) <= 1 ? 'badge-warn' : 'badge-bad');
+  const somaBadge = somaOk ? 'badge-ok' : (r.soma < cfg.somaIdeal[0]*0.9 || r.soma > cfg.somaIdeal[1]*1.1 ? 'badge-bad' : 'badge-warn');
+  const freqBadge = freqOk ? 'badge-ok' : (r.freqPctMedio < 15 || r.freqPctMedio > 95 ? 'badge-bad' : 'badge-warn');
+  const consOk = r.consecutivos <= Math.ceil(cfg.qtd * 0.3);
 
   document.getElementById('analysis-body').innerHTML = `
-    ${vetoHtml}
-
-    <div class="analysis-section-title">Padrões estatísticos</div>
-
     <div class="analysis-row">
       <div class="ar-label">Distribuição par/ímpar</div>
-      <div class="ar-val">${r.pares}P · ${r.impares}I
-        <span class="ar-badge ${parBadge}">${parOk?'Ideal':(r.pares<cfg.parIdeal[0]?'Poucos pares':'Muitos pares')}</span>
-        <span class="ar-prob">Histórico: ${cfg.parIdeal[0]}–${cfg.parIdeal[1]} pares cobre ~85% dos sorteios</span>
-      </div>
+      <div class="ar-val">${r.pares} pares · ${r.impares} ímpares <span class="ar-badge ${parBadge}">${parOk ? 'Ideal' : (r.pares < cfg.parIdeal[0] ? 'Poucos pares' : 'Muitos pares')}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Soma das dezenas</div>
-      <div class="ar-val">${r.soma}
-        <span class="ar-badge ${somaBadge}">${somaOk?'Na faixa ideal':(r.soma<cfg.somaIdeal[0]?'Soma baixa':'Soma alta')}</span>
-        <span class="ar-prob">Faixa ideal: ${cfg.somaIdeal[0]}–${cfg.somaIdeal[1]}</span>
-      </div>
+      <div class="ar-val">${r.soma} <span class="ar-badge ${somaBadge}">${somaOk ? 'Na faixa ideal' : (r.soma < cfg.somaIdeal[0] ? 'Soma baixa' : 'Soma alta')}</span></div>
     </div>
     <div class="analysis-row">
-      <div class="ar-label">Frequência histórica</div>
-      <div class="ar-val">Percentil ${r.freqPctMedio}
-        <span class="ar-badge ${freqBadge}">${r.freqPctMedio>=30&&r.freqPctMedio<=85?'Equilibrada':(r.freqPctMedio<30?'Dezenas frias':'Dezenas quentes')}</span>
-        <span class="ar-prob">Atraso médio: ${r.atrasoMedio} conc. · máx: ${r.atrasoMax} <span class="ar-badge ${atrasoBadge}">${atrasoStatus}</span></span>
-      </div>
+      <div class="ar-label">Frequência média</div>
+      <div class="ar-val">Percentil ${r.freqPctMedio} <span class="ar-badge ${freqBadge}">${r.freqPctMedio >= 30 && r.freqPctMedio <= 85 ? 'Equilibrada' : (r.freqPctMedio < 30 ? 'Dezenas frias' : 'Dezenas quentes')}</span></div>
     </div>
     <div class="analysis-row">
-      <div class="ar-label">Popularidade (top-10)</div>
-      <div class="ar-val">${r.nTop10} dezenas entre as 10 mais sorteadas
-        <span class="ar-badge ${r.nTop10 >= r.top10VetoMin ? 'badge-bad' : r.nTop10 >= r.top10PenMin ? 'badge-warn' : 'badge-ok'}">${r.nTop10 >= r.top10VetoMin ? 'Concentração crítica' : r.nTop10 >= r.top10PenMin ? 'Combinação popular' : 'Normal'}</span>
-        <span class="ar-prob">${cfg.id === 'mega' ? '5+ do top-10 juntas: nunca ocorreu · 4 juntas: 0,8% dos sorteios' : cfg.id === 'quina' ? '4+ do top-10 juntas: 2x em 7.044 sorteios (0,03%) · 3 juntas: 1,6%' : 'top-10 = 40% do universo — critério não aplicável na Lotofácil'}</span>
-      </div>
-    </div>
-
-    <div class="analysis-section-title">Distribuição no volante</div>
-
-    <div class="analysis-row">
-      <div class="ar-label">Amplitude (span)</div>
-      <div class="ar-val">Intervalo de ${r.span} números
-        <span class="ar-badge ${spanBadge}">${spanStatus}</span>
-        <span class="ar-prob">Ideal ≥ ${spanOkMinR} · abaixo de ${spanAlertaMinR} é raro (&lt;1%)</span>
-      </div>
-    </div>
-    <div class="analysis-row">
-      <div class="ar-label">Maior buraco</div>
-      <div class="ar-val">Gap de ${r.maxBuraco} entre consecutivas
-        <span class="ar-badge ${buracoBadge}">${buracoStatus}</span>
-        <span class="ar-prob">Normal ≤ ${maxBuracoIdealR} · p90 do histórico = ${Math.round((cfg.max-cfg.min)*0.55)}</span>
-      </div>
-    </div>
-    <div class="analysis-row">
-      <div class="ar-label">Cobertura de metades</div>
-      <div class="ar-val">${metadeStatus}
-        <span class="ar-badge ${metadeBadge}">${r.todasUmaMetade?'Concentrado':'Balanceado'}</span>
-        <span class="ar-prob">Todas numa metade: ocorreu em ${metadeProb} dos sorteios</span>
-      </div>
-    </div>
-    <div class="analysis-row">
-      <div class="ar-label">Consecutivos (bloco)</div>
-      <div class="ar-val">${consLabel}
-        <span class="ar-badge ${consBadge}">${consStatus}</span>
-      </div>
+      <div class="ar-label">Consecutivos</div>
+      <div class="ar-val">${r.consecutivos} pares consecutivos <span class="ar-badge ${consOk ? 'badge-ok' : 'badge-warn'}">${consOk ? 'Normal' : 'Muitos seguidos'}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Cobertura de faixas</div>
-      <div class="ar-val">${r.gruposUsados} de ${cfg.grupos} grupos
-        <span class="ar-badge ${grupoOk?'badge-ok':'badge-warn'}">${grupoOk?'Bem distribuído':'Concentrado'}</span>
-        <span class="ar-prob">${cfg.descFaixas.join(' · ')}</span>
-      </div>
-    </div>
-
-    <div class="analysis-section-title">Padrões matemáticos</div>
-
-    ${usarPA ? `
-    <div class="analysis-row">
-      <div class="ar-label">Progressão aritmética</div>
-      <div class="ar-val">Variância dos espaçamentos: ${r.diffVariancia.toFixed(2)}
-        <span class="ar-badge ${paBadge}">${paStatus}</span>
-        ${paProb ? `<span class="ar-prob">PA quase perfeita ocorreu em ${paProb.low} dos sorteios</span>` : ''}
-      </div>
-    </div>` : ''}
-    <div class="analysis-row">
-      <div class="ar-label">Progressão geométrica</div>
-      <div class="ar-val">Variância dos ratios: ${r.ratioVariancia.toFixed(3)}
-        <span class="ar-badge ${pgBadge}">${pgStatus}</span>
-        <span class="ar-prob">PG quasi ocorreu em ~${pgProbStr} dos sorteios</span>
-      </div>
+      <div class="ar-val">${r.gruposUsados} de ${cfg.grupos} grupos (${cfg.descFaixas.slice(0,3).join(', ')}…) <span class="ar-badge ${grupoOk ? 'badge-ok' : 'badge-warn'}">${grupoOk ? 'Bem distribuído' : 'Concentrado'}</span></div>
     </div>
     <div class="analysis-row">
-      <div class="ar-label">Dígito final (unidade)</div>
-      <div class="ar-val">Máx. ${r.maxUnidade} dezenas com mesmo final · ${r.nUnidades} dígitos distintos
-        <span class="ar-badge ${unidBadge}">${unidStatus}</span>
-        ${unidProb ? `<span class="ar-prob">4 iguais: ${unidProb.m4} · 5+ iguais: nunca registrado</span>` : ''}
-      </div>
-    </div>
-    ${mostrarPrimos ? `
-    <div class="analysis-row">
-      <div class="ar-label">Números primos</div>
-      <div class="ar-val">${r.nPrimos} dezenas primas na combinação
-        <span class="ar-badge ${primosBadge}">${primosStatus}</span>
-        <span class="ar-prob">Histórico Mega: 1–2 primos em 66% dos sorteios · 5+ primos em 0,7%</span>
-      </div>
-    </div>` : ''}
-
-    <div class="analysis-row" style="opacity:.5;margin-top:4px">
       <div class="ar-label">Base histórica</div>
-      <div class="ar-val" style="color:var(--ink-faint)">${r.total.toLocaleString('pt-BR')} concursos analisados</div>
+      <div class="ar-val" style="color:var(--ink-faint)">${r.total.toLocaleString('pt-BR')} concursos analisados · até conc. ${r.ultimoConcurso}</div>
     </div>
   `;
 
@@ -2021,8 +1696,8 @@ function renderReport(combo, r, cfg) {
     document.getElementById('total-premiado-wrap').innerHTML = '';
     document.getElementById('history-controls').style.display = 'none';
     histResults.innerHTML = `<div class="history-empty">
-      Esta combinação não registrou premiação nos ${r.total.toLocaleString('pt-BR')} concursos históricos analisados.<br>
-      <span style="color:var(--ink-faint);font-size:10px">Combinações exatas raramente se repetem — isso é estatisticamente esperado.</span>
+      Esta combinação não registrou premiação nos ${r.total.toLocaleString('pt-BR')} concursos históricos analisados (até o concurso ${r.ultimoConcurso}).<br>
+      <span style="color:var(--ink-faint);font-size:10px">Combinações exatas raramente se repetem — isso é estatisticamente esperado. Sorteios mais recentes podem ainda não constar na base.</span>
     </div>`;
   } else {
     histBadge.className = 'history-badge found';
@@ -2038,8 +1713,11 @@ function renderReport(combo, r, cfg) {
     window._premiadosAtual = r.premiados;
     window._temPremiosNoJson = r.temPremiosNoJson;
     window._cfgAtual = cfg;
-    window._comboAtual = r.combo.map(Number);
     window._expandido = false;
+    window._comboAtual = combo; // para destacar acertos nas dezenas sorteadas
+    // Mapa concurso → dezenas para fallback API
+    window._dezenasMap = {};
+    for (const p of r.premiados) window._dezenasMap[p.concurso] = p.dezenas;
 
     renderListaPremiados('antigo');
   }
@@ -2086,109 +1764,63 @@ function renderListaPremiados(modo) {
   const temPremios = window._temPremiosNoJson;
   const limite = window._expandido ? lista.length : 20;
   const histResults = document.getElementById('history-results');
-  const comboUsuario = (window._comboAtual || []).map(Number);
 
   histResults.innerHTML = lista.slice(0, limite).map(p => {
     const faixaNome = getNomeFaixa(p.acertos, cfg);
     const faixaClass = getFaixaColor(p.acertos, cfg);
-    let gridHtml = '';
 
-    if (temPremios && p.premiosJson) {
-      const nomes   = NOMES_FAIXA[cfg.id] || {};
-      const nomesG  = CHAVES_GANHADORES[cfg.id] || {};
-      const chaves  = CHAVES_PREMIO[cfg.id] || [];
-      const chaveUs = getChaveAcertos(p.acertos, cfg);
+    // Card das dezenas sorteadas — vai dentro do rateio-grid
+    const userSet = new Set(window._comboAtual || []);
+    const dezenasHtml = renderDezenasCard(p.dezenas, userSet, cfg);
 
-      chaves.forEach(k => {
-        const isD  = k === chaveUs;
-        const nome = nomes[k] || k;
-        const chG  = nomesG[k];
-        const badgeHtml = isD ? '<div class="award-sua-faixa">\u2605 SUA FAIXA</div>' : '';
+    // premiosJson={} significa que conferir.js ainda não processou: usa fallback API
+    const temPremioNesteConcurso = p.premiosJson && Object.keys(p.premiosJson).length > 0;
+    const rateioHtml = (temPremios && temPremioNesteConcurso)
+      ? renderRateioDoJson(p.premiosJson, p.acertos, cfg, dezenasHtml)
+      : `<div class="award-loading" id="rateio-loading-${p.concurso}">
+           <div class="mini-spinner"></div>
+           <span>Buscando valores do rateio...</span>
+         </div>
+         <div class="award-rateio" id="rateio-data-${p.concurso}" style="display:none"></div>`;
 
-        // Chave ausente no JSON
-        if (p.premiosJson[k] === undefined) {
-          const sub = (k === '2') ? 'faixa n\u00e3o existia' : 'n\u00e3o dispon\u00edvel';
-          gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + ' acumulado">' +
-            badgeHtml +
-            '<div class="award-cell">' +
-              '<div class="award-cell-label">' + nome + '</div>' +
-              '<div class="award-cell-val">\u2014</div>' +
-              '<div class="award-cell-sub">' + sub + '</div>' +
-            '</div></div>';
-          return;
-        }
-
-        // Faixa zerada
-        if (p.premiosJson[k] === 0) {
-          const ehDuqueAntigo = (k === '2' && p.concurso < 4085);
-          const subZero = ehDuqueAntigo ? 'faixa n\u00e3o existia' : 'sem ganhador';
-          const valZero = ehDuqueAntigo ? '\u2014' : 'Acumulado';
-          gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + ' acumulado">' +
-            badgeHtml +
-            '<div class="award-cell">' +
-              '<div class="award-cell-label">' + nome + '</div>' +
-              '<div class="award-cell-val">' + valZero + '</div>' +
-              '<div class="award-cell-sub">' + subZero + '</div>' +
-            '</div></div>';
-          return;
-        }
-
-        // Faixa com valor
-        const val  = formatarMoeda(p.premiosJson[k]);
-        const g    = chG ? (p.premiosJson[chG] !== undefined ? p.premiosJson[chG] : '\u2014') : '\u2014';
-        const gStr = g + ' ganhad' + (g == 1 ? 'or' : 'ores');
-        gridHtml += '<div class="award-cell-wrap' + (isD ? ' destaque' : '') + '">' +
-          badgeHtml +
-          '<div class="award-cell">' +
-            '<div class="award-cell-label">' + nome + '</div>' +
-            '<div class="award-cell-val">' + val + '</div>' +
-            '<div class="award-cell-sub">' + gStr + '</div>' +
-          '</div></div>';
-      });
-    } else if (!temPremios) {
-      gridHtml = '<div class="award-loading" id="rateio-loading-' + p.concurso + '">' +
-        '<div class="mini-spinner"></div><span>Buscando rateio\u2026</span>' +
-        '</div><div class="award-rateio" id="rateio-data-' + p.concurso + '"></div>';
-    }
-
-    // Coluna dezenas sorteadas
-    if (p.dezenas && p.dezenas.length > 0) {
-      const sorted = [...p.dezenas].map(Number).sort((a, b) => a - b);
-      const bolinhas = sorted.map(n => {
-        const hit = comboUsuario.includes(n);
-        return '<span class="award-dez' + (hit ? ' acerto' : '') + '">' + String(n).padStart(2,'0') + '</span>';
-      }).join('');
-      const numStr = sorted.map(n => {
-        const s = String(n).padStart(2,'0');
-        return comboUsuario.includes(n) ? '<span>' + s + '</span>' : s;
-      }).join('\u00b7');
-      gridHtml += '<div class="award-cell-wrap">' +
-        '<div class="award-cell">' +
-          '<div class="award-cell-label">Dezenas sorteadas</div>' +
-          '<div class="award-cell-dezenas">' + bolinhas + '</div>' +
-          '<div class="award-dez-nums">(' + numStr + ')</div>' +
-        '</div></div>';
-    }
-
-    return '<div class="award-card" id="award-' + p.concurso + '">' +
-      '<div class="award-top">' +
-        '<div class="award-concurso">Concurso ' + p.concurso + '</div>' +
-        '<div class="award-date">' + formatarData(p.data) + '</div>' +
-        '<div class="award-faixa ' + faixaClass + '">' + p.acertos + ' acertos \u00b7 ' + faixaNome + '</div>' +
-      '</div>' +
-      '<div class="award-grid">' + gridHtml + '</div>' +
-    '</div>';
+    return `
+      <div class="award-card" id="award-${p.concurso}">
+        <div class="award-top">
+          <div class="award-concurso">Concurso ${p.concurso}</div>
+          <div class="award-date">${formatarData(p.data)}</div>
+          <div class="award-faixa ${faixaClass}">${p.acertos} acertos · ${faixaNome}</div>
+        </div>
+        ${rateioHtml}
+      </div>`;
   }).join('');
 
   if (!window._expandido && lista.length > 20) {
-    histResults.innerHTML += '<button class="btn-expandir" onclick="expandirTodos()">' +
-      '\u2193 Mostrar todos os ' + lista.length + ' concursos premiados' +
-    '</button>';
+    histResults.innerHTML += `
+      <button class="btn-expandir" onclick="expandirTodos()">
+        ↓ Mostrar todos os ${lista.length} concursos premiados
+      </button>`;
   }
+
+  // Fallback API para os cards sem prêmio no JSON
   if (!temPremios) {
     lista.slice(0, limite).forEach(p => buscarRateioUnico(p.concurso, cfg));
   }
 }
+
+function renderDezenasCard(dezenas, userSet, cfg) {
+  if (!dezenas || dezenas.length === 0) return '';
+  const sorted = [...dezenas].map(Number).sort((a, b) => a - b);
+  const balls = sorted.map(n => {
+    const acertou = userSet.has(n);
+    return `<div class="award-ball${acertou ? ' acertou' : ''}">${String(n).padStart(2,'0')}</div>`;
+  }).join('');
+  return `
+    <div class="rateio-item dezenas-card">
+      <div class="rateio-faixa">Dezenas sorteadas</div>
+      <div class="rateio-balls-row" data-qtd="${cfg.qtd}">${balls}</div>
+    </div>`;
+}
+
 function expandirTodos() {
   window._expandido = true;
   renderListaPremiados(window._sortAtual);
@@ -2201,59 +1833,72 @@ function expandirTodos() {
 
 function renderTotalPremiado(premiados, temPremios, cfg) {
   const wrap = document.getElementById('total-premiado-wrap');
-  if (!temPremios) { wrap.innerHTML = ''; return; }
+
+  if (!temPremios) {
+    wrap.innerHTML = '';
+    return;
+  }
 
   let totalGanho = 0;
   let concursosComValor = 0;
+  let concursosSemRateio = 0;
   let maiorPremio = 0;
   let maiorConcurso = null;
   const contadorFaixas = {};
 
   for (const p of premiados) {
+    const temRateio = p.premiosJson && Object.keys(p.premiosJson).length > 0;
     const chave = getChaveAcertos(p.acertos, cfg);
-    const valor = chave && p.premiosJson ? (p.premiosJson[chave] || 0) : 0;
+    const valor = (temRateio && chave) ? (p.premiosJson[chave] || 0) : 0;
     if (valor > 0) {
       totalGanho += valor;
       concursosComValor++;
-      if (valor > maiorPremio) { maiorPremio = valor; maiorConcurso = p.concurso; }
+      if (valor > maiorPremio) {
+        maiorPremio = valor;
+        maiorConcurso = p.concurso;
+      }
+    } else if (!temRateio) {
+      concursosSemRateio++;
     }
     const faixaNome = getNomeFaixa(p.acertos, cfg);
     contadorFaixas[faixaNome] = (contadorFaixas[faixaNome] || 0) + 1;
   }
 
-  const media = concursosComValor > 0 ? totalGanho / concursosComValor : 0;
   const faixasStr = Object.entries(contadorFaixas)
     .sort((a,b) => b[1] - a[1])
-    .map(([nome, qtd]) => qtd + '\u00d7 ' + nome)
-    .join(' \u00b7 ');
+    .map(([nome, qtd]) => `${qtd}× ${nome}`)
+    .join(' · ');
 
-  wrap.innerHTML =
-    '<div class="total-premiado-card">' +
-      '<div>' +
-        '<div class="total-premiado-label">Total acumulado (valor por ganhador)</div>' +
-        '<div class="total-premiado-val">' + formatarMoeda(totalGanho) + '</div>' +
-        '<div class="total-premiado-sub">' + faixasStr + '</div>' +
-      '</div>' +
-      '<div class="total-stats">' +
-        '<div class="total-stat">' +
-          '<div class="total-stat-val">' + premiados.length + '</div>' +
-          '<div class="total-stat-label">Concursos<br>premiados</div>' +
-        '</div>' +
-        (concursosComValor > 0
-          ? '<div class="total-stat">' +
-              '<div class="total-stat-val">' + formatarMoeda(media).replace('R$ ','R$') + '</div>' +
-              '<div class="total-stat-label">M\u00e9dia por<br>concurso pago</div>' +
-            '</div>'
-          : '') +
-        (maiorConcurso
-          ? '<div class="total-stat">' +
-              '<div class="total-stat-val">' + formatarMoeda(maiorPremio).replace('R$ ','R$') + '</div>' +
-              '<div class="total-stat-label">Maior pr\u00eamio<br>conc. ' + maiorConcurso + '</div>' +
-            '</div>'
-          : '') +
-      '</div>' +
-    '</div>';
+  const notaPendente = concursosSemRateio > 0
+    ? `<div class="total-premiado-nota">⏳ Rateio ainda não disponível para ${concursosSemRateio} concurso${concursosSemRateio > 1 ? 's' : ''} recente${concursosSemRateio > 1 ? 's' : ''} — total acima é parcial.</div>`
+    : '';
+
+  wrap.innerHTML = `
+    <div class="total-premiado-card">
+      <div>
+        <div class="total-premiado-label">Total acumulado (valor por ganhador)</div>
+        <div class="total-premiado-val">${totalGanho > 0 ? formatarMoeda(totalGanho) : '—'}</div>
+        <div class="total-premiado-sub">${faixasStr}</div>
+        ${notaPendente}
+      </div>
+      <div class="total-stats">
+        <div class="total-stat">
+          <div class="total-stat-val">${premiados.length}</div>
+          <div class="total-stat-label">Concursos<br>premiados</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-stat-val">${concursosComValor > 0 ? formatarMoeda(totalGanho / concursosComValor).replace('R$ ','R$') : '—'}</div>
+          <div class="total-stat-label">Média por<br>concurso pago</div>
+        </div>
+        ${maiorConcurso ? `
+        <div class="total-stat">
+          <div class="total-stat-val">${formatarMoeda(maiorPremio).replace('R$ ','R$')}</div>
+          <div class="total-stat-label">Maior prêmio<br>conc. ${maiorConcurso}</div>
+        </div>` : ''}
+      </div>
+    </div>`;
 }
+
 function getNomeFaixa(acertos, cfg) {
   return cfg.faixas[acertos] || (acertos + ' acertos');
 }
@@ -2295,10 +1940,12 @@ const CHAVES_GANHADORES = {
   quina:     { '5':'g5','4':'g4','3':'g3','2':'g2' }
 };
 
-function renderRateioDoJson(premiosJson, acertosUsuario, cfg) {
+function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml) {
   if (!premiosJson || Object.keys(premiosJson).length === 0) {
     return `<div class="award-rateio" style="display:block">
-      <div class="rateio-error">Dados de prêmio não disponíveis para este concurso.</div>
+      <div class="rateio-grid">${dezenasHtml || ''}
+        <div class="rateio-error">Dados de prêmio não disponíveis para este concurso.</div>
+      </div>
     </div>`;
   }
 
@@ -2311,11 +1958,6 @@ function renderRateioDoJson(premiosJson, acertosUsuario, cfg) {
 
   const itens = chaves
     .filter(k => premiosJson[k] !== undefined)
-    .filter(k => {
-      // Não exibir faixas com valor zerado — indica que a faixa não era paga
-      // naquele concurso (ex: Duque da Quina antes do concurso 4085)
-      return premiosJson[k] !== 0;
-    })
     .map(k => {
       const nome = nomes[k] || k;
       const valor = premiosJson[k];
@@ -2331,7 +1973,7 @@ function renderRateioDoJson(premiosJson, acertosUsuario, cfg) {
     }).join('');
 
   return `<div class="award-rateio" style="display:block">
-    <div class="rateio-grid">${itens}</div>
+    <div class="rateio-grid">${itens}${dezenasHtml || ''}</div>
   </div>`;
 }
 
@@ -2348,6 +1990,11 @@ async function buscarRateioUnico(concurso, cfg) {
   const dataEl = document.getElementById('rateio-data-' + concurso);
   if (!loadingEl || !dataEl) return;
 
+  // Prepara o card de dezenas para injetar no grid
+  const userSet = new Set(window._comboAtual || []);
+  const dezenas = (window._dezenasMap || {})[concurso] || [];
+  const dezenasHtml = renderDezenasCard(dezenas, userSet, cfg);
+
   try {
     const url = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
     const res = await fetch(url);
@@ -2358,7 +2005,7 @@ async function buscarRateioUnico(concurso, cfg) {
 
     const rateio = data.listaRateioPremio || data.premiacoes || [];
     if (!rateio.length) {
-      dataEl.innerHTML = `<div class="rateio-error">Dados de rateio não disponíveis para este concurso.</div>`;
+      dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Dados de rateio não disponíveis para este concurso.</div></div>`;
       dataEl.style.display = 'block';
       return;
     }
@@ -2375,12 +2022,12 @@ async function buscarRateioUnico(concurso, cfg) {
         </div>`;
     }).join('');
 
-    dataEl.innerHTML = `<div class="rateio-grid">${itens}</div>`;
+    dataEl.innerHTML = `<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
     dataEl.style.display = 'block';
 
   } catch(e) {
     loadingEl.style.display = 'none';
-    dataEl.innerHTML = `<div class="rateio-error">Rateio não disponível (${e.message}).</div>`;
+    dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Rateio não disponível (${e.message}).</div></div>`;
     dataEl.style.display = 'block';
   }
 }
@@ -2391,31 +2038,6 @@ function formatarMoeda(valor) {
   if (isNaN(n)) return valor;
   return 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
-// ── Atualizar contadores de concursos nos cards ──────────
-// Lê apenas os primeiros bytes de cada JSON para pegar totalConcursos
-(async function atualizarContadores() {
-  const loterias = [
-    { arquivo: 'mega-sena-historico.json',  info: '6 dezenas · 1–60',  elId: 'info-mega'      },
-    { arquivo: 'lotofacil-historico.json',  info: '15 dezenas · 1–25', elId: 'info-lotofacil' },
-    { arquivo: 'quina-historico.json',       info: '5 dezenas · 1–80',  elId: 'info-quina'     }
-  ];
-  for (const lot of loterias) {
-    try {
-      const res = await fetch(lot.arquivo + '?v=' + Date.now(), {
-        cache: 'no-store',
-        headers: { 'Range': 'bytes=0-499' }
-      });
-      const texto = await res.text();
-      const match = texto.match(/"totalConcursos"\s*:\s*(\d+)/);
-      if (match) {
-        const total = Number(match[1]).toLocaleString('pt-BR');
-        const el = document.getElementById(lot.elId);
-        if (el) el.textContent = lot.info + ' · ' + total + ' concursos';
-      }
-    } catch (_) { /* mantém valor padrão */ }
-  }
-})();
 </script>
 </body>
 </html>

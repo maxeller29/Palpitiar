@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palpitiar · Análise Histórica Completa — Loteca</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#d4a84b;--green:#4caf7d;--blue:#6b8cda;--red:#c4452d;--orange:#e07840;
+  --c1:#6b8cda;--em:#d4a84b;--c2:#4caf7d;
+  --bg:#0a1a14;--ink:#f4ebd0;--dim:rgba(244,235,208,.7);--faint:rgba(244,235,208,.35);
+  --line:rgba(244,235,208,.1);--card:rgba(244,235,208,.03);
+  --d:'Fraunces',Georgia,serif;--m:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--d);font-size:15px;line-height:1.6;}
+
+/* HEADER */
+.hdr{padding:52px 60px 36px;border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
+.hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 800px 400px at 85% 50%,rgba(212,168,75,.07),transparent);pointer-events:none;}
+.htag{font-family:var(--m);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+.htitle{font-family:var(--d);font-weight:800;font-style:italic;font-size:clamp(34px,5vw,58px);letter-spacing:-.02em;line-height:1;}
+.htitle em{color:var(--gold);font-style:normal;}
+.hsub{font-family:var(--m);font-size:11px;color:var(--dim);margin-top:10px;}
+.pills{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;}
+.pill{font-family:var(--m);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border:1px solid var(--line);border-radius:2px;color:var(--faint);}
+.pill strong{color:var(--gold);}
+
+/* LAYOUT */
+.main{padding:44px 60px;display:flex;flex-direction:column;gap:52px;}
+.slabel{font-family:var(--m);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line);}
+.kpi{padding:18px 20px;border-right:1px solid var(--line);}
+.kpi:last-child{border-right:none;}
+.klbl{font-family:var(--m);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:6px;}
+.kval{font-family:var(--d);font-weight:800;font-size:22px;line-height:1;}
+.knote{font-family:var(--m);font-size:9px;color:var(--faint);margin-top:4px;line-height:1.4;}
+.gold{color:var(--gold);}.green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}
+
+/* ALERT */
+.al{border-left:3px solid var(--orange);background:rgba(224,120,64,.06);padding:13px 17px;border-radius:0 2px 2px 0;font-family:var(--m);font-size:11px;color:var(--dim);line-height:1.7;}
+.al.gold{border-color:var(--gold);background:rgba(212,168,75,.06);}
+.al.red{border-color:var(--red);background:rgba(196,69,45,.06);}
+.al.blue{border-color:var(--blue);background:rgba(107,140,218,.06);}
+.al.green{border-color:var(--green);background:rgba(76,175,125,.06);}
+.al strong{color:var(--orange);}
+.al.gold strong{color:var(--gold);}
+.al.blue strong{color:var(--blue);}
+.al.green strong{color:var(--green);}
+.al.red strong{color:var(--red);}
+
+/* STACKED BAR — posições */
+.pos-chart{display:flex;flex-direction:column;gap:4px;}
+.prow{display:grid;grid-template-columns:62px 1fr 100px;align-items:center;gap:10px;}
+.plbl{font-family:var(--m);font-size:10px;color:var(--dim);text-align:right;}
+.ptrack{height:20px;display:flex;border-radius:1px;overflow:hidden;}
+.seg{height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--m);font-size:9px;font-weight:600;color:rgba(0,0,0,.55);overflow:hidden;white-space:nowrap;}
+.seg.c1{background:var(--c1);}
+.seg.em{background:var(--em);}
+.seg.c2{background:var(--c2);}
+.pstats{font-family:var(--m);font-size:9px;color:var(--faint);}
+.pos-legend{display:flex;gap:18px;margin-bottom:14px;}
+.li{display:flex;align-items:center;gap:6px;font-family:var(--m);font-size:10px;color:var(--dim);}
+.ldot{width:10px;height:10px;border-radius:1px;}
+
+/* QUADRANTES */
+.qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid var(--line);}
+.qcard{padding:20px 22px;background:var(--card);}
+.qname{font-family:var(--m);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+.qtrack{height:10px;display:flex;border-radius:1px;overflow:hidden;margin-bottom:10px;}
+.qval{font-family:var(--d);font-weight:800;font-size:22px;margin-bottom:6px;}
+.qrow{display:flex;justify-content:space-between;font-family:var(--m);font-size:10px;color:var(--dim);padding:3px 0;border-bottom:1px solid rgba(244,235,208,.05);}
+.qrow:last-child{border-bottom:none;}
+
+/* BARRAS HORIZONTAIS */
+.bars{display:flex;flex-direction:column;gap:5px;}
+.brow{display:grid;align-items:center;gap:10px;}
+.brow.w3{grid-template-columns:120px 1fr 80px;}
+.brow.w4{grid-template-columns:120px 1fr 72px 100px;}
+.blbl{font-family:var(--m);font-size:10px;color:var(--dim);text-align:right;}
+.btrack{height:18px;background:rgba(244,235,208,.05);border-radius:1px;overflow:hidden;}
+.bfill{height:100%;border-radius:1px;}
+.bval{font-family:var(--m);font-size:10px;color:var(--dim);}
+.bextra{font-family:var(--m);font-size:9px;color:var(--faint);}
+
+/* TABELA */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--m);font-size:11px;}
+.tbl th{text-align:left;padding:8px 12px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);}
+.tbl td{padding:6px 12px;border-bottom:1px solid rgba(244,235,208,.04);}
+.tbl tr:hover td{background:rgba(244,235,208,.03);}
+.num{text-align:right;}
+.hi{color:var(--gold);}
+.bdg{display:inline-block;padding:2px 7px;border-radius:2px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;}
+.bdg-ok{background:rgba(76,175,125,.12);color:var(--green);}
+.bdg-ac{background:rgba(196,69,45,.15);color:var(--red);}
+.bdg-hot{background:rgba(212,168,75,.15);color:var(--gold);}
+.bdg-warn{background:rgba(224,120,64,.15);color:var(--orange);}
+
+/* PERCENTIL */
+.pblk{border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+.phead{font-family:var(--m);font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:10px 16px;border-bottom:1px solid var(--line);color:var(--faint);background:var(--card);}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;border-bottom:1px solid rgba(244,235,208,.04);}
+.pr:last-child{border-bottom:none;}
+.pp{font-family:var(--m);font-size:10px;color:var(--faint);}
+.pv{font-family:var(--m);font-size:11px;}
+.pv.hi{color:var(--gold);font-weight:600;}
+
+/* SEQUÊNCIAS */
+.seq-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;border:1px solid var(--line);}
+.scell{padding:12px;text-align:center;border-right:1px solid var(--line);background:var(--card);}
+.scell:last-child{border-right:none;}
+.sn{font-family:var(--m);font-size:9px;color:var(--faint);margin-bottom:4px;}
+.scnt{font-family:var(--d);font-weight:800;font-size:20px;}
+.spct{font-family:var(--m);font-size:9px;color:var(--faint);margin-top:2px;}
+
+/* SECA → RATEIO */
+.seca-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;border:1px solid var(--line);margin-top:14px;}
+.secell{padding:14px;text-align:center;border-right:1px solid var(--line);background:var(--card);}
+.secell:last-child{border-right:none;}
+.secn{font-family:var(--m);font-size:9px;color:var(--faint);margin-bottom:5px;}
+.secmed{font-family:var(--d);font-weight:700;font-size:16px;}
+.secavg{font-family:var(--m);font-size:9px;color:var(--faint);margin-top:2px;}
+.seccases{font-family:var(--m);font-size:9px;color:var(--faint);margin-top:3px;}
+
+/* SAZONALIDADE */
+.sazon{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;}
+.scol{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sbwrap{width:100%;height:90px;display:flex;align-items:flex-end;justify-content:center;gap:2px;}
+.sba{width:12px;border-radius:1px 1px 0 0;background:var(--red);opacity:.55;}
+.sbr{width:12px;border-radius:1px 1px 0 0;background:var(--gold);opacity:.5;}
+.smes{font-family:var(--m);font-size:9px;color:var(--faint);margin-top:3px;}
+.sazon-leg{display:flex;gap:16px;margin-bottom:12px;}
+
+/* VOLANTE HISTOGRAM */
+.vhist{display:flex;align-items:flex-end;gap:3px;height:110px;}
+.vbar{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.vfill{width:100%;border-radius:1px 1px 0 0;background:var(--gold);opacity:.5;}
+.vlbl{font-family:var(--m);font-size:8px;color:var(--faint);}
+
+/* ERA CARDS */
+.era-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--line);}
+.era{padding:20px 22px;background:var(--card);}
+.era-name{font-family:var(--m);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+.er{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line);}
+.er:last-child{border-bottom:none;}
+.ek{font-family:var(--m);font-size:10px;color:var(--faint);}
+.ev{font-family:var(--m);font-size:11px;font-weight:600;}
+
+/* COMP ACUM/PREM */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.cblk{border:1px solid var(--line);padding:18px 22px;border-radius:2px;background:var(--card);}
+.ctitle{font-family:var(--m);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+.crow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(244,235,208,.05);}
+.crow:last-child{border-bottom:none;}
+.ck{font-family:var(--m);font-size:10px;color:var(--faint);}
+.cv{font-family:var(--m);font-size:12px;font-weight:600;}
+
+/* INSIGHT GRID */
+.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.ic{border:1px solid var(--line);border-radius:2px;padding:20px;background:var(--card);}
+.iico{font-size:20px;margin-bottom:8px;}
+.ihead{font-family:var(--m);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:7px;}
+.ibody{font-family:var(--d);font-size:13px;line-height:1.6;color:var(--dim);}
+.ibody strong{color:var(--ink);}
+
+footer{padding:26px 60px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:var(--m);font-size:10px;color:var(--faint);}
+@media(max-width:900px){
+  .hdr,.main{padding-left:20px;padding-right:20px;}
+  .kpi-strip,.qgrid,.era-grid{grid-template-columns:repeat(2,1fr);}
+  .ig,.two,.three,.comp-grid{grid-template-columns:1fr;}
+  .seq-strip{grid-template-columns:repeat(4,1fr);}
+  .sazon{grid-template-columns:repeat(6,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="htag">Palpitiar · Análise Estatística Completa · Junho 2026</div>
+  <h1 class="htitle">Loteca — Série <em>Histórica</em></h1>
+  <p class="hsub">1.254 concursos · 1.253 com partidas · 17.533 jogos analisados · fevereiro/2002 → junho/2026</p>
+  <div class="pills">
+    <span class="pill">Concursos: <strong>1.254</strong></span>
+    <span class="pill">Jogos: <strong>17.533</strong></span>
+    <span class="pill">Acúmulo: <strong>45,6%</strong></span>
+    <span class="pill">Coluna 1: <strong>47,2%</strong></span>
+    <span class="pill">Empate: <strong>26,2%</strong></span>
+    <span class="pill">Coluna 2: <strong>26,6%</strong></span>
+    <span class="pill">Mediana 14pts: <strong>R$ 105K</strong></span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- BLOCO A — VISÃO GERAL DE PREMIAÇÃO                    -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+  <div>
+    <div class="slabel">A · Indicadores gerais de premiação</div>
+    <div class="kpi-strip">
+      <div class="kpi"><div class="klbl">Taxa de acúmulo</div><div class="kval red">45,6%</div><div class="knote">572 concursos sem ganhador 14pts</div></div>
+      <div class="kpi"><div class="klbl">Rateio mediano 14pts</div><div class="kval gold">R$ 105K</div><div class="knote">P50 — valor mais representativo</div></div>
+      <div class="kpi"><div class="klbl">Rateio médio 14pts</div><div class="kval gold">R$ 267K</div><div class="knote">distorcido por prêmios extremos</div></div>
+      <div class="kpi"><div class="klbl">Maior prêmio histórico</div><div class="kval gold">R$ 6,2M</div><div class="knote">Concurso 943 · jun/2021</div></div>
+      <div class="kpi"><div class="klbl">Rateio mediano 13pts</div><div class="kval green">R$ 1.733</div><div class="knote">consolação — 1.171 concursos</div></div>
+      <div class="kpi"><div class="klbl">Maior prêmio 13pts</div><div class="kval green">R$ 301K</div><div class="knote">Concurso 1207 · ago/2025</div></div>
+    </div>
+    <div style="margin-top:12px" class="al gold">
+      <strong>Perspectiva real:</strong> a mediana de R$105K significa que em metade dos concursos premiados o ganhador do 14pts recebeu menos que isso. A média de R$267K é puxada por concursos especiais. Prêmios acima de R$1M ocorrem em apenas 5% dos concursos premiados (P95).
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">B · Distribuição dos prêmios — percentis</div>
+    <div class="two">
+      <div class="pblk">
+        <div class="phead">14 Pontos · 682 concursos premiados</div>
+        <div class="pr"><span class="pp">P10</span><span class="pv">R$ 6.207</span></div>
+        <div class="pr"><span class="pp">P25 — 1º quartil</span><span class="pv">R$ 22.199</span></div>
+        <div class="pr"><span class="pp">P50 — mediana</span><span class="pv hi">R$ 105.130</span></div>
+        <div class="pr"><span class="pp">P75 — 3º quartil</span><span class="pv">R$ 307.377</span></div>
+        <div class="pr"><span class="pp">P90</span><span class="pv">R$ 713.465</span></div>
+        <div class="pr"><span class="pp">P95</span><span class="pv">R$ 1.084.829</span></div>
+        <div class="pr"><span class="pp">P99</span><span class="pv">R$ 2.393.117</span></div>
+        <div class="pr"><span class="pp">Máximo histórico</span><span class="pv hi">R$ 6.206.587</span></div>
+      </div>
+      <div class="pblk">
+        <div class="phead">13 Pontos · 1.171 concursos com rateio &gt; 0</div>
+        <div class="pr"><span class="pp">P10</span><span class="pv">R$ 84</span></div>
+        <div class="pr"><span class="pp">P25 — 1º quartil</span><span class="pv">R$ 422</span></div>
+        <div class="pr"><span class="pp">P50 — mediana</span><span class="pv hi">R$ 1.733</span></div>
+        <div class="pr"><span class="pp">P75 — 3º quartil</span><span class="pv">R$ 8.376</span></div>
+        <div class="pr"><span class="pp">P90</span><span class="pv">R$ 26.054</span></div>
+        <div class="pr"><span class="pp">P95</span><span class="pv">R$ 42.285</span></div>
+        <div class="pr"><span class="pp">P99</span><span class="pv">R$ 89.406</span></div>
+        <div class="pr"><span class="pp">Máximo histórico</span><span class="pv hi">R$ 301.177</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">C · Distribuição de ganhadores — 14 pontos</div>
+    <div class="bars">
+      <div class="brow w4"><span class="blbl">0 — Acumulado</span><div class="btrack"><div class="bfill" style="width:91.2%;background:var(--red)"></div></div><span class="bval">572 (45,6%)</span><span class="bextra">—</span></div>
+      <div class="brow w4"><span class="blbl">1 ganhador</span><div class="btrack"><div class="bfill" style="width:27.8%;background:var(--gold)"></div></div><span class="bval">174 (13,9%)</span><span class="bextra">média R$ 656K</span></div>
+      <div class="brow w4"><span class="blbl">2 ganhadores</span><div class="btrack"><div class="bfill" style="width:16.4%;background:var(--gold);opacity:.7"></div></div><span class="bval">82 (6,5%)</span><span class="bextra">média R$ 365K</span></div>
+      <div class="brow w4"><span class="blbl">3 a 5</span><div class="btrack"><div class="bfill" style="width:19.2%;background:rgba(244,235,208,.2)"></div></div><span class="bval">121 (9,6%)</span><span class="bextra">média R$ 218K</span></div>
+      <div class="brow w4"><span class="blbl">6 a 10</span><div class="btrack"><div class="bfill" style="width:11.8%;background:rgba(244,235,208,.2)"></div></div><span class="bval">74 (5,9%)</span><span class="bextra">média R$ 76K</span></div>
+      <div class="brow w4"><span class="blbl">11 a 50</span><div class="btrack"><div class="bfill" style="width:21.8%;background:rgba(244,235,208,.15)"></div></div><span class="bval">137 (10,9%)</span><span class="bextra">média R$ 38K</span></div>
+      <div class="brow w4"><span class="blbl">51 a 500</span><div class="btrack"><div class="bfill" style="width:11.8%;background:rgba(244,235,208,.1)"></div></div><span class="bval">74 (5,9%)</span><span class="bextra">média R$ 8,6K</span></div>
+      <div class="brow w4"><span class="blbl">500+</span><div class="btrack"><div class="bfill" style="width:3.2%;background:rgba(244,235,208,.08)"></div></div><span class="bval">20 (1,6%)</span><span class="bextra">média R$ 1,5K</span></div>
+    </div>
+    <div style="margin-top:12px" class="al gold">
+      <strong>20,4% dos concursos</strong> tiveram apenas 1 ou 2 ganhadores no 14pts, com prêmio médio entre R$365K e R$656K. Em 45,6% o prêmio acumulou. Apenas 7,5% dos concursos tiveram 51 ou mais ganhadores — tipicamente concursos com volante muito "óbvio".
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">D · Faixa de 13 pontos — análise detalhada</div>
+    <div class="two">
+      <div>
+        <p style="font-family:var(--m);font-size:11px;color:var(--dim);margin-bottom:14px;line-height:1.7;">Rateio médio por faixa de ganhadores no 13pts. O prêmio cai acentuadamente com o número de acertadores.</p>
+        <div class="bars">
+          <div class="brow w3"><span class="blbl">1 ganhador</span><div class="btrack"><div class="bfill" style="width:100%;background:var(--gold)"></div></div><span class="bval">R$ 67.499</span></div>
+          <div class="brow w3"><span class="blbl">2 a 5</span><div class="btrack"><div class="bfill" style="width:66.7%;background:var(--gold);opacity:.7"></div></div><span class="bval">R$ 22.491</span></div>
+          <div class="brow w3"><span class="blbl">6 a 20</span><div class="btrack"><div class="bfill" style="width:32%;background:var(--green);opacity:.6"></div></div><span class="bval">R$ 7.149</span></div>
+          <div class="brow w3"><span class="blbl">21 a 100</span><div class="btrack"><div class="bfill" style="width:10%;background:rgba(244,235,208,.2)"></div></div><span class="bval">R$ 1.750</span></div>
+          <div class="brow w3"><span class="blbl">101 a 1.000</span><div class="btrack"><div class="bfill" style="width:3%;background:rgba(244,235,208,.15)"></div></div><span class="bval">R$ 427</span></div>
+          <div class="brow w3"><span class="blbl">1.000+</span><div class="btrack"><div class="bfill" style="width:0.5%;background:rgba(244,235,208,.1)"></div></div><span class="bval">R$ 52</span></div>
+        </div>
+      </div>
+      <div>
+        <p style="font-family:var(--m);font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.7;">Top 5 maiores rateios 13pts — todos com 1 ganhador e 14pts acumulado:</p>
+        <table class="tbl">
+          <thead><tr><th>Conc.</th><th>Data</th><th class="num">G13</th><th class="num">Rateio</th></tr></thead>
+          <tbody>
+            <tr><td class="hi">1207</td><td>18/08/2025</td><td class="num">1</td><td class="num hi">R$ 301.177</td></tr>
+            <tr><td>1205</td><td>04/08/2025</td><td class="num">1</td><td class="num">R$ 170.255</td></tr>
+            <tr><td>1222</td><td>01/12/2025</td><td class="num">1</td><td class="num">R$ 148.230</td></tr>
+            <tr><td>1204</td><td>28/07/2025</td><td class="num">1</td><td class="num">R$ 136.250</td></tr>
+            <tr><td>951</td><td>23/08/2021</td><td class="num">1</td><td class="num">R$ 129.858</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px" class="al gold">
+          <strong>13pts pode superar a mediana do 14pts:</strong> quando há 1 único acertador e o 14pts está acumulado há várias semanas, o 13pts pode chegar a R$300K+ — quase 3× a mediana histórica do 14pts.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- BLOCO B — ACÚMULOS E SEQUÊNCIAS                       -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+  <div>
+    <div class="slabel">E · Sequências de acúmulo consecutivo</div>
+    <div class="seq-strip">
+      <div class="scell"><div class="sn">1 semana</div><div class="scnt red">168</div><div class="spct">53,7%</div></div>
+      <div class="scell"><div class="sn">2 semanas</div><div class="scnt">78</div><div class="spct">24,9%</div></div>
+      <div class="scell"><div class="sn">3 semanas</div><div class="scnt">43</div><div class="spct">13,7%</div></div>
+      <div class="scell"><div class="sn">4 semanas</div><div class="scnt">14</div><div class="spct">4,5%</div></div>
+      <div class="scell"><div class="sn">5 semanas</div><div class="scnt">4</div><div class="spct">1,3%</div></div>
+      <div class="scell"><div class="sn">6 semanas</div><div class="scnt">2</div><div class="spct">0,6%</div></div>
+      <div class="scell"><div class="sn">7 semanas</div><div class="scnt">3</div><div class="spct">1,0%</div></div>
+      <div class="scell" style="border-right:none"><div class="sn" style="color:var(--red)">10 sem. 🔴</div><div class="scnt red">1</div><div class="spct" style="color:var(--red)">Máximo</div></div>
+    </div>
+    <div style="margin-top:12px;font-family:var(--m);font-size:10px;color:var(--dim);margin-bottom:10px;">Rateio mediano e médio do 14pts conforme duração da seca que o antecedeu:</div>
+    <div class="seca-strip">
+      <div class="secell"><div class="secn">Após 1 seca</div><div class="secmed gold">R$ 149,6K</div><div class="secavg">média R$269,7K</div><div class="seccases">n=168</div></div>
+      <div class="secell"><div class="secn">Após 2 secas</div><div class="secmed gold">R$ 181,5K</div><div class="secavg">média R$392,9K</div><div class="seccases">n=78</div></div>
+      <div class="secell"><div class="secn">Após 3 secas</div><div class="secmed" style="color:var(--orange)">R$ 426,0K</div><div class="secavg">média R$681,1K</div><div class="seccases">n=43</div></div>
+      <div class="secell"><div class="secn">Após 4 secas</div><div class="secmed" style="color:var(--orange)">R$ 484,2K</div><div class="secavg">média R$625,0K</div><div class="seccases">n=14</div></div>
+      <div class="secell" style="border-right:none"><div class="secn" style="color:var(--red)">Após 6–10 secas</div><div class="secmed" style="color:var(--red)">R$ 2,67M+</div><div class="secavg">recorde: R$6,2M</div><div class="seccases">n=4</div></div>
+    </div>
+    <div style="margin-top:12px" class="al gold">
+      <strong>Efeito seca comprovado:</strong> após 1 seca a mediana é R$149K; após 3 secas sobe para R$426K; após 6+ secas passa de R$2,67M. A maior seca histórica (10 semanas, jun/2021) gerou o recorde absoluto de R$6,2M. O contador de acúmulos é o indicador mais importante do Palpitiar.
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">F · Maiores prêmios históricos — 14 pontos</div>
+    <table class="tbl">
+      <thead><tr><th>Rank</th><th>Concurso</th><th>Data</th><th class="num">Ganhadores</th><th class="num">Rateio</th><th>Nota</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="hi">943</td><td>28/06/2021</td><td class="num">1</td><td class="num hi">R$ 6.206.587</td><td><span class="bdg bdg-hot">Recorde absoluto</span></td></tr>
+        <tr><td>2</td><td>952</td><td>30/08/2021</td><td class="num">1</td><td class="num">R$ 3.633.295</td><td><span class="bdg bdg-hot">2021</span></td></tr>
+        <tr><td>3</td><td>911</td><td>07/12/2020</td><td class="num">2</td><td class="num">R$ 2.887.363</td><td><span class="bdg bdg-warn">COVID</span></td></tr>
+        <tr><td>4</td><td>1229</td><td>19/01/2026</td><td class="num">1</td><td class="num">R$ 2.569.645</td><td><span class="bdg bdg-hot">2026</span></td></tr>
+        <tr><td>5</td><td>712</td><td>01/08/2016</td><td class="num">1</td><td class="num">R$ 2.539.880</td><td></td></tr>
+        <tr><td>6</td><td>803</td><td>11/06/2018</td><td class="num">1</td><td class="num">R$ 2.414.230</td><td></td></tr>
+        <tr><td>7</td><td>1166</td><td>27/01/2025</td><td class="num">1</td><td class="num">R$ 2.393.117</td><td><span class="bdg bdg-hot">2025</span></td></tr>
+        <tr><td>8</td><td>1174</td><td>24/03/2025</td><td class="num">1</td><td class="num">R$ 2.314.436</td><td><span class="bdg bdg-hot">2025</span></td></tr>
+        <tr><td>9</td><td>433</td><td>27/09/2010</td><td class="num">1</td><td class="num">R$ 1.906.034</td><td></td></tr>
+        <tr><td>10</td><td>1234</td><td>23/02/2026</td><td class="num">4</td><td class="num">R$ 1.755.976</td><td><span class="bdg bdg-hot">2026</span></td></tr>
+        <tr><td>11</td><td>448</td><td>07/02/2011</td><td class="num">1</td><td class="num">R$ 1.755.673</td><td></td></tr>
+        <tr><td>12</td><td>1002</td><td>17/06/2022</td><td class="num">1</td><td class="num">R$ 1.703.089</td><td></td></tr>
+        <tr><td>13</td><td>1251</td><td>14/05/2026</td><td class="num">2</td><td class="num">R$ 1.622.804</td><td><span class="bdg bdg-hot">2026</span></td></tr>
+        <tr><td>14</td><td>633</td><td>08/12/2014</td><td class="num">1</td><td class="num">R$ 1.543.952</td><td></td></tr>
+        <tr><td>15</td><td>597</td><td>10/03/2014</td><td class="num">1</td><td class="num">R$ 1.492.890</td><td></td></tr>
+      </tbody>
+    </table>
+    <p style="font-family:var(--m);font-size:10px;color:var(--faint);margin-top:8px;">5 dos 15 maiores prêmios ocorreram em 2025–2026. 13 dos 15 foram para 1 único ganhador.</p>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- BLOCO C — EVOLUÇÃO TEMPORAL                           -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+  <div>
+    <div class="slabel">G · As três eras da Loteca</div>
+    <div class="era-grid">
+      <div class="era">
+        <div class="era-name">⚙️ Fundação · 2002–2010</div>
+        <div class="er"><span class="ek">Concursos</span><span class="ev">443</span></div>
+        <div class="er"><span class="ek">Taxa acúmulo</span><span class="ev">40,9%</span></div>
+        <div class="er"><span class="ek">Mediana R14</span><span class="ev">R$ 63.742</span></div>
+        <div class="er"><span class="ek">Coluna 1</span><span class="ev blue">49,2%</span></div>
+        <div class="er"><span class="ek">Empate</span><span class="ev gold">24,4%</span></div>
+        <div class="er"><span class="ek">Coluna 2</span><span class="ev green">26,4%</span></div>
+      </div>
+      <div class="era">
+        <div class="era-name">📈 Maturidade · 2011–2019</div>
+        <div class="er"><span class="ek">Concursos</span><span class="ev">439</span></div>
+        <div class="er"><span class="ek">Taxa acúmulo</span><span class="ev">41,2%</span></div>
+        <div class="er"><span class="ek">Mediana R14</span><span class="ev">R$ 106.638</span></div>
+        <div class="er"><span class="ek">Coluna 1</span><span class="ev blue">47,0%</span></div>
+        <div class="er"><span class="ek">Empate</span><span class="ev gold">26,3%</span></div>
+        <div class="er"><span class="ek">Coluna 2</span><span class="ev green">26,7%</span></div>
+      </div>
+      <div class="era">
+        <div class="era-name">🔥 Era Atual · 2020–2026</div>
+        <div class="er"><span class="ek">Concursos</span><span class="ev">372</span></div>
+        <div class="er"><span class="ek">Taxa acúmulo</span><span class="ev red">56,5% ↑↑</span></div>
+        <div class="er"><span class="ek">Mediana R14</span><span class="ev gold">R$ 227.981 ↑↑</span></div>
+        <div class="er"><span class="ek">Coluna 1</span><span class="ev blue">45,3% ↓</span></div>
+        <div class="er"><span class="ek">Empate</span><span class="ev red">28,1% ↑↑</span></div>
+        <div class="er"><span class="ek">Coluna 2</span><span class="ev green">26,6%</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="al">
+      <strong>Dupla ruptura em 2020:</strong> acúmulo sobe de 41% para 57% (+16pp) e empate cresce de 24% para 28% (+4pp). O futebol moderno é mais equilibrado — o mandante perdeu vantagem estrutural. Isso explica diretamente o aumento da dificuldade de acertar os 14 jogos.
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">H · Evolução anual</div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr><th>Ano</th><th>Conc.</th><th>Acum.</th><th style="text-align:center">Taxa</th><th class="num">Mediana R14</th><th class="num">Total pago</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr><td>2002</td><td class="num">46</td><td class="num">19</td><td style="text-align:center"><span class="bdg bdg-ok">41%</span></td><td class="num">R$ 23.885</td><td class="num">R$ 6,6M</td><td></td></tr>
+          <tr><td>2003</td><td class="num">48</td><td class="num">18</td><td style="text-align:center"><span class="bdg bdg-ok">38%</span></td><td class="num">R$ 29.144</td><td class="num">R$ 12,7M</td><td></td></tr>
+          <tr><td>2004</td><td class="num">50</td><td class="num">18</td><td style="text-align:center"><span class="bdg bdg-ok">36%</span></td><td class="num">R$ 64.364</td><td class="num">R$ 12,2M</td><td></td></tr>
+          <tr><td>2006</td><td class="num">51</td><td class="num">17</td><td style="text-align:center"><span class="bdg bdg-ok">33%</span></td><td class="num">R$ 107.889</td><td class="num">R$ 15,8M</td><td></td></tr>
+          <tr><td>2008</td><td class="num">50</td><td class="num">23</td><td style="text-align:center"><span class="bdg bdg-ac">46%</span></td><td class="num">R$ 62.790</td><td class="num">R$ 18,1M</td><td></td></tr>
+          <tr><td>2010</td><td class="num">50</td><td class="num">27</td><td style="text-align:center"><span class="bdg bdg-ac">54%</span></td><td class="num">R$ 65.054</td><td class="num">R$ 17,2M</td><td></td></tr>
+          <tr><td>2011</td><td class="num">48</td><td class="num">16</td><td style="text-align:center"><span class="bdg bdg-ok">33%</span></td><td class="num">R$ 209.980</td><td class="num">R$ 18,8M</td><td></td></tr>
+          <tr><td>2015</td><td class="num">49</td><td class="num">17</td><td style="text-align:center"><span class="bdg bdg-ok">35%</span></td><td class="num">R$ 110.147</td><td class="num">R$ 26,3M</td><td></td></tr>
+          <tr><td>2016</td><td class="num">48</td><td class="num">24</td><td style="text-align:center"><span class="bdg bdg-ac">50%</span></td><td class="num">R$ 170.672</td><td class="num">R$ 23,0M</td><td></td></tr>
+          <tr><td>2019</td><td class="num">49</td><td class="num">21</td><td style="text-align:center"><span class="bdg bdg-ac">43%</span></td><td class="num">R$ 132.206</td><td class="num hi">R$ 22,9M</td><td></td></tr>
+          <tr><td style="color:var(--orange)">2020</td><td class="num">32</td><td class="num">20</td><td style="text-align:center"><span class="bdg bdg-warn">62%</span></td><td class="num orange">R$ 289.036</td><td class="num">R$ 14,2M</td><td><span class="bdg bdg-warn">COVID</span></td></tr>
+          <tr><td style="color:var(--red)">2021</td><td class="num">54</td><td class="num">34</td><td style="text-align:center"><span class="bdg bdg-ac">63%</span></td><td class="num red">R$ 319.587</td><td class="num">R$ 25,6M</td><td><span class="bdg bdg-hot">Pico médio</span></td></tr>
+          <tr><td>2022</td><td class="num">60</td><td class="num">33</td><td style="text-align:center"><span class="bdg bdg-ac">55%</span></td><td class="num">R$ 206.909</td><td class="num">R$ 18,1M</td><td></td></tr>
+          <tr><td>2023</td><td class="num">63</td><td class="num">32</td><td style="text-align:center"><span class="bdg bdg-ac">51%</span></td><td class="num">R$ 109.581</td><td class="num">R$ 22,1M</td><td></td></tr>
+          <tr><td>2024</td><td class="num">72</td><td class="num">41</td><td style="text-align:center"><span class="bdg bdg-ac">57%</span></td><td class="num">R$ 223.530</td><td class="num">R$ 18,1M</td><td></td></tr>
+          <tr><td>2025</td><td class="num">63</td><td class="num">32</td><td style="text-align:center"><span class="bdg bdg-ac">51%</span></td><td class="num hi">R$ 155.330</td><td class="num hi">R$ 51,6M</td><td><span class="bdg bdg-hot">Recorde total</span></td></tr>
+          <tr><td style="color:var(--gold)">2026*</td><td class="num">28</td><td class="num">18</td><td style="text-align:center"><span class="bdg bdg-hot">64%</span></td><td class="num hi">R$ 824.611</td><td class="num">R$ 26,0M</td><td><span class="bdg bdg-hot">Parcial</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-family:var(--m);font-size:10px;color:var(--faint);margin-top:8px;">* 2026 parcial (28 concursos). 2025 total pago R$51,6M — recorde histórico anual.</p>
+  </div>
+
+  <div>
+    <div class="slabel">I · Sazonalidade — taxa de acúmulo e rateio mediano por mês</div>
+    <div class="sazon-leg">
+      <div class="li"><div class="ldot" style="background:var(--red);opacity:.6"></div>Taxa acúmulo</div>
+      <div class="li"><div class="ldot" style="background:var(--gold);opacity:.6"></div>Rateio mediano R14 (relativo)</div>
+    </div>
+    <!-- acum max=56.9% → 90px | rateio max=289K → 90px -->
+    <div class="sazon">
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:76px"></div><div class="sbr" style="height:33px"></div></div><div class="smes">Jan</div><div style="font-family:var(--m);font-size:9px;color:var(--red)">47,8%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:63px"></div><div class="sbr" style="height:22px"></div></div><div class="smes">Fev</div><div style="font-family:var(--m);font-size:9px">40,0%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:56px"></div><div class="sbr" style="height:13px"></div></div><div class="smes">Mar</div><div style="font-family:var(--m);font-size:9px;color:var(--green)">35,4%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:69px"></div><div class="sbr" style="height:28px"></div></div><div class="smes">Abr</div><div style="font-family:var(--m);font-size:9px">43,8%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:84px"></div><div class="sbr" style="height:57px"></div></div><div class="smes">Mai</div><div style="font-family:var(--m);font-size:9px;color:var(--red)">53,0%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:82px"></div><div class="sbr" style="height:31px"></div></div><div class="smes">Jun</div><div style="font-family:var(--m);font-size:9px;color:var(--red)">51,7%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:90px"></div><div class="sbr" style="height:62px"></div></div><div class="smes">Jul</div><div style="font-family:var(--m);font-size:9px;color:var(--red);font-weight:600">56,9%↑</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:88px"></div><div class="sbr" style="height:46px"></div></div><div class="smes">Ago</div><div style="font-family:var(--m);font-size:9px;color:var(--red)">55,5%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:59px"></div><div class="sbr" style="height:48px"></div></div><div class="smes">Set</div><div style="font-family:var(--m);font-size:9px;color:var(--green)">37,5%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:61px"></div><div class="sbr" style="height:24px"></div></div><div class="smes">Out</div><div style="font-family:var(--m);font-size:9px">38,7%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:61px"></div><div class="sbr" style="height:38px"></div></div><div class="smes">Nov</div><div style="font-family:var(--m);font-size:9px">38,6%</div></div>
+      <div class="scol"><div class="sbwrap"><div class="sba" style="height:74px"></div><div class="sbr" style="height:22px"></div></div><div class="smes">Dez</div><div style="font-family:var(--m);font-size:9px">46,8%</div></div>
+    </div>
+    <div style="margin-top:12px" class="al gold">
+      <strong>Janela favorável (mar/set/out/nov):</strong> acúmulo de 35–39% — meses de início/fim dos campeonatos nacionais com resultados mais previsíveis. Pior período: jul/ago (55–57%), fases finais dos torneios. Julho combina a pior taxa de acúmulo com o segundo maior rateio mediano — reflexo dos jogos mais equilibrados.
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- BLOCO D — ANÁLISE DAS PARTIDAS                        -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+  <div>
+    <div class="slabel">J · Frequência por posição — coluna 1 / empate / coluna 2</div>
+    <div class="pos-legend">
+      <div class="li"><div class="ldot" style="background:var(--c1)"></div>Coluna 1 (mandante vence)</div>
+      <div class="li"><div class="ldot" style="background:var(--em)"></div>Empate (X)</div>
+      <div class="li"><div class="ldot" style="background:var(--c2)"></div>Coluna 2 (visitante vence)</div>
+    </div>
+    <div class="pos-chart">
+      <div class="prow"><span class="plbl" style="color:var(--orange)">Jogo 1 ⚠</span><div class="ptrack"><div class="seg c1" style="width:44.8%">44,8</div><div class="seg em" style="width:29.0%">29,0</div><div class="seg c2" style="width:26.3%">26,3</div></div><span class="pstats" style="color:var(--orange)">empate máximo: 29,0%</span></div>
+      <div class="prow"><span class="plbl">Jogo 2</span><div class="ptrack"><div class="seg c1" style="width:45.2%">45,2</div><div class="seg em" style="width:26.1%">26,1</div><div class="seg c2" style="width:28.7%">28,7</div></div><span class="pstats">c2 elevada: 28,7%</span></div>
+      <div class="prow"><span class="plbl">Jogo 3</span><div class="ptrack"><div class="seg c1" style="width:48.7%">48,7</div><div class="seg em" style="width:25.6%">25,6</div><div class="seg c2" style="width:25.7%">25,7</div></div><span class="pstats">equilibrado 25,6/25,7</span></div>
+      <div class="prow"><span class="plbl">Jogo 4</span><div class="ptrack"><div class="seg c1" style="width:45.4%">45,4</div><div class="seg em" style="width:26.2%">26,2</div><div class="seg c2" style="width:28.4%">28,4</div></div><span class="pstats">c2 elevada: 28,4%</span></div>
+      <div class="prow"><span class="plbl">Jogo 5</span><div class="ptrack"><div class="seg c1" style="width:47.1%">47,1</div><div class="seg em" style="width:26.2%">26,2</div><div class="seg c2" style="width:26.7%">26,7</div></div><span class="pstats">próximo da média</span></div>
+      <div class="prow"><span class="plbl">Jogo 6</span><div class="ptrack"><div class="seg c1" style="width:48.2%">48,2</div><div class="seg em" style="width:25.7%">25,7</div><div class="seg c2" style="width:26.0%">26,0</div></div><span class="pstats">c1 forte</span></div>
+      <div class="prow"><span class="plbl" style="color:var(--em)">Jogo 7 ⚠</span><div class="ptrack"><div class="seg c1" style="width:45.6%">45,6</div><div class="seg em" style="width:28.0%">28,0</div><div class="seg c2" style="width:26.4%">26,4</div></div><span class="pstats" style="color:var(--em)">empate alto: 28,0%</span></div>
+      <div class="prow"><span class="plbl">Jogo 8</span><div class="ptrack"><div class="seg c1" style="width:47.6%">47,6</div><div class="seg em" style="width:25.1%">25,1</div><div class="seg c2" style="width:27.3%">27,3</div></div><span class="pstats">menor empate do Q2</span></div>
+      <div class="prow"><span class="plbl" style="color:var(--orange)">Jogo 9 ⚠</span><div class="ptrack"><div class="seg c1" style="width:44.8%">44,8</div><div class="seg em" style="width:27.1%">27,1</div><div class="seg c2" style="width:28.1%">28,1</div></div><span class="pstats" style="color:var(--orange)">c1+c2 mín — mais imprevisível</span></div>
+      <div class="prow"><span class="plbl" style="color:var(--gold)">Jogo 10 ★</span><div class="ptrack" style="outline:1px solid rgba(212,168,75,.5)"><div class="seg c1" style="width:51.4%">51,4</div><div class="seg em" style="width:26.0%">26,0</div><div class="seg c2" style="width:22.6%">22,6</div></div><span class="pstats" style="color:var(--gold)">c1 máximo — c2 mínimo</span></div>
+      <div class="prow"><span class="plbl">Jogo 11</span><div class="ptrack"><div class="seg c1" style="width:49.5%">49,5</div><div class="seg em" style="width:24.3%">24,3</div><div class="seg c2" style="width:26.2%">26,2</div></div><span class="pstats">menor empate: 24,3%</span></div>
+      <div class="prow"><span class="plbl">Jogo 12</span><div class="ptrack"><div class="seg c1" style="width:48.9%">48,9</div><div class="seg em" style="width:25.0%">25,0</div><div class="seg c2" style="width:26.1%">26,1</div></div><span class="pstats">c1 forte</span></div>
+      <div class="prow"><span class="plbl">Jogo 13</span><div class="ptrack"><div class="seg c1" style="width:48.6%">48,6</div><div class="seg em" style="width:25.7%">25,7</div><div class="seg c2" style="width:25.7%">25,7</div></div><span class="pstats">empate = c2 exatos</span></div>
+      <div class="prow"><span class="plbl">Jogo 14</span><div class="ptrack"><div class="seg c1" style="width:45.6%">45,6</div><div class="seg em" style="width:26.5%">26,5</div><div class="seg c2" style="width:27.9%">27,9</div></div><span class="pstats">c2 elevada: 27,9%</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">K · Análise por quadrantes</div>
+    <div class="qgrid">
+      <div class="qcard">
+        <div class="qname">Q1 · Jogos 1–4</div>
+        <div class="qtrack"><div class="seg c1" style="width:46%"></div><div class="seg em" style="width:26.7%"></div><div class="seg c2" style="width:27.3%"></div></div>
+        <div class="qval blue">46,0%</div>
+        <div class="qrow"><span class="ek">Coluna 1</span><span class="qval blue">46,0%</span></div>
+        <div class="qrow"><span class="ek">Empate</span><span class="qval gold">26,7% ↑</span></div>
+        <div class="qrow"><span class="ek">Coluna 2</span><span class="qval green">27,3% ↑</span></div>
+        <div style="font-family:var(--m);font-size:9px;color:var(--faint);margin-top:8px">Maior empate+c2 do volante. Jogos de abertura mais imprevisíveis.</div>
+      </div>
+      <div class="qcard">
+        <div class="qname">Q2 · Jogos 5–8</div>
+        <div class="qtrack"><div class="seg c1" style="width:47.1%"></div><div class="seg em" style="width:26.2%"></div><div class="seg c2" style="width:26.6%"></div></div>
+        <div class="qval blue">47,1%</div>
+        <div class="qrow"><span class="ek">Coluna 1</span><span class="qval blue">47,1%</span></div>
+        <div class="qrow"><span class="ek">Empate</span><span class="qval gold">26,2%</span></div>
+        <div class="qrow"><span class="ek">Coluna 2</span><span class="qval green">26,6%</span></div>
+        <div style="font-family:var(--m);font-size:9px;color:var(--faint);margin-top:8px">Bloco central. Próximo da média global. Menor desvio do padrão.</div>
+      </div>
+      <div class="qcard" style="border:1px solid rgba(212,168,75,.2)">
+        <div class="qname" style="color:var(--gold)">Q3 · Jogos 9–11 ★</div>
+        <div class="qtrack"><div class="seg c1" style="width:48.6%"></div><div class="seg em" style="width:25.8%"></div><div class="seg c2" style="width:25.6%"></div></div>
+        <div class="qval gold">48,6%</div>
+        <div class="qrow"><span class="ek">Coluna 1</span><span class="qval gold">48,6% ↑</span></div>
+        <div class="qrow"><span class="ek">Empate</span><span class="qval">25,8%</span></div>
+        <div class="qrow"><span class="ek">Coluna 2</span><span class="qval green">25,6% ↓</span></div>
+        <div style="font-family:var(--m);font-size:9px;color:var(--gold);margin-top:8px">Quadrante mais previsível. Puxado pelo jogo 10 (51,4% c1).</div>
+      </div>
+      <div class="qcard">
+        <div class="qname">Q4 · Jogos 12–14</div>
+        <div class="qtrack"><div class="seg c1" style="width:47.7%"></div><div class="seg em" style="width:25.7%"></div><div class="seg c2" style="width:26.6%"></div></div>
+        <div class="qval blue">47,7%</div>
+        <div class="qrow"><span class="ek">Coluna 1</span><span class="qval blue">47,7%</span></div>
+        <div class="qrow"><span class="ek">Empate</span><span class="qval gold">25,7%</span></div>
+        <div class="qrow"><span class="ek">Coluna 2</span><span class="qval green">26,6%</span></div>
+        <div style="font-family:var(--m);font-size:9px;color:var(--faint);margin-top:8px">Encerramento (domingo). Semelhante ao Q2, leve alta de c2.</div>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="al">
+      <strong>Quadrantes são homogêneos:</strong> a diferença entre Q1 (46,0%) e Q3 (48,6%) é apenas 2,6pp — não há um quadrante "fácil" ou "difícil" de forma significativa. A variação relevante é entre posições individuais, não entre blocos.
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">L · Distribuição do volante: quantas coluna1 por concurso?</div>
+    <div class="two">
+      <div>
+        <p style="font-family:var(--m);font-size:11px;color:var(--dim);margin-bottom:14px;line-height:1.6;">Histograma de vitórias do mandante por volante (1.253 concursos):</p>
+        <div class="vhist">
+          <div class="vbar"><div class="vfill" style="height:0px"></div><div class="vlbl">0</div></div>
+          <div class="vbar"><div class="vfill" style="height:1px"></div><div class="vlbl">1</div></div>
+          <div class="vbar"><div class="vfill" style="height:9px"></div><div class="vlbl">2</div></div>
+          <div class="vbar"><div class="vfill" style="height:16px"></div><div class="vlbl">3</div></div>
+          <div class="vbar"><div class="vfill" style="height:51px"></div><div class="vlbl">4</div></div>
+          <div class="vbar"><div class="vfill" style="height:73px"></div><div class="vlbl">5</div></div>
+          <div class="vbar"><div class="vfill" style="height:110px;opacity:.85;outline:1px solid var(--gold)"></div><div class="vlbl" style="color:var(--gold)">6★</div></div>
+          <div class="vbar"><div class="vfill" style="height:98px"></div><div class="vlbl">7</div></div>
+          <div class="vbar"><div class="vfill" style="height:89px"></div><div class="vlbl">8</div></div>
+          <div class="vbar"><div class="vfill" style="height:55px"></div><div class="vlbl">9</div></div>
+          <div class="vbar"><div class="vfill" style="height:26px"></div><div class="vlbl">10</div></div>
+          <div class="vbar"><div class="vfill" style="height:9px"></div><div class="vlbl">11</div></div>
+          <div class="vbar"><div class="vfill" style="height:1px"></div><div class="vlbl">12</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="comp-grid" style="grid-template-columns:1fr;">
+          <div class="cblk">
+            <div class="ctitle">Estatísticas do volante (14 jogos)</div>
+            <div class="crow"><span class="ck">Média coluna1</span><span class="cv blue">6,61</span></div>
+            <div class="crow"><span class="ck">Mediana coluna1</span><span class="cv blue">7</span></div>
+            <div class="crow"><span class="ck">Média empate</span><span class="cv gold">3,66</span></div>
+            <div class="crow"><span class="ck">Média coluna2</span><span class="cv green">3,72</span></div>
+            <div class="crow"><span class="ck">Faixa mais comum (5–8 c1)</span><span class="cv">68,8% dos conc.</span></div>
+            <div class="crow"><span class="ck">Pico: 6 coluna1</span><span class="cv gold">258 conc (20,6%)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="slabel">M · Padrão do volante: acumulados vs premiados</div>
+    <div class="comp-grid">
+      <div class="cblk" style="border-color:rgba(196,69,45,.3)">
+        <div class="ctitle" style="color:var(--red)">🔴 Concursos acumulados (572)</div>
+        <div class="crow"><span class="ck">Média coluna1/volante</span><span class="cv red">5,71</span></div>
+        <div class="crow"><span class="ck">Média empate/volante</span><span class="cv red">4,20 ↑↑</span></div>
+        <div class="crow"><span class="ck">Média coluna2/volante</span><span class="cv red">4,09 ↑</span></div>
+        <div style="margin-top:10px;font-family:var(--m);font-size:10px;color:var(--faint);line-height:1.6">Rodadas com muitos empates e visitantes vencendo são difíceis de acertar — menos apostadores chegam perto e o prêmio acumula.</div>
+      </div>
+      <div class="cblk" style="border-color:rgba(76,175,125,.3)">
+        <div class="ctitle" style="color:var(--green)">🟢 Concursos premiados (682)</div>
+        <div class="crow"><span class="ck">Média coluna1/volante</span><span class="cv green">7,37</span></div>
+        <div class="crow"><span class="ck">Média empate/volante</span><span class="cv green">3,22 ↓</span></div>
+        <div class="crow"><span class="ck">Média coluna2/volante</span><span class="cv green">3,41 ↓</span></div>
+        <div style="margin-top:10px;font-family:var(--m);font-size:10px;color:var(--faint);line-height:1.6">Rodadas onde os mandantes vencem mais são mais fáceis de prever — mais apostadores acertam os 14 jogos.</div>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="al green">
+      <strong>Diferença de 1,66 coluna1 e 0,98 empate:</strong> o padrão do volante distingue claramente acumulados de premiados. Quando uma rodada tem muitos favoritos vencendo em casa (≥7 c1), a probabilidade de saída do prêmio é estruturalmente maior.
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- BLOCO E — INSIGHTS ESTRATÉGICOS                       -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+  <div>
+    <div class="slabel">N · Insights estratégicos para o Palpitiar</div>
+    <div class="ig">
+      <div class="ic">
+        <div class="iico">📊</div>
+        <div class="ihead">Prêmio real: R$105K mediano</div>
+        <div class="ibody">A mediana do 14pts é R$105K, não milhões. Prêmios acima de R$1M ocorrem em apenas <strong>5% dos concursos premiados</strong>. Comunicar expectativa realista ao apostador é fundamental para não criar frustrações.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">🔢</div>
+        <div class="ihead">Contador de acúmulo é o indicador #1</div>
+        <div class="ibody">Após 3 semanas sem ganhador a mediana sobe para R$426K; após 6+, R$2,67M. O sistema deve exibir <strong>quantas semanas está acumulado</strong> de forma destacada — é o maior fator de atração de apostadores.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">⭐</div>
+        <div class="ihead">Jogo 10 — aposte no mandante</div>
+        <div class="ibody">Com <strong>51,4% de c1</strong> e apenas 22,6% de c2, o jogo 10 é o mais previsível da história da Loteca. É onde o gerador deve ter maior convicção em coluna1 e menor propensão a usar o duplo.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">🤝</div>
+        <div class="ihead">Jogos 1 e 7 — empate estratégico</div>
+        <div class="ibody">Jogo 1 tem <strong>29,0% de empate</strong> (maior do volante, consistente nas 3 eras) e jogo 7 tem 28,0%. São as posições ideais para usar o duplo 1+X, pois o empate histórico supera a média global (26,2%).</div>
+      </div>
+      <div class="ic">
+        <div class="iico">📐</div>
+        <div class="ihead">Volante ideal: 6–7 coluna1</div>
+        <div class="ibody">68,8% dos concursos tiveram 5–8 vitórias do mandante. Gerar apostas com <strong>6 ou 7 coluna1</strong> cobre o centro da distribuição histórica e maximiza a cobertura estatística.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">📉</div>
+        <div class="ihead">Empate cresceu 3,7pp em 24 anos</div>
+        <div class="ibody">Coluna1 caiu de 49,2% (2002) para 45,3% (2026). Empate subiu de 24,4% para 28,1%. O modelo deve ser <strong>atualizado periodicamente</strong> — dados dos últimos 3 anos são mais representativos do futebol atual que dados de 2002.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">🗓️</div>
+        <div class="ihead">Sazonalidade real e explorável</div>
+        <div class="ibody">Mar/Set/Out/Nov têm acúmulo de 35–39% — os meses mais seguros. Jul/Ago têm 55–57% — os mais difíceis. Uma feature de <strong>"semana favorável"</strong> no Palpitiar tem respaldo histórico sólido.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">💡</div>
+        <div class="ihead">13pts estratégico em secas longas</div>
+        <div class="ibody">Após múltiplos acúmulos, o 13pts com poucos acertadores pode superar R$100K. Em 5 concursos históricos o rateio do 13pts superou <strong>R$100K com apenas 1 acertador</strong>. Vale mostrar o valor esperado do 13pts no bolão.</div>
+      </div>
+      <div class="ic">
+        <div class="iico">🎯</div>
+        <div class="ihead">Duplo na partida mais imprevisível</div>
+        <div class="ibody">O jogo simples dá direito a 1 duplo. A análise de desempenho dos times (segunda frente) deve apontar <strong>qual das 14 partidas tem maior equilíbrio</strong> — esse é o jogo onde o duplo tem maior valor esperado.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>Palpitiar · Análise Histórica Completa — Loteca</span>
+  <span>1.254 concursos · 17.533 jogos · fev/2002–jun/2026</span>
+  <span>Valores e partidas validados · jun/2026</span>
+</footer>
+</body>
+</html>
