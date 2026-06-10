@@ -1245,48 +1245,107 @@ async function sincronizarHistorico(cfg, historico) {
 
   // Já sincronizou hoje para esta loteria?
   if (syncCache[cfg.id] && syncCache[cfg.id].dataSync === hoje) {
-    return syncCache[cfg.id].novosInjetados; // 0 = já estava atualizado
+    return syncCache[cfg.id].novosInjetados;
   }
 
   const draws = historico.draws || historico;
+
+  // ── Passo 1: detecta draws existentes com premiosJson vazio ──
+  // São concursos que o gerar.js já registrou mas o conferir.js ainda não enriqueceu
+  const drawsVazios = draws.filter(d =>
+    Array.isArray(d) && d.length >= 5 &&
+    typeof d[4] === 'object' && d[4] !== null &&
+    Object.keys(d[4]).length === 0
+  );
+
+  // ── Passo 2: descobre o último concurso local (para buscar novos) ──
   const ultimoLocal = Array.isArray(draws[draws.length - 1])
     ? draws[draws.length - 1][0]
     : (draws[draws.length - 1]?.concurso || 0);
 
+  let novosInjetados = 0;
+  let remendados = 0;
+
   try {
-    const url = `/.netlify/functions/ultimo-concurso?loteria=${cfg.caixaSlug}&desde=${ultimoLocal}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (!data.novos || data.novos.length === 0) {
-      syncCache[cfg.id] = { dataSync: hoje, novosInjetados: 0 };
-      return 0;
+    // ── Passo 3: busca concursos novos (após o último do JSON) ──
+    const urlNovos = `/.netlify/functions/ultimo-concurso?loteria=${cfg.caixaSlug}&desde=${ultimoLocal}`;
+    const resNovos = await fetch(urlNovos);
+    if (resNovos.ok) {
+      const dataNovos = await resNovos.json();
+      if (dataNovos.novos && dataNovos.novos.length > 0) {
+        for (const c of dataNovos.novos) {
+          draws.push([c.concurso, c.data, c.dezenas, c.ganhadores, c.premiosJson || {}]);
+          novosInjetados++;
+        }
+        if (historico.meta) {
+          const ultimo = dataNovos.novos[dataNovos.novos.length - 1];
+          historico.meta.totalConcursos = draws.length;
+          historico.meta.ultimoConcurso = ultimo.concurso;
+          historico.meta.ultimaData = ultimo.data;
+        }
+      }
     }
 
-    // Injeta os draws novos no historico em memória
-    for (const c of data.novos) {
-      const draw = [c.concurso, c.data, c.dezenas, c.ganhadores, c.premiosJson || {}];
-      draws.push(draw);
-    }
+    // ── Passo 4: remenda draws existentes com premiosJson={} vazio ──
+    // Busca cada um individualmente via função resultado (já existente)
+    for (const d of drawsVazios) {
+      const concurso = d[0];
+      try {
+        const urlR = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
+        const resR = await fetch(urlR);
+        if (!resR.ok) continue;
+        const dadosR = await resR.json();
 
-    // Atualiza meta se existir
-    if (historico.meta) {
-      const ultimo = data.novos[data.novos.length - 1];
-      historico.meta.totalConcursos = draws.length;
-      historico.meta.ultimoConcurso = ultimo.concurso;
-      historico.meta.ultimaData = ultimo.data;
+        // Reconstrói premiosJson usando o mesmo mapeamento do atualizar-historico.js
+        const rateio = dadosR.rateio || [];
+        const premiosJson = construirPremiosJson(cfg.id, rateio);
+        if (Object.keys(premiosJson).length > 0) {
+          d[4] = premiosJson;  // remenda in-place no array do draw
+          remendados++;
+        }
+      } catch (_) { /* falha individual: mantém {} */ }
     }
-
-    syncCache[cfg.id] = { dataSync: hoje, novosInjetados: data.novos.length };
-    return data.novos.length;
 
   } catch (err) {
-    // Falha silenciosa: usa o JSON como está
     console.warn(`[Palpitiar] Sincronização falhou (${cfg.id}): ${err.message}`);
-    syncCache[cfg.id] = { dataSync: hoje, novosInjetados: 0 };
-    return 0;
   }
+
+  const total = novosInjetados + remendados;
+  syncCache[cfg.id] = { dataSync: hoje, novosInjetados: total, remendados };
+  return total;
+}
+
+// Reconstrói premiosJson a partir do rateio retornado pela function resultado
+// Espelha o mapeamento do atualizar-historico.js
+function construirPremiosJson(loteriaId, rateio) {
+  const p = {};
+  if (!rateio || rateio.length === 0) return p;
+
+  const mapas = {
+    megasena: {
+      f: { 0:'s',   1:'qn',  2:'qd'  },
+      g: { 0:'gs',  1:'gqn', 2:'gqd' }
+    },
+    lotofacil: {
+      f: { 0:'15', 1:'14', 2:'13', 3:'12', 4:'11' },
+      g: { 0:'g15',1:'g14',2:'g13',3:'g12',4:'g11' }
+    },
+    quina: {
+      f: { 0:'5', 1:'4', 2:'3', 3:'2' },
+      g: { 0:'g5',1:'g4',2:'g3',3:'g2' }
+    }
+  };
+
+  const mapa = mapas[loteriaId];
+  if (!mapa) return p;
+
+  rateio.forEach((x, i) => {
+    if (mapa.f[i]) {
+      p[mapa.f[i]] = x.valor      || 0;
+      p[mapa.g[i]] = x.ganhadores || 0;
+    }
+  });
+  return p;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1392,7 +1451,8 @@ async function startAnalysis() {
     renderReport(combo, resultado, cfg);
 
     // Banner de sincronização (aparece acima dos resultados se houve novidades)
-    renderSyncBanner(novosInjetados, loteriaAtual);
+    const syncInfo = syncCache[loteriaAtual] || {};
+    renderSyncBanner(syncInfo.novosInjetados || 0, syncInfo.remendados || 0);
 
     document.getElementById('loading-overlay').classList.remove('active');
     document.getElementById('report-section').classList.add('visible');
@@ -1416,11 +1476,14 @@ async function startAnalysis() {
   }
 }
 
-function renderSyncBanner(novos, loteriaId) {
-  // Remove banner anterior se existir
+function renderSyncBanner(novos, remendados) {
   const old = document.getElementById('sync-banner');
   if (old) old.remove();
-  if (novos === 0) return;
+  if (novos === 0 && remendados === 0) return;
+
+  const partes = [];
+  if (novos > 0) partes.push(`${novos} sorteio${novos > 1 ? 's' : ''} novo${novos > 1 ? 's' : ''}`);
+  if (remendados > 0) partes.push(`rateio de ${remendados} concurso${remendados > 1 ? 's' : ''} recente${remendados > 1 ? 's' : ''}`);
 
   const section = document.getElementById('report-section');
   const banner = document.createElement('div');
@@ -1428,7 +1491,7 @@ function renderSyncBanner(novos, loteriaId) {
   banner.className = 'sync-banner';
   banner.innerHTML = `
     <span class="sync-banner-icon">⟳</span>
-    Base atualizada com <strong>${novos}</strong> sorteio${novos > 1 ? 's' : ''} recente${novos > 1 ? 's' : ''} da Caixa
+    Base atualizada: ${partes.join(' + ')} carregado${novos + remendados > 1 ? 's' : ''} da Caixa
     <span class="sync-banner-sub">(apenas em memória — JSON do servidor será atualizado pelo processo noturno)</span>
     <button class="sync-banner-close" onclick="this.parentElement.remove()">×</button>
   `;
