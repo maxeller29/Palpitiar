@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palpitiar · Tendências por Posição — Loteca</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#d4a84b;--green:#4caf7d;--blue:#6b8cda;--red:#c4452d;--orange:#e07840;
+  --c1:#6b8cda;--em:#d4a84b;--c2:#4caf7d;
+  --bg:#0a1a14;--ink:#f4ebd0;--dim:rgba(244,235,208,.7);--faint:rgba(244,235,208,.35);
+  --line:rgba(244,235,208,.1);--card:rgba(244,235,208,.03);
+  --d:'Fraunces',Georgia,serif;--m:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--d);font-size:15px;line-height:1.6;}
+.hdr{padding:48px 56px 32px;border-bottom:1px solid var(--line);}
+.htag{font-family:var(--m);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.htitle{font-family:var(--d);font-weight:800;font-style:italic;font-size:clamp(30px,5vw,52px);letter-spacing:-.02em;line-height:1;}
+.htitle em{color:var(--gold);font-style:normal;}
+.hsub{font-family:var(--m);font-size:11px;color:var(--dim);margin-top:10px;}
+.main{padding:40px 56px;display:flex;flex-direction:column;gap:48px;}
+.slabel{font-family:var(--m);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+
+/* TABELA POSIÇÃO */
+.postbl{width:100%;border-collapse:collapse;font-family:var(--m);font-size:12px;}
+.postbl th{text-align:center;padding:9px 8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);}
+.postbl td{padding:8px;border-bottom:1px solid rgba(244,235,208,.04);text-align:center;}
+.postbl tr:hover td{background:rgba(244,235,208,.03);}
+.postbl .jlbl{text-align:left;color:var(--ink);font-weight:600;}
+.cell-c1{color:var(--c1);}
+.cell-em{color:var(--em);}
+.cell-c2{color:var(--c2);}
+.barmini{display:inline-block;height:8px;border-radius:1px;vertical-align:middle;}
+.hot{background:rgba(212,168,75,.12);}
+
+/* STACKED */
+.pos-legend{display:flex;gap:18px;margin-bottom:14px;}
+.li{display:flex;align-items:center;gap:6px;font-family:var(--m);font-size:10px;color:var(--dim);}
+.ldot{width:10px;height:10px;border-radius:1px;}
+.pos-chart{display:flex;flex-direction:column;gap:5px;}
+.prow{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:12px;}
+.plbl{font-family:var(--m);font-size:10px;color:var(--dim);text-align:right;}
+.ptrack{height:24px;display:flex;border-radius:2px;overflow:hidden;}
+.seg{height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--m);font-size:9px;font-weight:600;color:rgba(0,0,0,.6);}
+.seg.c1{background:var(--c1);}
+.seg.em{background:var(--em);}
+.seg.c2{background:var(--c2);}
+
+/* ALERT */
+.al{border-left:3px solid var(--orange);background:rgba(224,120,64,.06);padding:14px 18px;border-radius:0 2px 2px 0;font-family:var(--m);font-size:11px;color:var(--dim);line-height:1.7;}
+.al.gold{border-color:var(--gold);background:rgba(212,168,75,.06);}
+.al.red{border-color:var(--red);background:rgba(196,69,45,.06);}
+.al.green{border-color:var(--green);background:rgba(76,175,125,.06);}
+.al.blue{border-color:var(--blue);background:rgba(107,140,218,.06);}
+.al strong{color:var(--orange);}
+.al.gold strong{color:var(--gold);}.al.red strong{color:var(--red);}
+.al.green strong{color:var(--green);}.al.blue strong{color:var(--blue);}
+
+/* COMBO TABLE */
+.combo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+.combo-card{border:1px solid var(--line);border-radius:2px;padding:16px;background:var(--card);}
+.combo-title{font-family:var(--m);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+.combo-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(244,235,208,.04);}
+.combo-row:last-child{border-bottom:none;}
+.combo-seq{display:flex;gap:3px;}
+.cball{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--m);font-size:9px;font-weight:600;color:rgba(0,0,0,.7);}
+.cball.c1{background:var(--c1);}.cball.em{background:var(--em);}.cball.c2{background:var(--c2);}
+.combo-pct{font-family:var(--m);font-size:10px;color:var(--dim);}
+.combo-razao{font-family:var(--m);font-size:9px;}
+
+/* SEQ DIST */
+.seqbar-list{display:flex;flex-direction:column;gap:5px;}
+.seqbar-row{display:grid;grid-template-columns:90px 1fr 110px;align-items:center;gap:10px;}
+.seqbar-lbl{font-family:var(--m);font-size:10px;color:var(--dim);text-align:right;}
+.seqbar-track{height:16px;background:rgba(244,235,208,.05);border-radius:1px;overflow:hidden;}
+.seqbar-fill{height:100%;background:var(--c1);border-radius:1px;}
+.seqbar-val{font-family:var(--m);font-size:10px;color:var(--faint);}
+
+footer{padding:26px 56px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:var(--m);font-size:10px;color:var(--faint);}
+@media(max-width:900px){.hdr,.main{padding-left:20px;padding-right:20px;}.combo-grid{grid-template-columns:1fr;}.postbl{font-size:10px;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="htag">Palpitiar · Análise de Tendências · Junho 2026</div>
+  <h1 class="htitle">Tendências por <em>Posição</em></h1>
+  <p class="hsub">1.253 concursos · 17.542 jogos · busca por padrões de agrupamento de resultados</p>
+</div>
+
+<div class="main">
+
+  <!-- 01 — LEVANTAMENTO POR POSIÇÃO -->
+  <div>
+    <div class="slabel">01 · Levantamento — frequência de cada resultado por jogo (1 a 14)</div>
+    <table class="postbl">
+      <thead>
+        <tr>
+          <th class="jlbl" style="text-align:left">Jogo</th>
+          <th>Coluna 1 (mandante)</th>
+          <th>Empate (X)</th>
+          <th>Coluna 2 (visitante)</th>
+          <th>Resultado dominante</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="jlbl">Jogo 1</td><td class="cell-c1">561 · 44,8%</td><td class="cell-em">363 · 29,0%</td><td class="cell-c2">329 · 26,3%</td><td class="cell-c1">Coluna 1 — maior empate ⚠</td></tr>
+        <tr><td class="jlbl">Jogo 2</td><td class="cell-c1">566 · 45,2%</td><td class="cell-em">327 · 26,1%</td><td class="cell-c2">360 · 28,7%</td><td class="cell-c1">Coluna 1 — c2 elevada</td></tr>
+        <tr><td class="jlbl">Jogo 3</td><td class="cell-c1">610 · 48,7%</td><td class="cell-em">321 · 25,6%</td><td class="cell-c2">322 · 25,7%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 4</td><td class="cell-c1">569 · 45,4%</td><td class="cell-em">328 · 26,2%</td><td class="cell-c2">355 · 28,4%</td><td class="cell-c1">Coluna 1 — c2 elevada</td></tr>
+        <tr><td class="jlbl">Jogo 5</td><td class="cell-c1">590 · 47,1%</td><td class="cell-em">328 · 26,2%</td><td class="cell-c2">335 · 26,7%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 6</td><td class="cell-c1">604 · 48,2%</td><td class="cell-em">322 · 25,7%</td><td class="cell-c2">326 · 26,0%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 7</td><td class="cell-c1">571 · 45,6%</td><td class="cell-em">350 · 28,0%</td><td class="cell-c2">330 · 26,4%</td><td class="cell-c1">Coluna 1 — empate alto ⚠</td></tr>
+        <tr><td class="jlbl">Jogo 8</td><td class="cell-c1">596 · 47,6%</td><td class="cell-em">314 · 25,1%</td><td class="cell-c2">342 · 27,3%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 9</td><td class="cell-c1">561 · 44,8%</td><td class="cell-em">339 · 27,1%</td><td class="cell-c2">352 · 28,1%</td><td class="cell-c1">Coluna 1 — mais aberto ⚠</td></tr>
+        <tr class="hot"><td class="jlbl">Jogo 10 ★</td><td class="cell-c1">644 · 51,4%</td><td class="cell-em">326 · 26,0%</td><td class="cell-c2">283 · 22,6%</td><td style="color:var(--gold)">Coluna 1 — pico do volante</td></tr>
+        <tr><td class="jlbl">Jogo 11</td><td class="cell-c1">620 · 49,5%</td><td class="cell-em">304 · 24,3%</td><td class="cell-c2">328 · 26,2%</td><td class="cell-c1">Coluna 1 — menor empate</td></tr>
+        <tr><td class="jlbl">Jogo 12</td><td class="cell-c1">613 · 48,9%</td><td class="cell-em">313 · 25,0%</td><td class="cell-c2">327 · 26,1%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 13</td><td class="cell-c1">608 · 48,6%</td><td class="cell-em">322 · 25,7%</td><td class="cell-c2">322 · 25,7%</td><td class="cell-c1">Coluna 1</td></tr>
+        <tr><td class="jlbl">Jogo 14</td><td class="cell-c1">571 · 45,6%</td><td class="cell-em">332 · 26,5%</td><td class="cell-c2">349 · 27,9%</td><td class="cell-c1">Coluna 1 — c2 elevada</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px" class="al gold">
+      <strong>Coluna 1 é dominante em todas as 14 posições.</strong> Só o jogo 10 tem desvio estatisticamente significativo (51,4%, z=+2,96). Jogos 1 e 9 são os mais "abertos" (44,8% c1, com empate/c2 elevados). Demais posições ficam dentro da margem de erro (±1,4pp) em torno da média global de 47,2%.
+    </div>
+  </div>
+
+  <!-- 02 — VISUAL STACKED -->
+  <div>
+    <div class="slabel">02 · Visualização proporcional por posição</div>
+    <div class="pos-legend">
+      <div class="li"><div class="ldot" style="background:var(--c1)"></div>Coluna 1</div>
+      <div class="li"><div class="ldot" style="background:var(--em)"></div>Empate</div>
+      <div class="li"><div class="ldot" style="background:var(--c2)"></div>Coluna 2</div>
+    </div>
+    <div class="pos-chart">
+      <div class="prow"><span class="plbl">Jogo 1</span><div class="ptrack"><div class="seg c1" style="width:44.8%">44,8</div><div class="seg em" style="width:29.0%">29,0</div><div class="seg c2" style="width:26.3%">26,3</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 2</span><div class="ptrack"><div class="seg c1" style="width:45.2%">45,2</div><div class="seg em" style="width:26.1%">26,1</div><div class="seg c2" style="width:28.7%">28,7</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 3</span><div class="ptrack"><div class="seg c1" style="width:48.7%">48,7</div><div class="seg em" style="width:25.6%">25,6</div><div class="seg c2" style="width:25.7%">25,7</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 4</span><div class="ptrack"><div class="seg c1" style="width:45.4%">45,4</div><div class="seg em" style="width:26.2%">26,2</div><div class="seg c2" style="width:28.4%">28,4</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 5</span><div class="ptrack"><div class="seg c1" style="width:47.1%">47,1</div><div class="seg em" style="width:26.2%">26,2</div><div class="seg c2" style="width:26.7%">26,7</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 6</span><div class="ptrack"><div class="seg c1" style="width:48.2%">48,2</div><div class="seg em" style="width:25.7%">25,7</div><div class="seg c2" style="width:26.0%">26,0</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 7</span><div class="ptrack"><div class="seg c1" style="width:45.6%">45,6</div><div class="seg em" style="width:28.0%">28,0</div><div class="seg c2" style="width:26.4%">26,4</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 8</span><div class="ptrack"><div class="seg c1" style="width:47.6%">47,6</div><div class="seg em" style="width:25.1%">25,1</div><div class="seg c2" style="width:27.3%">27,3</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 9</span><div class="ptrack"><div class="seg c1" style="width:44.8%">44,8</div><div class="seg em" style="width:27.1%">27,1</div><div class="seg c2" style="width:28.1%">28,1</div></div></div>
+      <div class="prow"><span class="plbl" style="color:var(--gold)">Jogo 10 ★</span><div class="ptrack" style="outline:1px solid rgba(212,168,75,.5)"><div class="seg c1" style="width:51.4%">51,4</div><div class="seg em" style="width:26.0%">26,0</div><div class="seg c2" style="width:22.6%">22,6</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 11</span><div class="ptrack"><div class="seg c1" style="width:49.5%">49,5</div><div class="seg em" style="width:24.3%">24,3</div><div class="seg c2" style="width:26.2%">26,2</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 12</span><div class="ptrack"><div class="seg c1" style="width:48.9%">48,9</div><div class="seg em" style="width:25.0%">25,0</div><div class="seg c2" style="width:26.1%">26,1</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 13</span><div class="ptrack"><div class="seg c1" style="width:48.6%">48,6</div><div class="seg em" style="width:25.7%">25,7</div><div class="seg c2" style="width:25.7%">25,7</div></div></div>
+      <div class="prow"><span class="plbl">Jogo 14</span><div class="ptrack"><div class="seg c1" style="width:45.6%">45,6</div><div class="seg em" style="width:26.5%">26,5</div><div class="seg c2" style="width:27.9%">27,9</div></div></div>
+    </div>
+  </div>
+
+  <!-- 03 — BLOCOS DE 3 -->
+  <div>
+    <div class="slabel">03 · Padrões em blocos de 3 jogos — observado vs esperado por acaso</div>
+    <div class="combo-grid">
+      <div class="combo-card">
+        <div class="combo-title">Jogos 1–3</div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">11,0%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball em">X</span><span class="cball c1">1</span></div><span class="combo-pct">5,9%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c2">2</span><span class="cball c1">1</span></div><span class="combo-pct">5,7%</span></div>
+        <div style="margin-top:8px;font-family:var(--m);font-size:9px;color:var(--green)">razão máx: 1,12x — próximo do acaso</div>
+      </div>
+      <div class="combo-card">
+        <div class="combo-title">Jogos 4–6</div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">10,6%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball em">X</span><span class="cball c1">1</span></div><span class="combo-pct">7,2%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c2">2</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">6,2%</span></div>
+        <div style="margin-top:8px;font-family:var(--m);font-size:9px;color:var(--orange)">1X1 a 1,25x — leve realce</div>
+      </div>
+      <div class="combo-card">
+        <div class="combo-title">Jogos 7–9</div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">9,8%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c2">2</span><span class="cball c1">1</span></div><span class="combo-pct">6,4%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball em">X</span></div><span class="combo-pct">6,2%</span></div>
+        <div style="margin-top:8px;font-family:var(--m);font-size:9px;color:var(--green)">razão máx: 1,15x</div>
+      </div>
+      <div class="combo-card">
+        <div class="combo-title">Jogos 10–12</div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">11,9%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c2">2</span></div><span class="combo-pct">7,1%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c2">2</span><span class="cball c1">1</span></div><span class="combo-pct">6,7%</span></div>
+        <div style="margin-top:8px;font-family:var(--m);font-size:9px;color:var(--gold)">111 mais comum (12,5% esp)</div>
+      </div>
+      <div class="combo-card">
+        <div class="combo-title">Jogos 12–14</div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">10,9%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c1">1</span><span class="cball c1">1</span><span class="cball c2">2</span></div><span class="combo-pct">6,6%</span></div>
+        <div class="combo-row"><div class="combo-seq"><span class="cball c2">2</span><span class="cball c1">1</span><span class="cball c1">1</span></div><span class="combo-pct">6,4%</span></div>
+        <div style="margin-top:8px;font-family:var(--m);font-size:9px;color:var(--green)">razão máx: 1,11x</div>
+      </div>
+    </div>
+    <div style="margin-top:14px" class="al">
+      <strong>Conclusão sobre blocos:</strong> a combinação 1-1-1 é a mais comum em todos os blocos (9,8% a 11,9%), mas isso é <strong>exatamente o esperado por acaso</strong> — três vezes o resultado mais provável. A razão observado/esperado fica entre 0,9x e 1,25x, ou seja, os agrupamentos seguem o que a probabilidade independente prevê. Não há "combinação mágica".
+    </div>
+  </div>
+
+  <!-- 04 — AUTOCORRELAÇÃO -->
+  <div>
+    <div class="slabel">04 · O resultado de um jogo influencia o seguinte?</div>
+    <p style="font-family:var(--m);font-size:11px;color:var(--dim);margin-bottom:16px;line-height:1.7;">
+      Teste de autocorrelação: P(coluna1 no jogo N+1 | coluna1 no jogo N) comparado com P(coluna1) geral. Se houvesse "efeito sequência", veríamos desvios grandes. Os desvios reais são todos menores que 2,1pp — dentro do ruído estatístico.
+    </p>
+    <div class="al green">
+      <strong>Não há memória entre jogos.</strong> O maior desvio é +2,1pp (jogo 1→2) e -1,9pp (jogo 8→9), ambos dentro da margem de erro. Ver coluna1 num jogo não torna coluna1 mais ou menos provável no próximo. Cada partida é estatisticamente independente das demais do volante — o que faz sentido, já que são jogos de times diferentes em estádios diferentes.
+    </div>
+  </div>
+
+  <!-- 05 — SEQUÊNCIAS DE COLUNA1 -->
+  <div>
+    <div class="slabel">05 · Maior sequência de coluna1 consecutiva no volante</div>
+    <div class="seqbar-list">
+      <div class="seqbar-row"><span class="seqbar-lbl">1 seguida</span><div class="seqbar-track"><div class="seqbar-fill" style="width:30.3%"></div></div><span class="seqbar-val">115 (9,2%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">2 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:99%"></div></div><span class="seqbar-val">377 (30,1%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">3 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:100%"></div></div><span class="seqbar-val">381 (30,4%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">4 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:56%"></div></div><span class="seqbar-val">213 (17,0%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">5 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:22.6%"></div></div><span class="seqbar-val">86 (6,9%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">6 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:11.5%"></div></div><span class="seqbar-val">44 (3,5%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">7 seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:7.6%"></div></div><span class="seqbar-val">29 (2,3%)</span></div>
+      <div class="seqbar-row"><span class="seqbar-lbl">8+ seguidas</span><div class="seqbar-track"><div class="seqbar-fill" style="width:1.8%"></div></div><span class="seqbar-val">7 (0,6%)</span></div>
+    </div>
+    <div style="margin-top:14px" class="al blue">
+      <strong>Quase todo volante tem uma sequência de 2 a 4 coluna1 em algum ponto</strong> (77,5% dos concursos). Isso reflete a simples frequência de 47% de mandantes — em 14 jogos, é natural que alguns vençam em casa de forma consecutiva. Não é uma "tendência", é probabilidade básica.
+    </div>
+  </div>
+
+  <!-- 06 — VEREDITO -->
+  <div>
+    <div class="slabel">06 · Veredito sobre tendências de agrupamento</div>
+    <div class="al red">
+      <strong>Não há tendência de agrupamento explorável.</strong> A análise testou três hipóteses de "padrão de cartão": (1) combinações fixas em blocos de 3, (2) autocorrelação entre jogos vizinhos, (3) sequências longas de um mesmo resultado. Em todos os casos, o observado bate com o previsto pela probabilidade independente. A Loteca é montada com jogos de times e competições diferentes a cada concurso — não existe uma "fôrma" de resultado que se repita por posição.
+    </div>
+    <div style="margin-top:16px" class="al gold">
+      <strong>O que realmente importa (e é explorável):</strong> a única regularidade estatisticamente significativa é a <strong>frequência marginal por posição</strong> — e mesmo essa é fraca, exceto pelo jogo 10 (51,4% coluna1). A inteligência do Palpitiar deve vir da <strong>análise de desempenho dos times de cada concurso específico</strong> (fase 2), não de padrões históricos de posição. O histórico serve como <em>prior</em> (mandante ~47%), mas a decisão de cada jogo depende de quem está jogando.
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>Palpitiar · Tendências por Posição — Loteca</span>
+  <span>1.253 concursos · análise de independência estatística</span>
+  <span>Junho/2026</span>
+</footer>
+</body>
+</html>
