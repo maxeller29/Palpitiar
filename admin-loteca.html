@@ -351,13 +351,20 @@ function parseUltimos5(txt) {
     return { gf, gc, adv: m[3].trim(), r: gf > gc ? 'V' : gf === gc ? 'E' : 'D' };
   });
 }
-// Deriva o fator Forma (0-100) dos últimos 5: V=3pts, E=1pt
+// Deriva o fator Forma (0-100) dos últimos 5:
+// 70% resultados (V=3, E=1) + 30% eficiência de gols (50 + saldo médio × 12,5)
 function formaDeUltimos5(arr) {
-  const validos = (arr || []).filter(u => u.r === 'V' || u.r === 'E' || u.r === 'D');
+  const validos = (arr || []).filter(u => Number.isFinite(u.gf) && Number.isFinite(u.gc));
   if (validos.length === 0) return null;
-  let pts = 0;
-  validos.forEach(u => { if (u.r === 'V') pts += 3; else if (u.r === 'E') pts += 1; });
-  return Math.round(pts / (validos.length * 3) * 100);
+  let pts = 0, gp = 0, gc = 0;
+  validos.forEach(u => {
+    if (u.gf > u.gc) pts += 3; else if (u.gf === u.gc) pts += 1;
+    gp += u.gf; gc += u.gc;
+  });
+  const fRes  = pts / (validos.length * 3) * 100;
+  const saldo = (gp - gc) / validos.length;
+  const fGols = Math.max(0, Math.min(100, 50 + saldo * 12.5));
+  return Math.round(0.7 * fRes + 0.3 * fGols);
 }
 function fmtUltimos5(arr) {
   return (arr || []).map(u => u.raw ? u.raw : (u.gf + 'x' + u.gc + ' ' + (u.adv||'')).trim()).join('; ');
@@ -485,7 +492,7 @@ function renderJogosAdmin() {
           <tr><th>Fator</th><th>Peso</th><th>${casa}</th><th>${visit}</th></tr>
           ${fatoresRows}
         </table>
-        <div class="fat-hint">Fatores em branco têm o peso redistribuído entre os preenchidos. Ao calcular: (1) se "Forma recente" estiver vazia e houver últimos 5 informados, a forma é derivada deles automaticamente (V=3, E=1); (2) o score é derivado dos fatores, ou vale o score manual se nenhum fator estiver preenchido.</div>
+        <div class="fat-hint">Fatores em branco têm o peso redistribuído entre os preenchidos. Ao calcular: (1) se "Forma recente" estiver vazia e houver últimos 5 informados, a forma é derivada deles: 70% resultados (V=3, E=1) + 30% eficiência de gols (saldo médio); (2) o score é derivado dos fatores, ou vale o score manual se nenhum fator estiver preenchido.</div>
         <div class="ja-grid" style="grid-template-columns:1fr 1fr">
           <div class="ja-field">
             <label class="ja-label">Últimos 5 — ${casa} (mais recente primeiro)</label>
