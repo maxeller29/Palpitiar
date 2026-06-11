@@ -181,17 +181,23 @@ async function sofaFormaRecente(teamId) {
 
   let pontos = 0;
   const sequencia = [];
+  const ultimos5 = [];
   for (const e of eventos) {
     const isHome = e.homeTeam.id === teamId;
     const gf = isHome ? e.homeScore.current : e.awayScore.current;
     const ga = isHome ? e.awayScore.current : e.homeScore.current;
-    if (gf > ga) { pontos += 3; sequencia.push('V'); }
-    else if (gf === ga) { pontos += 1; sequencia.push('E'); }
-    else sequencia.push('D');
+    const adv = isHome ? e.awayTeam.name : e.homeTeam.name;
+    let r;
+    if (gf > ga) { pontos += 3; r = 'V'; }
+    else if (gf === ga) { pontos += 1; r = 'E'; }
+    else r = 'D';
+    sequencia.push(r);
+    ultimos5.push({ gf, gc: ga, adv, r });
   }
+  ultimos5.reverse(); // mais recente primeiro
   // 0–15 pontos -> 0–100
   const forma = Math.round(pontos / (eventos.length * 3) * 100);
-  return { forma, sequencia: sequencia.join(''), jogos: eventos.length };
+  return { forma, sequencia: sequencia.join(''), jogos: eventos.length, ultimos5 };
 }
 
 // ─── Fator 2b: FORMA (API-Futebol, clubes BR) ─────────────────────────────────
@@ -281,7 +287,7 @@ async function analisarTime(time) {
   if (cacheTime[chave]) return cacheTime[chave];
 
   const nomeCaixa = (time.nome_caixa || '').toUpperCase();
-  const resultado = { nome: time.nome_popular || time.nome_caixa, forca: null, forma: null, formaSeq: null, fontes: [] };
+  const resultado = { nome: time.nome_popular || time.nome_caixa, forca: null, forma: null, formaSeq: null, ultimos5: [], fontes: [] };
 
   // 1. Força via FIFA (seleções)
   const fifa = forcaFifa(nomeCaixa);
@@ -326,6 +332,7 @@ async function analisarTime(time) {
         if (sf) {
           resultado.forma = sf.forma;
           resultado.formaSeq = sf.sequencia;
+          resultado.ultimos5 = sf.ultimos5;
           resultado.fontes.push('sofascore');
         }
       }
@@ -401,6 +408,8 @@ async function analisarTime(time) {
         score_visit: compVisit.score,
         score_breakdown_casa: JSON.stringify(compCasa.usados),
         score_breakdown_visit: JSON.stringify(compVisit.usados),
+        fatores_casa:  JSON.stringify({ fatores: compCasa.usados,  ultimos5: ac.ultimos5 || [] }),
+        fatores_visit: JSON.stringify({ fatores: compVisit.usados, ultimos5: av.ultimos5 || [] }),
         p_coluna1: probs.p1, p_empate: probs.px, p_coluna2: probs.p2,
         lambda_casa: probs.lambdaCasa, lambda_visit: probs.lambdaVisit,
         classificacao: classe,

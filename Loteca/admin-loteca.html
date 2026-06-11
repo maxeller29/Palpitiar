@@ -122,6 +122,29 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 
 .empty-msg{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center;padding:48px 16px;font-style:italic;}
 
+/* FORMA RECENTE (badges) */
+.ja-forma-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+.ja-forma-side{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ja-forma-nome{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin-right:3px;}
+.fb{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:2px;border:1px solid;white-space:nowrap;cursor:default;}
+.fb.v{background:rgba(93,186,111,0.12);border-color:rgba(93,186,111,0.3);color:var(--emerald);}
+.fb.e{background:rgba(157,205,227,0.1);border-color:rgba(157,205,227,0.25);color:var(--sky);}
+.fb.d{background:rgba(196,69,45,0.12);border-color:rgba(196,69,45,0.3);color:#e07060;}
+.fb.q{background:rgba(244,235,208,0.05);border-color:var(--line);color:var(--ink-faint);}
+
+/* PAINEL FATORES */
+.btn-fatores{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);background:none;border:none;cursor:pointer;padding:4px 0;margin-bottom:6px;}
+.btn-fatores:hover{text-decoration:underline;}
+.ja-fatores{display:none;background:rgba(0,0,0,0.18);border:1px solid var(--line);border-radius:3px;padding:12px;margin-bottom:10px;}
+.ja-fatores.open{display:block;}
+.fat-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.fat-table th{font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);}
+.fat-table td{padding:3px 6px;font-family:var(--mono);font-size:10px;color:var(--ink-dim);}
+.fat-table .fat-peso{color:var(--amber);font-size:9px;}
+.fat-input{width:62px;font-family:var(--mono);font-size:11px;padding:4px 6px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:2px;color:var(--ink);outline:none;text-align:center;}
+.fat-input:focus{border-color:var(--amber-border);}
+.fat-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin:4px 0 10px;line-height:1.6;}
+
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;}
   .conc-list{max-height:240px;}
@@ -291,6 +314,68 @@ function coberturaPorClasse(classe) {
   return classe === 'facil' ? 'simples' : classe === 'medio' ? 'duplo' : 'triplo';
 }
 
+// ─── FATORES DO SCORE ──────────────────────────────────────────────────────
+const FATORES_DEF = [
+  { k:'forca',      label:'Força relativa',  peso:25 },
+  { k:'forma',      label:'Forma recente',   peso:20 },
+  { k:'competicao', label:'Competição',      peso:20 },
+  { k:'mando',      label:'Mando de campo',  peso:15 },
+  { k:'h2h',        label:'H2H',             peso:10 },
+  { k:'motivacao',  label:'Motivação',       peso:7  },
+  { k:'odds',       label:'Odds mercado',    peso:3  },
+];
+
+// Score composto com redistribuição de pesos (fatores vazios não contam)
+function scoreComposto(fatores) {
+  let somaPeso = 0, somaValor = 0;
+  const usados = {};
+  FATORES_DEF.forEach(f => {
+    const v = fatores[f.k];
+    if (v !== null && v !== undefined && v !== '' && !isNaN(v)) {
+      somaPeso += f.peso;
+      somaValor += Number(v) * f.peso;
+      usados[f.k] = Number(v);
+    }
+  });
+  if (somaPeso === 0) return { score: null, usados };
+  return { score: Math.round(somaValor / somaPeso), usados };
+}
+
+// Parse "3x0 Bolívia; 1x1 Chile; 0x2 Argentina" -> array estruturado
+function parseUltimos5(txt) {
+  if (!txt || !txt.trim()) return [];
+  return txt.split(/[;\n]/).map(s => s.trim()).filter(Boolean).slice(0,5).map(s => {
+    const m = s.match(/^(\d+)\s*[x×\-–]\s*(\d+)\s*(.*)$/i);
+    if (!m) return { raw: s, r: '?' };
+    const gf = +m[1], gc = +m[2];
+    return { gf, gc, adv: m[3].trim(), r: gf > gc ? 'V' : gf === gc ? 'E' : 'D' };
+  });
+}
+function fmtUltimos5(arr) {
+  return (arr || []).map(u => u.raw ? u.raw : (u.gf + 'x' + u.gc + ' ' + (u.adv||'')).trim()).join('; ');
+}
+function badgesForma(arr) {
+  if (!arr || arr.length === 0) return '<span style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);font-style:italic">sem dados</span>';
+  return arr.map(u => {
+    const cls = u.r === 'V' ? 'v' : u.r === 'E' ? 'e' : u.r === 'D' ? 'd' : 'q';
+    const txt = u.gf !== undefined ? (u.r + ' ' + u.gf + 'x' + u.gc) : '?';
+    return '<span class="fb ' + cls + '" title="' + String(u.adv || u.raw || '').replace(/"/g,'') + '">' + txt + '</span>';
+  }).join('');
+}
+// Lê fatores_casa/fatores_visit do jogo (string JSON ou objeto jsonb)
+function getFatObj(j, lado) {
+  let raw = lado === 'casa' ? j.fatores_casa : j.fatores_visit;
+  if (!raw) return { fatores: {}, ultimos5: [] };
+  if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { return { fatores: {}, ultimos5: [] }; } }
+  return { fatores: raw.fatores || {}, ultimos5: raw.ultimos5 || [] };
+}
+function toggleFatores(idx) {
+  const el = document.getElementById('fat-' + idx);
+  const btn = document.getElementById('btnfat-' + idx);
+  const open = el.classList.toggle('open');
+  btn.textContent = (open ? '▾' : '▸') + ' Fatores & forma';
+}
+
 // ─── UI HELPERS ────────────────────────────────────────────────────────────
 function toast(msg, tipo) {
   const t = document.getElementById('toast');
@@ -365,6 +450,15 @@ function renderJogosAdmin() {
         <span class="ja-prob c2">C2 <strong>${j.p_coluna2}%</strong></span>
         <span style="color:var(--ink-faint);font-size:9px">λ ${j.lambda_casa ?? '—'} / ${j.lambda_visit ?? '—'}</span>
       </div>` : '';
+    const fatCasa  = getFatObj(j, 'casa');
+    const fatVisit = getFatObj(j, 'visit');
+    const fatoresRows = FATORES_DEF.map(f => `
+      <tr>
+        <td>${f.label}</td>
+        <td class="fat-peso">${f.peso}%</td>
+        <td><input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-c" value="${fatCasa.fatores[f.k] ?? ''}" placeholder="—"></td>
+        <td><input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-v" value="${fatVisit.fatores[f.k] ?? ''}" placeholder="—"></td>
+      </tr>`).join('');
     return `
     <div class="ja-card" id="jogo-${idx}">
       <div class="ja-header">
@@ -372,6 +466,28 @@ function renderJogosAdmin() {
         <span class="ja-times">${casa} <span style="color:var(--ink-faint);font-size:11px">×</span> ${visit}</span>
         <span class="ja-comp">${j.competicao_label || ''}</span>
         <span class="ja-class-badge ${j.classificacao}" id="classBadge-${idx}">${j.classificacao}</span>
+      </div>
+      <div class="ja-forma-row">
+        <div class="ja-forma-side"><span class="ja-forma-nome">${casa}</span><span id="fbadges-${idx}-c">${badgesForma(fatCasa.ultimos5)}</span></div>
+        <div class="ja-forma-side"><span id="fbadges-${idx}-v">${badgesForma(fatVisit.ultimos5)}</span><span class="ja-forma-nome">${visit}</span></div>
+      </div>
+      <button class="btn-fatores" id="btnfat-${idx}" onclick="toggleFatores(${idx})">▸ Fatores & forma</button>
+      <div class="ja-fatores" id="fat-${idx}">
+        <table class="fat-table">
+          <tr><th>Fator</th><th>Peso</th><th>${casa}</th><th>${visit}</th></tr>
+          ${fatoresRows}
+        </table>
+        <div class="fat-hint">Fatores em branco têm o peso redistribuído entre os preenchidos. Ao calcular, o score é derivado dos fatores (se houver algum); senão vale o score manual.</div>
+        <div class="ja-grid" style="grid-template-columns:1fr 1fr">
+          <div class="ja-field">
+            <label class="ja-label">Últimos 5 — ${casa} (mais recente primeiro)</label>
+            <textarea class="ja-text" id="u5c-${idx}" rows="2" placeholder="3x0 Bolívia; 1x1 Chile; 0x2 Argentina">${fmtUltimos5(fatCasa.ultimos5)}</textarea>
+          </div>
+          <div class="ja-field">
+            <label class="ja-label">Últimos 5 — ${visit}</label>
+            <textarea class="ja-text" id="u5v-${idx}" rows="2" placeholder="2x1 Gana; 0x0 Mali; 1x3 Egito">${fmtUltimos5(fatVisit.ultimos5)}</textarea>
+          </div>
+        </div>
       </div>
       <div class="ja-grid">
         <div class="ja-field">
@@ -428,11 +544,39 @@ function atualizarCobResumo() {
 }
 
 // ─── CALCULAR ANÁLISE (todos os jogos) ─────────────────────────────────────
+function lerFatoresInput(idx, lado) {
+  const f = {};
+  FATORES_DEF.forEach(def => {
+    const el = document.getElementById(`f-${idx}-${def.k}-${lado}`);
+    if (el && el.value !== '') f[def.k] = Number(el.value);
+  });
+  return f;
+}
+
 function calcularTudo() {
   let calculados = 0;
   jogos.forEach((j, idx) => {
-    const sc = parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
-    const sv = parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
+    // 1. Tentar score composto a partir dos fatores
+    const fatC = lerFatoresInput(idx, 'c');
+    const fatV = lerFatoresInput(idx, 'v');
+    const compC = scoreComposto(fatC);
+    const compV = scoreComposto(fatV);
+
+    let sc, sv;
+    if (compC.score !== null) {
+      sc = compC.score;
+      document.getElementById('scoreCasa-'+idx).value = sc;
+      j.score_breakdown_casa = JSON.stringify(compC.usados);
+    } else {
+      sc = parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
+    }
+    if (compV.score !== null) {
+      sv = compV.score;
+      document.getElementById('scoreVisit-'+idx).value = sv;
+      j.score_breakdown_visit = JSON.stringify(compV.usados);
+    } else {
+      sv = parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
+    }
     if (isNaN(sc) || isNaN(sv)) return; // pula sem scores
 
     const isClassico = document.getElementById('classico-'+idx).checked;
@@ -478,6 +622,14 @@ async function salvarTudo() {
       const sc = parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
       const sv = parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
 
+      const fatC = lerFatoresInput(idx, 'c');
+      const fatV = lerFatoresInput(idx, 'v');
+      const u5c = parseUltimos5(document.getElementById('u5c-'+idx).value);
+      const u5v = parseUltimos5(document.getElementById('u5v-'+idx).value);
+      // Atualizar badges visuais
+      document.getElementById('fbadges-'+idx+'-c').innerHTML = badgesForma(u5c);
+      document.getElementById('fbadges-'+idx+'-v').innerHTML = badgesForma(u5v);
+
       const body = {
         score_casa:  isNaN(sc) ? null : sc,
         score_visit: isNaN(sv) ? null : sv,
@@ -488,6 +640,10 @@ async function salvarTudo() {
         classificacao: j.classificacao,
         p_coluna1: j.p_coluna1, p_empate: j.p_empate, p_coluna2: j.p_coluna2,
         lambda_casa: j.lambda_casa, lambda_visit: j.lambda_visit,
+        fatores_casa:  JSON.stringify({ fatores: fatC, ultimos5: u5c }),
+        fatores_visit: JSON.stringify({ fatores: fatV, ultimos5: u5v }),
+        score_breakdown_casa:  Object.keys(fatC).length ? JSON.stringify(fatC) : j.score_breakdown_casa,
+        score_breakdown_visit: Object.keys(fatV).length ? JSON.stringify(fatV) : j.score_breakdown_visit,
         resumo: document.getElementById('resumo-'+idx).value || null,
         revisado_editor: true,
         revisado_em: new Date().toISOString(),
