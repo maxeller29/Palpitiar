@@ -619,12 +619,21 @@ function setMsg(txt) { document.getElementById('bootMsg').textContent = txt; }
   try {
     setMsg('Buscando concurso mais recente…');
 
-    // Buscar o concurso mais recente no Supabase
-    const concursos = await sbGet('loteca_concursos', {
+    // Priorizar concurso aberto (aguardando/coletando/rascunho)
+    // Fallback: mais recente (encerrado)
+    let concursos = await sbGet('loteca_concursos', {
       select: '*',
+      status_analise: 'in.(aguardando,coletando,rascunho,preliminar)',
       order: 'numero.desc',
       limit: 1,
     });
+    if (!concursos || concursos.length === 0) {
+      concursos = await sbGet('loteca_concursos', {
+        select: '*',
+        order: 'numero.desc',
+        limit: 1,
+      });
+    }
 
     if (!concursos || concursos.length === 0) {
       document.getElementById('bootState').style.display = 'none';
