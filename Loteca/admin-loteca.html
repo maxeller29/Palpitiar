@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Loteca · Palpitiar</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a1a14; --bg-2:#0f2419;
+  --ink:#f4ebd0; --ink-dim:rgba(244,235,208,0.62); --ink-faint:rgba(244,235,208,0.28);
+  --gold:#d4a84b; --crimson:#c4452d; --emerald:#5dba6f; --sky:#9dcde3;
+  --amber:#e8963a; --amber-dim:rgba(232,150,58,0.14); --amber-border:rgba(232,150,58,0.32);
+  --line:rgba(244,235,208,0.1);
+  --display:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-height:1.5;min-height:100vh;}
+.wrap{max-width:1380px;margin:0 auto;padding:16px 20px 80px;}
+
+/* HEADER */
+.admin-header{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.admin-title{font-family:var(--display);font-weight:800;font-style:italic;font-size:20px;}
+.admin-title em{color:var(--amber);font-style:normal;}
+.admin-title span{font-family:var(--mono);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink-faint);display:block;font-style:normal;font-weight:400;}
+.admin-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* BOTÕES */
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:9px 16px;border-radius:3px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,0.03);color:var(--ink-dim);transition:all 0.2s;}
+.btn:hover{color:var(--ink);border-color:var(--ink-faint);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-amber{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber);}
+.btn-amber:hover{background:rgba(232,150,58,0.22);color:var(--amber);}
+.btn-green{background:rgba(93,186,111,0.12);border-color:rgba(93,186,111,0.3);color:var(--emerald);}
+.btn-green:hover{background:rgba(93,186,111,0.2);color:var(--emerald);}
+.btn-red{background:rgba(196,69,45,0.1);border-color:rgba(196,69,45,0.28);color:#e07060;}
+.btn-sm{padding:5px 10px;font-size:9px;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;}
+.panel{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;}
+.panel-title{font-family:var(--mono);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber);padding:12px 14px;border-bottom:1px solid var(--line);}
+
+/* LISTA CONCURSOS */
+.conc-list{max-height:70vh;overflow-y:auto;}
+.conc-item{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:background 0.15s;}
+.conc-item:hover{background:rgba(255,255,255,0.03);}
+.conc-item.active{background:var(--amber-dim);border-left:3px solid var(--amber);}
+.conc-num{font-family:var(--display);font-weight:600;font-size:16px;}
+.conc-meta{font-family:var(--mono);font-size:9px;color:var(--ink-dim);margin-top:2px;}
+.st-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border-radius:2px;display:inline-block;margin-top:4px;}
+.st-aguardando{background:rgba(232,150,58,0.12);color:var(--amber);}
+.st-coletando{background:rgba(157,205,227,0.1);color:var(--sky);}
+.st-rascunho{background:rgba(244,235,208,0.07);color:var(--ink-dim);}
+.st-preliminar{background:rgba(157,205,227,0.12);color:var(--sky);}
+.st-final{background:rgba(93,186,111,0.12);color:var(--emerald);}
+.st-encerrado{background:rgba(244,235,208,0.05);color:var(--ink-faint);}
+
+/* TOOLBAR CONCURSO */
+.conc-toolbar{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;}
+.conc-info{font-family:var(--mono);font-size:11px;color:var(--ink-dim);line-height:1.7;}
+.conc-info strong{color:var(--ink);font-size:16px;}
+
+/* RESUMO COBERTURA */
+.cob-resumo{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;flex-wrap:wrap;}
+.cob-chip{padding:4px 10px;border-radius:2px;border:1px solid var(--line);color:var(--ink-dim);}
+.cob-chip strong{color:var(--ink);}
+
+/* JOGOS */
+.jogos-admin{display:flex;flex-direction:column;}
+.ja-card{border-bottom:1px solid var(--line);padding:14px;}
+.ja-card:last-child{border-bottom:none;}
+.ja-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.ja-num{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--amber);width:54px;}
+.ja-times{font-family:var(--display);font-weight:600;font-size:15px;flex:1;min-width:200px;}
+.ja-comp{font-family:var(--mono);font-size:9px;color:var(--ink-faint);}
+.ja-class-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 8px;border-radius:2px;}
+.ja-class-badge.facil{background:rgba(93,186,111,0.12);color:var(--emerald);}
+.ja-class-badge.medio{background:rgba(232,150,58,0.12);color:var(--amber);}
+.ja-class-badge.dificil{background:rgba(196,69,45,0.12);color:#e07060;}
+
+.ja-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:10px;}
+.ja-field{display:flex;flex-direction:column;gap:3px;}
+.ja-label{font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);}
+.ja-input, .ja-select{font-family:var(--mono);font-size:12px;padding:7px 9px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;transition:border-color 0.2s;width:100%;}
+.ja-input:focus,.ja-select:focus{border-color:var(--amber-border);}
+.ja-select option{background:var(--bg-2);}
+.ja-check{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--ink-dim);cursor:pointer;padding-top:14px;}
+.ja-check input{accent-color:var(--amber);width:14px;height:14px;cursor:pointer;}
+
+.ja-probs{display:flex;gap:12px;align-items:center;font-family:var(--mono);font-size:11px;margin-bottom:8px;flex-wrap:wrap;}
+.ja-prob{padding:4px 10px;border-radius:2px;border:1px solid var(--line);}
+.ja-prob.c1{color:var(--emerald);}
+.ja-prob.px{color:var(--sky);}
+.ja-prob.c2{color:#e07060;}
+.ja-prob strong{font-size:13px;}
+
+.ja-text{width:100%;font-family:var(--mono);font-size:11px;padding:8px 10px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;resize:vertical;min-height:36px;}
+.ja-text:focus{border-color:var(--amber-border);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;font-family:var(--mono);font-size:11px;padding:12px 18px;border-radius:4px;border:1px solid;z-index:100;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{background:#0f2a1a;border-color:rgba(93,186,111,0.4);color:var(--emerald);}
+.toast.err{background:#2a120c;border-color:rgba(196,69,45,0.4);color:#e07060;}
+
+/* LOGIN */
+.login-box{max-width:420px;margin:80px auto;background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:28px;}
+.login-box h2{font-family:var(--display);font-weight:600;font-size:20px;margin-bottom:6px;}
+.login-box p{font-family:var(--mono);font-size:10px;color:var(--ink-dim);line-height:1.7;margin-bottom:16px;}
+.login-box input{width:100%;font-family:var(--mono);font-size:12px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;margin-bottom:12px;}
+.login-box input:focus{border-color:var(--amber-border);}
+
+.boot{display:flex;flex-direction:column;align-items:center;gap:20px;padding:80px 0;}
+.boot-spinner{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--amber);animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.boot-msg{font-family:var(--mono);font-size:11px;color:var(--ink-dim);}
+
+.empty-msg{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center;padding:48px 16px;font-style:italic;}
+
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr;}
+  .conc-list{max-height:240px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="admin-header">
+  <div class="admin-title">Admin Lote<em>ca</em><span>Painel de Análise · Palpitiar</span></div>
+  <div class="admin-actions">
+    <a class="btn btn-sm" href="loteca.html" target="_blank">Ver página pública ↗</a>
+    <button class="btn btn-sm" onclick="trocarChave()">🔑 Trocar chave</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginView" style="display:none">
+  <div class="login-box">
+    <h2>Autenticação</h2>
+    <p>Informe a <strong>Secret key</strong> do Supabase (sb_secret_...).<br>Ela fica salva apenas neste navegador (localStorage) e nunca vai para o código do site.</p>
+    <input type="password" id="keyInput" placeholder="sb_secret_...">
+    <button class="btn btn-amber" style="width:100%" onclick="salvarChave()">Entrar</button>
+  </div>
+</div>
+
+<!-- BOOT -->
+<div class="boot" id="bootView" style="display:none">
+  <div class="boot-spinner"></div>
+  <div class="boot-msg" id="bootMsg">Carregando concursos…</div>
+</div>
+
+<!-- MAIN -->
+<div id="mainView" style="display:none">
+  <div class="layout">
+
+    <!-- COL: CONCURSOS -->
+    <div class="panel">
+      <div class="panel-title">Concursos</div>
+      <div class="conc-list" id="concList"></div>
+    </div>
+
+    <!-- COL: EDITOR -->
+    <div class="panel" id="editorPanel">
+      <div class="empty-msg" id="editorEmpty">Selecione um concurso à esquerda</div>
+      <div id="editorContent" style="display:none">
+
+        <div class="conc-toolbar">
+          <div class="conc-info">
+            <strong id="edNum">—</strong> · <span id="edData">—</span><br>
+            <span id="edStatus"></span>
+          </div>
+          <div class="admin-actions">
+            <button class="btn btn-amber" onclick="calcularTudo()">⚙ Calcular análise</button>
+            <button class="btn" onclick="salvarTudo()">💾 Salvar tudo</button>
+            <button class="btn btn-green" onclick="publicar('preliminar')">Publicar Preliminar</button>
+            <button class="btn btn-green" onclick="publicar('final')">Publicar Final</button>
+          </div>
+        </div>
+
+        <div class="cob-resumo" id="cobResumo"></div>
+        <div class="jogos-admin" id="jogosAdmin"></div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://oslvqimllizsdtxwkrag.supabase.co';
+const KEY_STORAGE = 'loteca_admin_key';
+let SB_KEY = localStorage.getItem(KEY_STORAGE) || null;
+
+let concursos = [];
+let concursoAtivo = null;
+let jogos = [];
+let timesMap = {};
+
+// ─── SUPABASE REST ─────────────────────────────────────────────────────────
+async function sb(method, table, body, params) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+  const opts = {
+    method,
+    headers: {
+      'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=representation',
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`${res.status}: ${t.slice(0,200)}`);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+
+// ─── AUTENTICAÇÃO ──────────────────────────────────────────────────────────
+function salvarChave() {
+  const v = document.getElementById('keyInput').value.trim();
+  if (!v) return toast('Informe a chave', 'err');
+  localStorage.setItem(KEY_STORAGE, v);
+  SB_KEY = v;
+  iniciar();
+}
+function trocarChave() {
+  localStorage.removeItem(KEY_STORAGE);
+  SB_KEY = null;
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('loginView').style.display = '';
+}
+
+// ─── MODELO POISSON ────────────────────────────────────────────────────────
+// Calibrado nos priors da era atual: ~45/28/27 com scores iguais
+const FAT = [1];
+for (let i = 1; i <= 12; i++) FAT[i] = FAT[i-1] * i;
+function poissonPmf(k, l) { return Math.exp(-l) * Math.pow(l, k) / FAT[k]; }
+
+function calcProbs(scoreCasa, scoreVisit) {
+  const diff = (scoreCasa - scoreVisit) / 100;       // -1 .. +1
+  const lambdaCasa  = 1.40 * Math.exp(1.05 * diff);
+  const lambdaVisit = 1.08 * Math.exp(-1.05 * diff);
+  let p1 = 0, px = 0, p2 = 0;
+  for (let i = 0; i <= 10; i++) {
+    for (let j = 0; j <= 10; j++) {
+      const p = poissonPmf(i, lambdaCasa) * poissonPmf(j, lambdaVisit);
+      if (i > j) p1 += p; else if (i === j) px += p; else p2 += p;
+    }
+  }
+  const tot = p1 + px + p2;
+  // Inteiros somando exatamente 100 (constraint do banco)
+  let i1 = Math.round(p1 / tot * 100);
+  let ix = Math.round(px / tot * 100);
+  let i2 = 100 - i1 - ix;
+  if (i2 < 0) { ix += i2; i2 = 0; }
+  return { p1: i1, px: ix, p2: i2, lambdaCasa: +lambdaCasa.toFixed(3), lambdaVisit: +lambdaVisit.toFixed(3) };
+}
+
+// Classifica pela probabilidade máxima — jogo entre dois times fortes é equilibrado
+function classificar(probs, isClassico, isElim) {
+  let pMax = Math.max(probs.p1, probs.px, probs.p2);
+  if (isClassico) pMax -= 12;
+  if (isElim) pMax -= 10;
+  if (pMax >= 65) return 'facil';
+  if (pMax >= 48) return 'medio';
+  return 'dificil';
+}
+
+function sugerir(probs) {
+  const arr = [
+    { k: 'coluna1', v: probs.p1 },
+    { k: 'empate',  v: probs.px },
+    { k: 'coluna2', v: probs.p2 },
+  ];
+  arr.sort((a,b) => b.v - a.v);
+  return arr[0].k;
+}
+
+function coberturaPorClasse(classe) {
+  return classe === 'facil' ? 'simples' : classe === 'medio' ? 'duplo' : 'triplo';
+}
+
+// ─── UI HELPERS ────────────────────────────────────────────────────────────
+function toast(msg, tipo) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (tipo || 'ok');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ─── LISTA DE CONCURSOS ────────────────────────────────────────────────────
+async function carregarConcursos() {
+  concursos = await sb('GET', 'loteca_concursos', null, {
+    select: '*', order: 'numero.desc', limit: '30',
+  });
+  const list = document.getElementById('concList');
+  if (concursos.length === 0) {
+    list.innerHTML = '<div class="empty-msg">Nenhum concurso. Rode o coletor primeiro.</div>';
+    return;
+  }
+  list.innerHTML = concursos.map(c => `
+    <div class="conc-item${concursoAtivo && concursoAtivo.id === c.id ? ' active' : ''}" onclick="abrirConcurso('${c.id}')">
+      <div class="conc-num">${c.numero}</div>
+      <div class="conc-meta">${fmtDate(c.data_sorteio)}</div>
+      <span class="st-badge st-${c.status_analise}">${c.status_analise}</span>
+    </div>`).join('');
+}
+
+// ─── ABRIR CONCURSO ────────────────────────────────────────────────────────
+async function abrirConcurso(id) {
+  concursoAtivo = concursos.find(c => c.id === id);
+  if (!concursoAtivo) return;
+
+  document.getElementById('editorEmpty').style.display = 'none';
+  document.getElementById('editorContent').style.display = '';
+  document.getElementById('edNum').textContent = 'Concurso ' + concursoAtivo.numero;
+  document.getElementById('edData').textContent = fmtDate(concursoAtivo.data_sorteio);
+  document.getElementById('edStatus').innerHTML = `<span class="st-badge st-${concursoAtivo.status_analise}">${concursoAtivo.status_analise}</span>`;
+
+  // Jogos
+  jogos = await sb('GET', 'loteca_jogos_analise', null, {
+    select: '*', concurso_id: `eq.${id}`, order: 'ordem.asc',
+  });
+
+  // Times
+  const ids = [...new Set(jogos.flatMap(j => [j.time_casa_id, j.time_visit_id]).filter(Boolean))];
+  timesMap = {};
+  if (ids.length > 0) {
+    const times = await sb('GET', 'times_mapeamento', null, {
+      select: 'id,nome_popular,nome_caixa', id: `in.(${ids.join(',')})`,
+    });
+    times.forEach(t => { timesMap[t.id] = t.nome_popular || t.nome_caixa; });
+  }
+
+  renderJogosAdmin();
+  carregarConcursos(); // refresh active state
+}
+
+// ─── RENDER EDITOR DE JOGOS ────────────────────────────────────────────────
+function renderJogosAdmin() {
+  const cont = document.getElementById('jogosAdmin');
+  cont.innerHTML = jogos.map((j, idx) => {
+    const casa  = timesMap[j.time_casa_id]  || '?';
+    const visit = timesMap[j.time_visit_id] || '?';
+    const probsHtml = j.p_coluna1 !== null ? `
+      <div class="ja-probs">
+        <span class="ja-prob c1">C1 <strong>${j.p_coluna1}%</strong></span>
+        <span class="ja-prob px">X <strong>${j.p_empate}%</strong></span>
+        <span class="ja-prob c2">C2 <strong>${j.p_coluna2}%</strong></span>
+        <span style="color:var(--ink-faint);font-size:9px">λ ${j.lambda_casa ?? '—'} / ${j.lambda_visit ?? '—'}</span>
+      </div>` : '';
+    return `
+    <div class="ja-card" id="jogo-${idx}">
+      <div class="ja-header">
+        <span class="ja-num">J${String(j.ordem).padStart(2,'0')}</span>
+        <span class="ja-times">${casa} <span style="color:var(--ink-faint);font-size:11px">×</span> ${visit}</span>
+        <span class="ja-comp">${j.competicao_label || ''}</span>
+        <span class="ja-class-badge ${j.classificacao}" id="classBadge-${idx}">${j.classificacao}</span>
+      </div>
+      <div class="ja-grid">
+        <div class="ja-field">
+          <label class="ja-label">Score ${casa}</label>
+          <input class="ja-input" type="number" min="0" max="100" id="scoreCasa-${idx}" value="${j.score_casa ?? ''}" placeholder="0–100">
+        </div>
+        <div class="ja-field">
+          <label class="ja-label">Score ${visit}</label>
+          <input class="ja-input" type="number" min="0" max="100" id="scoreVisit-${idx}" value="${j.score_visit ?? ''}" placeholder="0–100">
+        </div>
+        <label class="ja-check"><input type="checkbox" id="classico-${idx}" ${j.is_classico ? 'checked' : ''}> Clássico</label>
+        <label class="ja-check"><input type="checkbox" id="elim-${idx}" ${j.is_eliminatorio ? 'checked' : ''}> Eliminatório</label>
+        <div class="ja-field">
+          <label class="ja-label">Sugestão</label>
+          <select class="ja-select" id="sug-${idx}">
+            <option value="coluna1" ${j.resultado_sugerido==='coluna1'?'selected':''}>Coluna 1</option>
+            <option value="empate"  ${j.resultado_sugerido==='empate'?'selected':''}>Empate</option>
+            <option value="coluna2" ${j.resultado_sugerido==='coluna2'?'selected':''}>Coluna 2</option>
+          </select>
+        </div>
+        <div class="ja-field">
+          <label class="ja-label">Cobertura</label>
+          <select class="ja-select" id="cob-${idx}">
+            <option value="simples" ${j.cobertura==='simples'?'selected':''}>Simples</option>
+            <option value="duplo"   ${j.cobertura==='duplo'?'selected':''}>Duplo</option>
+            <option value="triplo"  ${j.cobertura==='triplo'?'selected':''}>Triplo</option>
+          </select>
+        </div>
+      </div>
+      <div id="probs-${idx}">${probsHtml}</div>
+      <div class="ja-grid" style="grid-template-columns:1fr">
+        <div class="ja-field">
+          <label class="ja-label">Resumo (1–2 linhas, aparece na página pública)</label>
+          <textarea class="ja-text" id="resumo-${idx}" rows="1">${j.resumo || ''}</textarea>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  atualizarCobResumo();
+}
+
+function atualizarCobResumo() {
+  let s=0,d=0,t=0;
+  jogos.forEach((j,idx) => {
+    const el = document.getElementById('cob-'+idx);
+    const v = el ? el.value : j.cobertura;
+    if (v==='simples') s++; else if (v==='duplo') d++; else t++;
+  });
+  document.getElementById('cobResumo').innerHTML = `
+    <span class="cob-chip">Simples: <strong>${s}</strong></span>
+    <span class="cob-chip">Duplos: <strong>${d}</strong></span>
+    <span class="cob-chip">Triplos: <strong>${t}</strong></span>
+    <span class="cob-chip" style="color:var(--ink-faint)">Custo base 2d+2t ref.: triplos e duplos definem os cartões</span>`;
+}
+
+// ─── CALCULAR ANÁLISE (todos os jogos) ─────────────────────────────────────
+function calcularTudo() {
+  let calculados = 0;
+  jogos.forEach((j, idx) => {
+    const sc = parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
+    const sv = parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
+    if (isNaN(sc) || isNaN(sv)) return; // pula sem scores
+
+    const isClassico = document.getElementById('classico-'+idx).checked;
+    const isElim     = document.getElementById('elim-'+idx).checked;
+
+    const probs  = calcProbs(sc, sv);
+    const classe = classificar(probs, isClassico, isElim);
+    const sug    = sugerir(probs);
+    const cob    = coberturaPorClasse(classe);
+
+    // Atualizar objeto em memória
+    j.score_casa = sc; j.score_visit = sv;
+    j.is_classico = isClassico; j.is_eliminatorio = isElim;
+    j.p_coluna1 = probs.p1; j.p_empate = probs.px; j.p_coluna2 = probs.p2;
+    j.lambda_casa = probs.lambdaCasa; j.lambda_visit = probs.lambdaVisit;
+    j.classificacao = classe; j.resultado_sugerido = sug; j.cobertura = cob;
+
+    // Atualizar UI
+    document.getElementById('sug-'+idx).value = sug;
+    document.getElementById('cob-'+idx).value = cob;
+    const badge = document.getElementById('classBadge-'+idx);
+    badge.className = 'ja-class-badge ' + classe;
+    badge.textContent = classe;
+    document.getElementById('probs-'+idx).innerHTML = `
+      <div class="ja-probs">
+        <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
+        <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
+        <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
+        <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+      </div>`;
+    calculados++;
+  });
+  atualizarCobResumo();
+  toast(calculados > 0 ? `Análise calculada para ${calculados} jogo(s)` : 'Preencha os scores primeiro', calculados > 0 ? 'ok' : 'err');
+}
+
+// ─── SALVAR TUDO ───────────────────────────────────────────────────────────
+async function salvarTudo() {
+  try {
+    let salvos = 0;
+    for (let idx = 0; idx < jogos.length; idx++) {
+      const j = jogos[idx];
+      const sc = parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
+      const sv = parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
+
+      const body = {
+        score_casa:  isNaN(sc) ? null : sc,
+        score_visit: isNaN(sv) ? null : sv,
+        is_classico: document.getElementById('classico-'+idx).checked,
+        is_eliminatorio: document.getElementById('elim-'+idx).checked,
+        resultado_sugerido: document.getElementById('sug-'+idx).value,
+        cobertura: document.getElementById('cob-'+idx).value,
+        classificacao: j.classificacao,
+        p_coluna1: j.p_coluna1, p_empate: j.p_empate, p_coluna2: j.p_coluna2,
+        lambda_casa: j.lambda_casa, lambda_visit: j.lambda_visit,
+        resumo: document.getElementById('resumo-'+idx).value || null,
+        revisado_editor: true,
+        revisado_em: new Date().toISOString(),
+      };
+
+      await sb('PATCH', 'loteca_jogos_analise', body, { id: `eq.${j.id}` });
+      salvos++;
+    }
+    toast(`${salvos} jogos salvos no Supabase`);
+  } catch (err) {
+    toast('Erro ao salvar: ' + err.message, 'err');
+  }
+}
+
+// ─── PUBLICAR ──────────────────────────────────────────────────────────────
+async function publicar(status) {
+  if (!concursoAtivo) return;
+  try {
+    // Salva tudo antes de publicar
+    await salvarTudo();
+    await sb('PATCH', 'loteca_concursos',
+      { status_analise: status },
+      { id: `eq.${concursoAtivo.id}` });
+    concursoAtivo.status_analise = status;
+    document.getElementById('edStatus').innerHTML = `<span class="st-badge st-${status}">${status}</span>`;
+    carregarConcursos();
+    toast(`Concurso ${concursoAtivo.numero} publicado como ${status.toUpperCase()}`);
+  } catch (err) {
+    toast('Erro ao publicar: ' + err.message, 'err');
+  }
+}
+
+// ─── BOOT ──────────────────────────────────────────────────────────────────
+async function iniciar() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('bootView').style.display = '';
+  try {
+    await carregarConcursos();
+    document.getElementById('bootView').style.display = 'none';
+    document.getElementById('mainView').style.display = '';
+  } catch (err) {
+    document.getElementById('bootView').style.display = 'none';
+    if (String(err.message).startsWith('401') || String(err.message).startsWith('403')) {
+      toast('Chave inválida — informe novamente', 'err');
+      trocarChave();
+    } else {
+      toast('Erro: ' + err.message, 'err');
+      document.getElementById('loginView').style.display = '';
+    }
+  }
+}
+
+// Delegação: atualizar resumo de cobertura ao trocar selects
+document.addEventListener('change', e => {
+  if (e.target && e.target.id && e.target.id.startsWith('cob-')) atualizarCobResumo();
+});
+
+if (SB_KEY) iniciar();
+else document.getElementById('loginView').style.display = '';
+</script>
+</body>
+</html>
