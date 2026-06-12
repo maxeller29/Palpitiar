@@ -256,26 +256,12 @@ footer a{color:var(--amber);text-decoration:none;}
 footer a:hover{text-decoration:underline;}
 
 /* PRINT */
-/* VOLANTE ESTILO CAIXA (sidebar) */
-.vc-table{width:100%;border-collapse:collapse;}
-.vc-table th{font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);padding:4px 3px;border-bottom:2px solid var(--line);text-align:center;}
-.vc-table th.th-j{text-align:left;}
-.vc-table td{padding:3px 3px;border-bottom:1px solid rgba(244,235,208,0.04);}
-.vc-num{font-family:var(--mono);font-size:9px;color:var(--ink-faint);width:16px;}
-.vc-times{font-family:var(--mono);font-size:8px;color:var(--ink-dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.vc-cel{width:24px;text-align:center;}
-.vc-o{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);}
-.vc-o.on{border-color:var(--amber);background:var(--amber);}
-.vc-nome-cartao{font-family:var(--mono);font-size:10px;color:var(--ink);font-weight:600;margin-bottom:4px;}
-.vc-preco-cartao{font-family:var(--mono);font-size:10px;color:var(--amber);font-weight:600;}
-
 @media print{.col-sidebar,.tabs,.site-nav,footer{display:none!important;}.main-layout{grid-template-columns:1fr!important;}}
 
 /* RESPONSIVE */
 @media(max-width:900px){
-  .main-layout{grid-template-columns:1fr;display:flex;flex-direction:column;}
-  .col-sidebar{position:static;order:1;}
-  .col-jogos{order:2;}
+  .main-layout{grid-template-columns:1fr;}
+  .col-sidebar{position:static;}
   header{grid-template-columns:1fr;gap:12px;text-align:center;}
   .brand,.status{text-align:center;}
 }
@@ -368,14 +354,8 @@ footer a:hover{text-decoration:underline;}
 
         <!-- CARTÕES -->
         <div class="sidebar-box">
-          <div class="sidebar-title">Escolha a quantidade de duplos e triplos</div>
+          <div class="sidebar-title">Cartões — Escolha seu Orçamento</div>
           <div class="cartao-list" id="cartaoList"></div>
-        </div>
-
-        <!-- VOLANTE SUGERIDO -->
-        <div class="sidebar-box" id="volanteBox" style="display:none">
-          <div class="sidebar-title">Volante Sugerido</div>
-          <div id="volanteContent"></div>
         </div>
 
       </div>
@@ -518,7 +498,7 @@ function renderConcursoBar(c) {
   if (c.acumulado) badges.innerHTML += `<span class="badge-status badge-acumulado">🔥 Acumulado</span>`;
 
   const extra = document.getElementById('concursoExtra');
-  if (c.estimativa_premio) extra.innerHTML = `<span style="font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint)">Estimativa 14 acertos</span><span style="font-family:var(--display);font-weight:800;font-style:italic;font-size:clamp(18px,2.8vw,32px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;text-shadow:0 0 20px rgba(232,150,58,0.28)">${fmtBRL(c.estimativa_premio)}</span>`;
+  if (c.estimativa_premio) extra.innerHTML = `Estimativa: <strong>${fmtBRL(c.estimativa_premio)}</strong>`;
   else if (c.arrecadacao) extra.innerHTML = `Arrecadação: <strong>${fmtBRL(c.arrecadacao)}</strong>`;
 }
 
@@ -572,11 +552,11 @@ function renderCartoes() {
 
 function selecionarCartao(id) {
   if (cartaoSelecionado === id) {
+    // fechar / desselecionar
     document.getElementById('cartao-'+id).classList.remove('selected');
     document.getElementById('vol-'+id).classList.remove('open');
     cartaoSelecionado = null;
     atualizarJogosComCartao(null);
-    renderVolanteSidebar(null);
     return;
   }
   if (cartaoSelecionado) {
@@ -589,47 +569,6 @@ function selecionarCartao(id) {
   volWrap.classList.add('open');
   gerarVolante(id);
   atualizarJogosComCartao(id);
-  renderVolanteSidebar(id);
-}
-
-// Volante estilo Caixa na sidebar (círculos marcados = apostas)
-function renderVolanteSidebar(cartaoId) {
-  const box = document.getElementById('volanteBox');
-  const cont = document.getElementById('volanteContent');
-  if (!box || !cont) return;
-  if (!cartaoId || jogosGlobal.length === 0) { box.style.display = 'none'; return; }
-
-  const c = CARTOES.find(x => x.id === cartaoId);
-  if (!c) return;
-  const calc = calcularMarcacoes(cartaoId);
-  if (!calc) return;
-
-  const cols = ['coluna1','empate','coluna2'];
-  const rows = jogosGlobal.map(j => {
-    const marc = calc.marcacoes[j.ordem] || [];
-    const nc = cap(timesMapGlobal[j.time_casa_id]  || '');
-    const nv = cap(timesMapGlobal[j.time_visit_id] || '');
-    const times = nc && nv ? nc + ' x ' + nv : (j.resumo || 'Jogo ' + j.ordem);
-    return `<tr>
-      <td class="vc-num">${j.ordem}</td>
-      <td class="vc-times">${times}</td>
-      ${cols.map(col => `<td class="vc-cel"><span class="vc-o${marc.includes(col)?' on':''}"></span></td>`).join('')}
-    </tr>`;
-  }).join('');
-
-  cont.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span class="vc-nome-cartao">${c.nome} · ${c.config}</span>
-      <span class="vc-preco-cartao">R$${c.preco}</span>
-    </div>
-    <table class="vc-table">
-      <thead><tr>
-        <th class="th-j" colspan="2">Jogo</th>
-        <th>1</th><th>X</th><th>2</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  box.style.display = '';
 }
 
 // Re-renderiza os cards dos jogos refletindo o cartão selecionado
