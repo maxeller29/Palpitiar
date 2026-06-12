@@ -325,7 +325,7 @@ footer a:hover{text-decoration:underline;}
 
   <!-- BARRA DE CARTÕES HORIZONTAL -->
   <div class="cartoes-bar" id="cartoesSel">
-    <div class="cartoes-bar-label">Escolha seu orçamento de aposta</div>
+    <div class="cartoes-bar-label">Escolha a quantidade de Duplos e Triplos</div>
     <div class="cartoes-chips" id="chipsContainer"></div>
   </div>
 
@@ -886,6 +886,7 @@ function setStatus(cls, txt) {
     const jogos = await sbGet('loteca_jogos_analise', {
       select:'*', concurso_id:`eq.${concurso.id}`, order:'ordem.asc',
     });
+
 
     // Times
     const timeIds = [...new Set(jogos.flatMap(j=>[j.time_casa_id,j.time_visit_id]).filter(Boolean))];
