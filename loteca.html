@@ -79,7 +79,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .concurso-num strong{font-size:24px;letter-spacing:-0.02em;color:var(--ink);display:block;margin-top:2px;}
 .concurso-meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);text-align:right;line-height:1.8;}
 .concurso-meta strong{color:var(--ink);}
-.estimativa-destaque{font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,32px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;font-style:italic;}
+.estimativa-destaque{font-family:var(--display);font-weight:800;font-size:clamp(22px,3.5vw,38px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:4px;font-style:italic;text-shadow:0 0 32px rgba(232,150,58,0.35);}
 .badge-status{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 12px;border-radius:2px;}
 .badge-aberto{background:rgba(93,186,111,0.15);border:1px solid rgba(93,186,111,0.35);color:var(--emerald);}
 .badge-encerrado{background:rgba(244,235,208,0.06);border:1px solid var(--line);color:var(--ink-faint);}
@@ -165,8 +165,8 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .sug-val.coluna2{background:rgba(196,69,45,0.12);color:#e07060;border:1px solid rgba(196,69,45,0.25);}
 .sug-val.triplo{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);}
 .cob-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);}
-.btn-expand{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);background:none;border:none;cursor:pointer;padding:2px 6px;transition:color 0.2s;}
-.btn-expand:hover{color:var(--amber);}
+.btn-expand{font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);background:none;border:1px solid var(--amber-border);border-radius:2px;cursor:pointer;padding:3px 8px;transition:all 0.2s;}
+.btn-expand:hover{background:var(--amber-dim);color:var(--amber);}
 
 .res-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:600;}
 .res-badge.coluna1{background:rgba(93,186,111,0.15);color:var(--emerald);}
@@ -201,8 +201,8 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .chip.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber);}
 .chip.destaque{border-color:rgba(212,168,75,0.35);}
 .chip-nome{font-weight:600;font-size:10px;letter-spacing:0.05em;}
-.chip-config{font-size:8px;letter-spacing:0.1em;color:var(--ink-faint);}
-.chip.active .chip-config{color:rgba(232,150,58,0.7);}
+.chip-config{font-size:9px;letter-spacing:0.08em;color:var(--ink-dim);}
+.chip.active .chip-config{color:rgba(232,150,58,0.85);}
 .chip-preco{font-size:11px;font-weight:600;color:var(--gold);}
 .chip.active .chip-preco{color:var(--amber);}
 
@@ -747,28 +747,45 @@ function renderJogo(jogo, timesMap, calcCartao) {
     </div>` : `<div class="sem-analise">Análise em breve</div>`;
 
   // Score breakdown — 7 fatores com pesos (de fatores_casa/visit ou score_breakdown)
+  // Painel de detalhes: fatores + pontuações
   let breakdownHtml = '';
   {
-    let bc = fatCasaObj.fatores, bv = fatVisitObj.fatores;
+    let bc = Object.assign({}, fatCasaObj.fatores);
+    let bv = Object.assign({}, fatVisitObj.fatores);
+    // fallback: score_breakdown legacy
     if (Object.keys(bc).length === 0 && jogo.score_breakdown_casa) {
-      try { bc = typeof jogo.score_breakdown_casa === 'string' ? JSON.parse(jogo.score_breakdown_casa) : jogo.score_breakdown_casa; } catch {}
+      try { Object.assign(bc, typeof jogo.score_breakdown_casa === 'string' ? JSON.parse(jogo.score_breakdown_casa) : jogo.score_breakdown_casa); } catch {}
     }
     if (Object.keys(bv).length === 0 && jogo.score_breakdown_visit) {
-      try { bv = typeof jogo.score_breakdown_visit === 'string' ? JSON.parse(jogo.score_breakdown_visit) : jogo.score_breakdown_visit; } catch {}
+      try { Object.assign(bv, typeof jogo.score_breakdown_visit === 'string' ? JSON.parse(jogo.score_breakdown_visit) : jogo.score_breakdown_visit); } catch {}
     }
+    // Se temos ao menos o score geral, mostrar pelo menos "Força relativa"
+    if (Object.keys(bc).length === 0 && sCasa !== null) bc.forca = sCasa;
+    if (Object.keys(bv).length === 0 && sVisit !== null) bv.forca = sVisit;
+
     const rows = FATORES_DEF.filter(f => bc[f.k] !== undefined || bv[f.k] !== undefined).map(f => {
-      const vc = bc[f.k] ?? 0, vv = bv[f.k] ?? 0;
+      const vc = bc[f.k] ?? null, vv = bv[f.k] ?? null;
+      const vcN = vc ?? 0, vvN = vv ?? 0;
       return `<div class="sb-row">
-        <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span></span>
+        <span class="sb-label">${f.label}<span style="color:var(--amber);margin-left:4px;font-size:8px">${f.peso}%</span></span>
         <div class="sb-bars">
-          <div class="sb-bar-bg" style="transform:scaleX(-1)"><div class="sb-bar-fill" style="width:${vc}%;background:${scoreColor(vc)}"></div></div>
-          <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:${vv}%;background:${scoreColor(vv)}"></div></div>
+          <div class="sb-bar-bg" style="transform:scaleX(-1)"><div class="sb-bar-fill" style="width:${vcN}%;background:${scoreColor(vcN)}"></div></div>
+          <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:${vvN}%;background:${scoreColor(vvN)}"></div></div>
         </div>
-        <span class="sb-val">${vc}/${vv}</span>
+        <span class="sb-val">${vc !== null ? vcN : '—'}/${vv !== null ? vvN : '—'}</span>
       </div>`;
     }).join('');
+
     if (rows) {
-      breakdownHtml = `<div class="score-breakdown" id="bd-${jogo.id}">${rows}</div>`;
+      const nomesRow = `<div class="sb-row" style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line)">
+        <span class="sb-label" style="color:var(--ink-faint)">Fator / Peso</span>
+        <div class="sb-bars" style="justify-content:space-between">
+          <span style="font-family:var(--mono);font-size:8px;color:var(--ink-dim);text-align:right;flex:1;padding-right:8px">${cap(nomeCasa)}</span>
+          <span style="font-family:var(--mono);font-size:8px;color:var(--ink-dim);text-align:left;flex:1;padding-left:8px">${cap(nomeVisit)}</span>
+        </div>
+        <span class="sb-val" style="color:var(--ink-faint)">pts</span>
+      </div>`;
+      breakdownHtml = `<div class="score-breakdown" id="bd-${jogo.id}">${nomesRow}${rows}</div>`;
     }
   }
 
@@ -822,7 +839,7 @@ function renderJogo(jogo, timesMap, calcCartao) {
         </div>`}
         <div style="display:flex;align-items:center;gap:8px">
           ${resBadge}
-          ${breakdownHtml ? `<button class="btn-expand" onclick="toggleBreakdown('${jogo.id}',this)">+ detalhes</button>` : ''}
+          <button class="btn-expand" onclick="toggleBreakdown('${jogo.id}',this)" ${!breakdownHtml ? 'style="opacity:0.35;cursor:default;pointer-events:none"' : ''}>▸ análise</button>
         </div>
       </div>
     </div>`;
@@ -832,7 +849,7 @@ function toggleBreakdown(id, btn) {
   const el = document.getElementById('bd-'+id);
   if (!el) return;
   const open = el.classList.toggle('open');
-  btn.textContent = open ? '− detalhes' : '+ detalhes';
+  btn.textContent = open ? '▾ análise' : '▸ análise';
 }
 
 // ─── RENDER VISÃO GERAL ────────────────────────────────────────────────────
