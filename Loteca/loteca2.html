@@ -887,6 +887,7 @@ function setStatus(cls, txt) {
       select:'*', concurso_id:`eq.${concurso.id}`, order:'ordem.asc',
     });
 
+
     // Times
     const timeIds = [...new Set(jogos.flatMap(j=>[j.time_casa_id,j.time_visit_id]).filter(Boolean))];
     let timesMap = {};
