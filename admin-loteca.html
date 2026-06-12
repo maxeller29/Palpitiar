@@ -122,6 +122,43 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 
 .empty-msg{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center;padding:48px 16px;font-style:italic;}
 
+/* POPUP DE ANÁLISE */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+.popup-overlay.show{display:flex;}
+.popup-box{background:#0f2419;border:1px solid var(--amber-border);border-radius:6px;padding:28px 32px;width:480px;max-width:90vw;}
+.popup-title{font-family:var(--display);font-weight:600;font-size:18px;color:var(--ink);margin-bottom:4px;}
+.popup-sub{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-bottom:20px;letter-spacing:0.06em;}
+.popup-steps{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;}
+.popup-step{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--ink-faint);padding:6px 10px;border-radius:3px;border:1px solid transparent;transition:all 0.3s;}
+.popup-step.active{color:var(--amber);border-color:var(--amber-border);background:var(--amber-dim);}
+.popup-step.done{color:var(--emerald);border-color:rgba(93,186,111,0.25);background:rgba(93,186,111,0.06);}
+.popup-step.error{color:#e07060;border-color:rgba(196,69,45,0.3);background:rgba(196,69,45,0.08);}
+.popup-step-icon{width:16px;text-align:center;font-size:11px;}
+.popup-progress-wrap{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:12px;}
+.popup-progress-bar{height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:2px;transition:width 0.4s ease;width:0%;}
+.popup-current{font-family:var(--mono);font-size:10px;color:var(--ink-dim);min-height:16px;}
+.popup-footer{margin-top:16px;display:flex;justify-content:flex-end;}
+
+/* SCORE VISUAL */
+.score-display{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.score-num{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-0.02em;}
+.score-bar-bg{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease,background 0.5s;}
+
+/* FATOR EXPANDIDO */
+.fat-table tr:hover td{background:rgba(255,255,255,0.02);}
+.fat-input::-webkit-inner-spin-button{opacity:0.5;}
+.fat-source{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);padding:1px 4px;border-radius:2px;border:1px solid var(--line);margin-left:4px;}
+.fat-source.auto{color:rgba(93,186,111,0.8);border-color:rgba(93,186,111,0.25);}
+.fat-source.manual{color:var(--amber);border-color:var(--amber-border);}
+
+/* TOOLBAR melhorias */
+.conc-toolbar{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;background:rgba(255,255,255,0.01);}
+.toolbar-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.status-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);background:rgba(0,0,0,0.1);font-family:var(--mono);font-size:9px;color:var(--ink-faint);}
+.status-bar-item{display:flex;align-items:center;gap:5px;}
+.status-dot-sm{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);}
+
 /* FORMA RECENTE (badges) */
 .ja-forma-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
 .ja-forma-side{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
@@ -198,11 +235,11 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
             <strong id="edNum">—</strong> · <span id="edData">—</span><br>
             <span id="edStatus"></span>
           </div>
-          <div class="admin-actions">
-            <button class="btn btn-amber" onclick="calcularTudo()">⚙ Calcular análise</button>
+          <div class="toolbar-actions">
+            <button class="btn btn-amber" onclick="calcularTudoComPopup()">⚙ Calcular análise</button>
             <button class="btn" onclick="salvarTudo()">💾 Salvar tudo</button>
-            <button class="btn btn-green" onclick="publicar('preliminar')">Publicar Preliminar</button>
-            <button class="btn btn-green" onclick="publicar('final')">Publicar Final</button>
+            <button class="btn btn-green" onclick="publicar('preliminar')">▶ Preliminar</button>
+            <button class="btn btn-green" onclick="publicar('final')">✓ Final</button>
           </div>
         </div>
 
@@ -216,6 +253,29 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- POPUP CALCULAR ANÁLISE -->
+<div class="popup-overlay" id="popupAnalise">
+  <div class="popup-box">
+    <div class="popup-title">⚙ Calculando Análise</div>
+    <div class="popup-sub" id="popupSub">Processando os 14 jogos do concurso…</div>
+    <div class="popup-progress-wrap">
+      <div class="popup-progress-bar" id="popupProgress"></div>
+    </div>
+    <div class="popup-steps" id="popupSteps">
+      <div class="popup-step" id="pstep-0"><span class="popup-step-icon">○</span>Lendo fatores preenchidos</div>
+      <div class="popup-step" id="pstep-1"><span class="popup-step-icon">○</span>Derivando forma dos últimos 5 jogos</div>
+      <div class="popup-step" id="pstep-2"><span class="popup-step-icon">○</span>Calculando scores compostos</div>
+      <div class="popup-step" id="pstep-3"><span class="popup-step-icon">○</span>Rodando modelo Poisson bivariado</div>
+      <div class="popup-step" id="pstep-4"><span class="popup-step-icon">○</span>Classificando dificuldade dos jogos</div>
+      <div class="popup-step" id="pstep-5"><span class="popup-step-icon">○</span>Definindo sugestões e coberturas</div>
+    </div>
+    <div class="popup-current" id="popupCurrent"></div>
+    <div class="popup-footer">
+      <button class="btn" id="popupOkBtn" style="display:none" onclick="fecharPopup()">✓ Concluído</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -316,13 +376,13 @@ function coberturaPorClasse(classe) {
 
 // ─── FATORES DO SCORE ──────────────────────────────────────────────────────
 const FATORES_DEF = [
-  { k:'forca',      label:'Força relativa',  peso:25 },
-  { k:'forma',      label:'Forma recente',   peso:20 },
-  { k:'competicao', label:'Competição',      peso:20 },
-  { k:'mando',      label:'Mando de campo',  peso:15 },
-  { k:'h2h',        label:'H2H',             peso:10 },
-  { k:'motivacao',  label:'Motivação',       peso:7  },
-  { k:'odds',       label:'Odds mercado',    peso:3  },
+  { k:'forca',      label:'Força relativa',  peso:25, hint:'Ranking FIFA/CBF, valor de mercado, histórico de resultados. Referência: top10 mundial ≈ 90–100, médio ≈ 40–60, fraco ≈ 10–30.' },
+  { k:'forma',      label:'Forma recente',   peso:20, hint:'Últimos 5 jogos (casa/fora separados). V=100, E=50, D=0 — média ponderada. Auto-calculado dos placares acima.' },
+  { k:'competicao', label:'Competição',      peso:20, hint:'Fase/importância do jogo. Final = 30–40, mata-mata = 40–60, fase de grupos = 60–75, amistoso = 50–65.' },
+  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Vantagem histórica do mandante nesta competição. Clubes brasileiros: 60–70. Seleções em campo neutro: ~50.' },
+  { k:'h2h',        label:'Histórico H2H',   peso:10, hint:'Últimos 5 confrontos diretos. Vitórias = 80–100, equilíbrio = 40–60, derrotas = 10–30.' },
+  { k:'motivacao',  label:'Motivação',       peso:7,  hint:'Contexto do jogo. Decisão de título/rebaixamento = 80–100. Poupar titulares = 20–35. Jogo neutro = 50.' },
+  { k:'odds',       label:'Odds mercado',    peso:3,  hint:'Validação com casas de apostas. Converta: odd 1.50 → 67%, odd 2.00 → 50%, odd 3.00 → 33%. Use como verificação.' },
 ];
 
 // Score composto com redistribuição de pesos (fatores vazios não contam)
@@ -351,20 +411,13 @@ function parseUltimos5(txt) {
     return { gf, gc, adv: m[3].trim(), r: gf > gc ? 'V' : gf === gc ? 'E' : 'D' };
   });
 }
-// Deriva o fator Forma (0-100) dos últimos 5:
-// 70% resultados (V=3, E=1) + 30% eficiência de gols (50 + saldo médio × 12,5)
+// Deriva o fator Forma (0-100) dos últimos 5: V=3pts, E=1pt
 function formaDeUltimos5(arr) {
-  const validos = (arr || []).filter(u => Number.isFinite(u.gf) && Number.isFinite(u.gc));
+  const validos = (arr || []).filter(u => u.r === 'V' || u.r === 'E' || u.r === 'D');
   if (validos.length === 0) return null;
-  let pts = 0, gp = 0, gc = 0;
-  validos.forEach(u => {
-    if (u.gf > u.gc) pts += 3; else if (u.gf === u.gc) pts += 1;
-    gp += u.gf; gc += u.gc;
-  });
-  const fRes  = pts / (validos.length * 3) * 100;
-  const saldo = (gp - gc) / validos.length;
-  const fGols = Math.max(0, Math.min(100, 50 + saldo * 12.5));
-  return Math.round(0.7 * fRes + 0.3 * fGols);
+  let pts = 0;
+  validos.forEach(u => { if (u.r === 'V') pts += 3; else if (u.r === 'E') pts += 1; });
+  return Math.round(pts / (validos.length * 3) * 100);
 }
 function fmtUltimos5(arr) {
   return (arr || []).map(u => u.raw ? u.raw : (u.gf + 'x' + u.gc + ' ' + (u.adv||'')).trim()).join('; ');
@@ -389,6 +442,178 @@ function toggleFatores(idx) {
   const btn = document.getElementById('btnfat-' + idx);
   const open = el.classList.toggle('open');
   btn.textContent = (open ? '▾' : '▸') + ' Fatores & forma';
+}
+
+// ─── SCORE COLOR ───────────────────────────────────────────────────────────
+function scoreColor(s) {
+  if (s === null || s === undefined || s === '') return 'var(--ink-faint)';
+  if (s >= 65) return 'var(--emerald)';
+  if (s >= 45) return 'var(--amber)';
+  return 'var(--crimson)';
+}
+
+function atualizarScoreVisual(idx) {
+  // Recalcular score a partir dos fatores (se houver)
+  const fatC = lerFatoresInput(idx, 'c');
+  const fatV = lerFatoresInput(idx, 'v');
+  const compC = scoreComposto(fatC);
+  const compV = scoreComposto(fatV);
+
+  let sc = compC.score !== null ? compC.score : parseInt(document.getElementById('scoreCasa-'+idx).value, 10) || null;
+  let sv = compV.score !== null ? compV.score : parseInt(document.getElementById('scoreVisit-'+idx).value, 10) || null;
+
+  // Atualizar visual casa
+  const numC = document.getElementById('scoreNum-'+idx+'-c');
+  const barC = document.getElementById('scoreBar-'+idx+'-c');
+  if (numC && barC) {
+    numC.textContent = sc !== null && !isNaN(sc) ? sc : '—';
+    numC.style.color = scoreColor(sc);
+    barC.style.width = (sc || 0) + '%';
+    barC.style.background = scoreColor(sc);
+    if (compC.score !== null) document.getElementById('scoreCasa-'+idx).value = sc;
+  }
+  // Atualizar visual visit
+  const numV = document.getElementById('scoreNum-'+idx+'-v');
+  const barV = document.getElementById('scoreBar-'+idx+'-v');
+  if (numV && barV) {
+    numV.textContent = sv !== null && !isNaN(sv) ? sv : '—';
+    numV.style.color = scoreColor(sv);
+    barV.style.width = (sv || 0) + '%';
+    barV.style.background = scoreColor(sv);
+    if (compV.score !== null) document.getElementById('scoreVisit-'+idx).value = sv;
+  }
+}
+
+// ─── POPUP DE ANÁLISE ──────────────────────────────────────────────────────
+const POPUP_STEPS = [
+  'Lendo fatores preenchidos',
+  'Derivando forma dos últimos 5 jogos',
+  'Calculando scores compostos',
+  'Rodando modelo Poisson bivariado',
+  'Classificando dificuldade dos jogos',
+  'Definindo sugestões e coberturas',
+];
+
+function setPopupStep(idx, status, detalhe) {
+  POPUP_STEPS.forEach((_, i) => {
+    const el = document.getElementById('pstep-'+i);
+    if (!el) return;
+    if (i < idx) { el.className = 'popup-step done'; el.querySelector('.popup-step-icon').textContent = '✓'; }
+    else if (i === idx) { el.className = 'popup-step active'; el.querySelector('.popup-step-icon').textContent = '▶'; }
+    else { el.className = 'popup-step'; el.querySelector('.popup-step-icon').textContent = '○'; }
+  });
+  document.getElementById('popupProgress').style.width = Math.round((idx / POPUP_STEPS.length) * 100) + '%';
+  if (detalhe) document.getElementById('popupCurrent').textContent = detalhe;
+}
+
+function fecharPopup() {
+  document.getElementById('popupAnalise').classList.remove('show');
+}
+
+async function calcularTudoComPopup() {
+  const popup = document.getElementById('popupAnalise');
+  popup.classList.add('show');
+  document.getElementById('popupOkBtn').style.display = 'none';
+  document.getElementById('popupProgress').style.width = '0%';
+  POPUP_STEPS.forEach((_, i) => {
+    const el = document.getElementById('pstep-'+i);
+    if (el) { el.className = 'popup-step'; el.querySelector('.popup-step-icon').textContent = '○'; }
+  });
+  document.getElementById('popupCurrent').textContent = '';
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  let calculados = 0;
+
+  // Passo 0: Ler fatores
+  setPopupStep(0, 'active', 'Verificando campos preenchidos…');
+  await delay(300);
+
+  // Passo 1: Forma dos últimos 5
+  setPopupStep(1, 'active', 'Calculando forma a partir dos placares…');
+  await delay(200);
+  jogos.forEach((j, idx) => {
+    const u5cArr = parseUltimos5(document.getElementById('u5c-'+idx).value);
+    const u5vArr = parseUltimos5(document.getElementById('u5v-'+idx).value);
+    const formaC = document.getElementById('f-'+idx+'-forma-c');
+    const formaV = document.getElementById('f-'+idx+'-forma-v');
+    if (formaC && formaC.value === '' && u5cArr.length) { const fv = formaDeUltimos5(u5cArr); if (fv !== null) formaC.value = fv; }
+    if (formaV && formaV.value === '' && u5vArr.length) { const fv = formaDeUltimos5(u5vArr); if (fv !== null) formaV.value = fv; }
+    document.getElementById('fbadges-'+idx+'-c').innerHTML = badgesForma(u5cArr.length ? u5cArr : getFatObj(j,'casa').ultimos5);
+    document.getElementById('fbadges-'+idx+'-v').innerHTML = badgesForma(u5vArr.length ? u5vArr : getFatObj(j,'visit').ultimos5);
+  });
+
+  // Passo 2: Scores compostos
+  setPopupStep(2, 'active', 'Aplicando pesos e redistribuindo fatores vazios…');
+  await delay(250);
+  const scores = jogos.map((j, idx) => {
+    const fatC = lerFatoresInput(idx, 'c');
+    const fatV = lerFatoresInput(idx, 'v');
+    const compC = scoreComposto(fatC);
+    const compV = scoreComposto(fatV);
+    let sc = compC.score !== null ? compC.score : parseInt(document.getElementById('scoreCasa-'+idx).value, 10);
+    let sv = compV.score !== null ? compV.score : parseInt(document.getElementById('scoreVisit-'+idx).value, 10);
+    if (compC.score !== null) { document.getElementById('scoreCasa-'+idx).value = sc; j.score_breakdown_casa = JSON.stringify(compC.usados); }
+    if (compV.score !== null) { document.getElementById('scoreVisit-'+idx).value = sv; j.score_breakdown_visit = JSON.stringify(compV.usados); }
+    atualizarScoreVisual(idx);
+    return { sc, sv };
+  });
+
+  // Passo 3: Poisson
+  setPopupStep(3, 'active', 'Calculando probabilidades C1 / Empate / C2…');
+  await delay(300);
+  const probsArr = scores.map(({ sc, sv }) => isNaN(sc) || isNaN(sv) ? null : calcProbs(sc, sv));
+
+  // Passo 4: Classificação
+  setPopupStep(4, 'active', 'Classificando Fácil / Médio / Difícil…');
+  await delay(200);
+
+  // Passo 5: Sugestões
+  setPopupStep(5, 'active', 'Definindo sugestão e cobertura por jogo…');
+  await delay(200);
+
+  // Aplicar tudo
+  jogos.forEach((j, idx) => {
+    const { sc, sv } = scores[idx];
+    if (isNaN(sc) || isNaN(sv)) return;
+    const probs = probsArr[idx];
+    if (!probs) return;
+    const isC = document.getElementById('classico-'+idx).checked;
+    const isE = document.getElementById('elim-'+idx).checked;
+    const classe = classificar(probs, isC, isE);
+    const sug = sugerir(probs);
+    const cob = coberturaPorClasse(classe);
+    j.score_casa = sc; j.score_visit = sv;
+    j.is_classico = isC; j.is_eliminatorio = isE;
+    j.p_coluna1 = probs.p1; j.p_empate = probs.px; j.p_coluna2 = probs.p2;
+    j.lambda_casa = probs.lambdaCasa; j.lambda_visit = probs.lambdaVisit;
+    j.classificacao = classe; j.resultado_sugerido = sug; j.cobertura = cob;
+    document.getElementById('sug-'+idx).value = sug;
+    document.getElementById('cob-'+idx).value = cob;
+    const badge = document.getElementById('classBadge-'+idx);
+    badge.className = 'ja-class-badge ' + classe;
+    badge.textContent = classe;
+    document.getElementById('probs-'+idx).innerHTML = `
+      <div class="ja-probs">
+        <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
+        <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
+        <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
+        <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+      </div>`;
+    calculados++;
+  });
+
+  atualizarCobResumo();
+
+  // Concluir
+  setPopupStep(POPUP_STEPS.length, 'done', '');
+  document.getElementById('popupProgress').style.width = '100%';
+  document.getElementById('popupCurrent').textContent = calculados > 0
+    ? `✓ ${calculados} jogo(s) calculado(s) com sucesso`
+    : '⚠ Preencha os scores ou fatores primeiro';
+  document.getElementById('popupSub').textContent = calculados > 0
+    ? 'Análise concluída. Revise e clique em Salvar tudo.'
+    : 'Nenhum jogo processado.';
+  document.getElementById('popupOkBtn').style.display = '';
 }
 
 // ─── UI HELPERS ────────────────────────────────────────────────────────────
@@ -467,13 +692,31 @@ function renderJogosAdmin() {
       </div>` : '';
     const fatCasa  = getFatObj(j, 'casa');
     const fatVisit = getFatObj(j, 'visit');
-    const fatoresRows = FATORES_DEF.map(f => `
-      <tr>
-        <td>${f.label}</td>
+    const fatoresRows = FATORES_DEF.map(f => {
+      const vc = fatCasa.fatores[f.k];
+      const vv = fatVisit.fatores[f.k];
+      const hasC = vc !== undefined && vc !== null;
+      const hasV = vv !== undefined && vv !== null;
+      return `<tr title="${f.hint || ''}">
+        <td>
+          <span style="cursor:help" title="${f.hint || ''}">${f.label}</span>
+          ${f.hint ? '<span style="color:var(--ink-faint);font-size:9px;cursor:help" title="' + f.hint + '"> ⓘ</span>' : ''}
+        </td>
         <td class="fat-peso">${f.peso}%</td>
-        <td><input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-c" value="${fatCasa.fatores[f.k] ?? ''}" placeholder="—"></td>
-        <td><input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-v" value="${fatVisit.fatores[f.k] ?? ''}" placeholder="—"></td>
-      </tr>`).join('');
+        <td>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-c" value="${hasC ? vc : ''}" placeholder="—" oninput="atualizarScoreVisual(${idx})">
+            ${hasC ? '<span class="fat-source auto" title="Preenchido automaticamente">auto</span>' : ''}
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input class="fat-input" type="number" min="0" max="100" id="f-${idx}-${f.k}-v" value="${hasV ? vv : ''}" placeholder="—" oninput="atualizarScoreVisual(${idx})">
+            ${hasV ? '<span class="fat-source auto" title="Preenchido automaticamente">auto</span>' : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
     return `
     <div class="ja-card" id="jogo-${idx}">
       <div class="ja-header">
@@ -492,7 +735,7 @@ function renderJogosAdmin() {
           <tr><th>Fator</th><th>Peso</th><th>${casa}</th><th>${visit}</th></tr>
           ${fatoresRows}
         </table>
-        <div class="fat-hint">Fatores em branco têm o peso redistribuído entre os preenchidos. Ao calcular: (1) se "Forma recente" estiver vazia e houver últimos 5 informados, a forma é derivada deles: 70% resultados (V=3, E=1) + 30% eficiência de gols (saldo médio); (2) o score é derivado dos fatores, ou vale o score manual se nenhum fator estiver preenchido.</div>
+        <div class="fat-hint">Fatores em branco têm o peso redistribuído entre os preenchidos. Ao calcular: (1) se "Forma recente" estiver vazia e houver últimos 5 informados, a forma é derivada deles automaticamente (V=3, E=1); (2) o score é derivado dos fatores, ou vale o score manual se nenhum fator estiver preenchido.</div>
         <div class="ja-grid" style="grid-template-columns:1fr 1fr">
           <div class="ja-field">
             <label class="ja-label">Últimos 5 — ${casa} (mais recente primeiro)</label>
@@ -507,11 +750,19 @@ function renderJogosAdmin() {
       <div class="ja-grid">
         <div class="ja-field">
           <label class="ja-label">Score ${casa}</label>
-          <input class="ja-input" type="number" min="0" max="100" id="scoreCasa-${idx}" value="${j.score_casa ?? ''}" placeholder="0–100">
+          <input class="ja-input" type="number" min="0" max="100" id="scoreCasa-${idx}" value="${j.score_casa ?? ''}" placeholder="0–100" oninput="atualizarScoreVisual(${idx})">
+          <div class="score-display" id="scoreVisual-${idx}-c">
+            <span class="score-num" id="scoreNum-${idx}-c" style="color:${scoreColor(j.score_casa)}">${j.score_casa ?? '—'}</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar-${idx}-c" style="width:${j.score_casa ?? 0}%;background:${scoreColor(j.score_casa)}"></div></div>
+          </div>
         </div>
         <div class="ja-field">
           <label class="ja-label">Score ${visit}</label>
-          <input class="ja-input" type="number" min="0" max="100" id="scoreVisit-${idx}" value="${j.score_visit ?? ''}" placeholder="0–100">
+          <input class="ja-input" type="number" min="0" max="100" id="scoreVisit-${idx}" value="${j.score_visit ?? ''}" placeholder="0–100" oninput="atualizarScoreVisual(${idx})">
+          <div class="score-display" id="scoreVisual-${idx}-v">
+            <span class="score-num" id="scoreNum-${idx}-v" style="color:${scoreColor(j.score_visit)}">${j.score_visit ?? '—'}</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar-${idx}-v" style="width:${j.score_visit ?? 0}%;background:${scoreColor(j.score_visit)}"></div></div>
+          </div>
         </div>
         <label class="ja-check"><input type="checkbox" id="classico-${idx}" ${j.is_classico ? 'checked' : ''}> Clássico</label>
         <label class="ja-check"><input type="checkbox" id="elim-${idx}" ${j.is_eliminatorio ? 'checked' : ''}> Eliminatório</label>
