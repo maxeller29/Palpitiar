@@ -373,6 +373,40 @@ footer a:hover{text-decoration:underline;}
         </div>
         <div id="premiacaoBox" style="display:none"><div id="premiacaoContent"></div></div>
         <div id="cartaoList" style="display:none"></div>
+
+        <!-- BOLÃO -->
+        <div class="sidebar-box" id="bolaoBox" style="display:none">
+          <div class="sidebar-title">Bolão Particular</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:12px;line-height:1.6">
+            Custo por participante sem taxa da Caixa.
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <label style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap">Participantes</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="ajustarParticipantes(-1)" style="font-family:var(--mono);font-size:14px;font-weight:600;width:28px;height:28px;border-radius:2px;border:1px solid var(--line);background:rgba(255,255,255,0.03);color:var(--ink-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--amber-border)'" onmouseout="this.style.borderColor='var(--line)'">−</button>
+              <input type="number" id="bolaoParticipantes" value="2" min="1" max="999"
+                oninput="calcBolao()"
+                style="font-family:var(--mono);font-size:14px;font-weight:600;width:52px;text-align:center;padding:4px 6px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:2px;color:var(--ink);outline:none;">
+              <button onclick="ajustarParticipantes(1)" style="font-family:var(--mono);font-size:14px;font-weight:600;width:28px;height:28px;border-radius:2px;border:1px solid var(--line);background:rgba(255,255,255,0.03);color:var(--ink-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--amber-border)'" onmouseout="this.style.borderColor='var(--line)'">+</button>
+            </div>
+          </div>
+          <div style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:3px;padding:12px 14px;">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:6px">Por participante</div>
+            <div id="bolaoPorParticipante" style="font-family:var(--display);font-weight:800;font-style:italic;font-size:24px;color:var(--ink);letter-spacing:-0.02em">—</div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-faint);">
+              <span>Total do volante</span>
+              <span id="bolaoTotal" style="color:var(--ink-dim)">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:4px">
+              <span>Participantes</span>
+              <span id="bolaoQtd" style="color:var(--ink-dim)">—</span>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--ink-faint);margin-top:8px;line-height:1.6;font-style:italic">
+            * Bolão particular. Valores da Caixa podem incluir taxa adicional de até 35%.
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -605,6 +639,36 @@ function renderVolanteCaixa(cartaoId) {
       ${cols.map(col => `<td class="vc-cel"><span class="vc-circulo${marc.includes(col)?' on':''}"></span></td>`).join('')}
     </tr>`;
   }).join('');
+
+  // Mostrar e atualizar bolão
+  document.getElementById('bolaoBox').style.display = '';
+  calcBolao();
+}
+
+// ─── BOLÃO ─────────────────────────────────────────────────────────────────
+function fmtBRLBolao(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function ajustarParticipantes(delta) {
+  const inp = document.getElementById('bolaoParticipantes');
+  const novo = Math.max(1, Math.min(999, (parseInt(inp.value) || 1) + delta));
+  inp.value = novo;
+  calcBolao();
+}
+
+function calcBolao() {
+  if (!cartaoSelecionado) return;
+  const c = CARTOES.find(x => x.id === cartaoSelecionado);
+  if (!c) return;
+
+  const n = Math.max(1, parseInt(document.getElementById('bolaoParticipantes').value) || 1);
+  const total = c.preco;
+  const porPart = total / n;
+
+  document.getElementById('bolaoPorParticipante').textContent = fmtBRLBolao(porPart);
+  document.getElementById('bolaoTotal').textContent = fmtBRLBolao(total);
+  document.getElementById('bolaoQtd').textContent = n + (n === 1 ? ' participante' : ' participantes');
 }
 
 // Re-renderiza os cards dos jogos refletindo o cartão selecionado
