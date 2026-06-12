@@ -79,6 +79,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .concurso-num strong{font-size:24px;letter-spacing:-0.02em;color:var(--ink);display:block;margin-top:2px;}
 .concurso-meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);text-align:right;line-height:1.8;}
 .concurso-meta strong{color:var(--ink);}
+.estimativa-destaque{font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,32px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;font-style:italic;}
 .badge-status{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 12px;border-radius:2px;}
 .badge-aberto{background:rgba(93,186,111,0.15);border:1px solid rgba(93,186,111,0.35);color:var(--emerald);}
 .badge-encerrado{background:rgba(244,235,208,0.06);border:1px solid var(--line);color:var(--ink-faint);}
@@ -92,9 +93,10 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 
-/* LAYOUT COLUNA ÚNICA (sidebar removida) */
-.main-layout{display:grid;grid-template-columns:1fr;gap:0;}
-.col-sidebar{display:none;}
+/* LAYOUT 2 COLUNAS: jogos + volante sticky */
+.main-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.col-sidebar{position:sticky;top:16px;}
+@media(max-width:860px){.main-layout{grid-template-columns:1fr;}.col-sidebar{position:static;}}
 
 /* SECTION LABEL */
 .section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);}
@@ -219,10 +221,9 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .vc-circulo{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);font-family:var(--mono);font-size:8px;font-weight:600;color:var(--ink-faint);cursor:default;}
 .vc-circulo.on{border-color:var(--amber);background:var(--amber);color:#0a1a14;}
 
-/* compat (itens antigos que podem existir em JS) */
-.cartao-list,.cartao-item,.cartao-header,.cartao-nome,.cartao-preco,
-.cartao-info,.cartao-stat,.cartao-badge,.volante-wrap,.volante-title,
-.volante-grid,.vol-jogo,.vol-jogo-num,.vol-cols,.vol-cell{display:none!important;}
+/* sidebar box reutilizado como volante */
+.sidebar-box{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:14px;}
+.sidebar-title{font-family:var(--mono);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
 
 /* LEGENDA */
 .legenda{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;}
@@ -328,25 +329,6 @@ footer a:hover{text-decoration:underline;}
     <div class="cartoes-chips" id="chipsContainer"></div>
   </div>
 
-  <!-- VOLANTE ESTILO CAIXA (aparece ao escolher cartão) -->
-  <div class="volante-caixa-wrap" id="volanteCaixaWrap">
-    <div class="volante-caixa-box">
-      <div class="vc-titulo">
-        <span id="volanteNome">Volante sugerido</span>
-        <span id="volantePreco" style="color:var(--amber);font-weight:600"></span>
-      </div>
-      <table class="vc-table">
-        <thead>
-          <tr>
-            <th class="th-jogo" colspan="2">Jogo</th>
-            <th>1</th><th>X</th><th>2</th>
-          </tr>
-        </thead>
-        <tbody id="volanteBody"></tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- ABAS -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('jogos',this)">⚽ 14 Jogos</button>
@@ -367,13 +349,31 @@ footer a:hover{text-decoration:underline;}
           <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div><span class="leg-txt">Aguardando análise</span></div>
         </div>
         <div class="section-label">Análise por Jogo</div>
-        <div class="cartao-aviso" id="cartaoAviso"></div>
-        <div class="jogos-list" id="jogosGrid"></div>
+<div class="jogos-list" id="jogosGrid"></div>
       </div>
 
-      <!-- sidebar removida: premiação e cartões movidos para barra horizontal -->
-      <div id="premiacaoBox" style="display:none"><div id="premiacaoContent"></div></div>
-      <div id="cartaoList" style="display:none"></div>
+      <!-- SIDEBAR: volante sugerido sticky -->
+      <div class="col-sidebar">
+        <div class="sidebar-box">
+          <div class="sidebar-title" id="volanteNome">Volante Sugerido</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span id="volanteConfig"></span>
+            <span id="volantePreco" style="color:var(--amber);font-weight:600"></span>
+          </div>
+          <table class="vc-table">
+            <thead>
+              <tr>
+                <th class="th-jogo" colspan="2">Jogo</th>
+                <th>1</th><th>X</th><th>2</th>
+              </tr>
+            </thead>
+            <tbody id="volanteBody"></tbody>
+          </table>
+        </div>
+        <div id="premiacaoBox" style="display:none"><div id="premiacaoContent"></div></div>
+        <div id="cartaoList" style="display:none"></div>
+      </div>
+
     </div>
   </div>
 
@@ -567,7 +567,7 @@ function selecionarChip(id) {
   if (cartaoSelecionado === id) {
     document.getElementById('chip-'+id).classList.remove('active');
     cartaoSelecionado = null;
-    document.getElementById('volanteCaixaWrap').classList.remove('show');
+    // volante sempre visível na sidebar
     atualizarJogosComCartao(null);
     return;
   }
@@ -586,14 +586,15 @@ function renderVolanteCaixa(cartaoId) {
   const calc = calcularMarcacoes(cartaoId);
   if (!calc) return;
 
-  document.getElementById('volanteNome').textContent = c.nome + ' · ' + c.config;
+  document.getElementById('volanteNome').textContent = c.nome;
+  document.getElementById('volanteConfig').textContent = c.config;
   document.getElementById('volantePreco').textContent = 'R$' + c.preco;
 
   const cols = ['coluna1','empate','coluna2'];
   document.getElementById('volanteBody').innerHTML = jogosGlobal.map(j => {
     const marc = calc.marcacoes[j.ordem] || [];
-    const nc = (timesMapGlobal[j.time_casa_id]  || '').split(' ')[0];
-    const nv = (timesMapGlobal[j.time_visit_id] || '').split(' ')[0];
+    const nc = (timesMapGlobal[j.time_casa_id]  || '');
+    const nv = (timesMapGlobal[j.time_visit_id] || '');
     const times = nc && nv ? cap(nc)+' x '+cap(nv) : (j.resumo || 'Jogo '+j.ordem);
     return `<tr>
       <td class="vc-jogo-num">${j.ordem}</td>
@@ -601,8 +602,6 @@ function renderVolanteCaixa(cartaoId) {
       ${cols.map(col => `<td class="vc-cel"><span class="vc-circulo${marc.includes(col)?' on':''}"></span></td>`).join('')}
     </tr>`;
   }).join('');
-
-  document.getElementById('volanteCaixaWrap').classList.add('show');
 }
 
 // Re-renderiza os cards dos jogos refletindo o cartão selecionado
@@ -909,6 +908,8 @@ function setStatus(cls, txt) {
     renderPremiacao(concurso);
     renderCartoes();
     renderVisaoGeral(jogos);
+    // Selecionar cartão Econômico por padrão
+    setTimeout(() => selecionarChip('ec'), 50);
 
     const grid = document.getElementById('jogosGrid');
     grid.innerHTML = jogos.length === 0
