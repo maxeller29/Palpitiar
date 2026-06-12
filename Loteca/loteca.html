@@ -79,6 +79,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .concurso-num strong{font-size:24px;letter-spacing:-0.02em;color:var(--ink);display:block;margin-top:2px;}
 .concurso-meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);text-align:right;line-height:1.8;}
 .concurso-meta strong{color:var(--ink);}
+.estimativa-destaque{font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,32px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;font-style:italic;}
 .badge-status{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 12px;border-radius:2px;}
 .badge-aberto{background:rgba(93,186,111,0.15);border:1px solid rgba(93,186,111,0.35);color:var(--emerald);}
 .badge-encerrado{background:rgba(244,235,208,0.06);border:1px solid var(--line);color:var(--ink-faint);}
@@ -92,10 +93,10 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 
-/* LAYOUT 2 COLUNAS */
-.main-layout{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;}
-.col-jogos{}
-.col-sidebar{position:sticky;top:20px;}
+/* LAYOUT 2 COLUNAS: jogos + volante sticky */
+.main-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.col-sidebar{position:sticky;top:16px;}
+@media(max-width:860px){.main-layout{grid-template-columns:1fr;}.col-sidebar{position:static;}}
 
 /* SECTION LABEL */
 .section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);}
@@ -191,35 +192,38 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .cartao-aviso.show{display:block;}
 
 /* SIDEBAR — CARTÕES */
-.sidebar-box{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:16px;margin-bottom:14px;}
-.sidebar-title{font-family:var(--mono);font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+/* BARRA HORIZONTAL DE CARTÕES */
+.cartoes-bar{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:12px 16px;margin-bottom:20px;}
+.cartoes-bar-label{font-family:var(--mono);font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;}
+.cartoes-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{font-family:var(--mono);font-size:10px;padding:7px 12px;border-radius:3px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,0.02);color:var(--ink-dim);transition:all 0.18s;display:flex;flex-direction:column;gap:1px;min-width:90px;text-align:center;}
+.chip:hover{border-color:rgba(232,150,58,0.35);color:var(--ink);}
+.chip.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber);}
+.chip.destaque{border-color:rgba(212,168,75,0.35);}
+.chip-nome{font-weight:600;font-size:10px;letter-spacing:0.05em;}
+.chip-config{font-size:8px;letter-spacing:0.1em;color:var(--ink-faint);}
+.chip.active .chip-config{color:rgba(232,150,58,0.7);}
+.chip-preco{font-size:11px;font-weight:600;color:var(--gold);}
+.chip.active .chip-preco{color:var(--amber);}
 
-/* CARTÕES */
-.cartao-list{display:flex;flex-direction:column;gap:8px;}
-.cartao-item{border:1px solid var(--line);border-radius:3px;cursor:pointer;transition:all 0.2s;overflow:hidden;}
-.cartao-item:hover{border-color:rgba(232,150,58,0.35);}
-.cartao-item.selected{border-color:var(--amber);background:var(--amber-dim);}
-.cartao-item.destaque{border-color:rgba(212,168,75,0.4);}
-.cartao-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;}
-.cartao-nome{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:-0.01em;}
-.cartao-preco{font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:600;}
-.cartao-info{display:flex;justify-content:space-between;padding:0 10px 8px;gap:8px;}
-.cartao-stat{font-family:var(--mono);font-size:9px;color:var(--ink-dim);line-height:1.5;}
-.cartao-stat strong{color:var(--ink);display:block;}
-.cartao-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:1px 6px;border-radius:2px;align-self:flex-start;}
-.cartao-badge.star{background:rgba(212,168,75,0.15);color:var(--gold);border:1px solid rgba(212,168,75,0.3);}
-.cartao-badge.pareto{background:rgba(93,186,111,0.1);color:var(--emerald);border:1px solid rgba(93,186,111,0.25);}
+/* VOLANTE ESTILO CAIXA (sidebar lateral) */
+.volante-caixa-wrap{display:none;}
+.volante-caixa-wrap.show{display:block;}
+.volante-caixa-box{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:16px;margin-bottom:20px;}
+.vc-titulo{font-family:var(--mono);font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.vc-table{width:100%;border-collapse:collapse;}
+.vc-table th{font-family:var(--mono);font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-faint);padding:4px 6px;border-bottom:2px solid var(--line);text-align:center;}
+.vc-table th.th-jogo{text-align:left;padding-left:2px;}
+.vc-table td{padding:3px 4px;border-bottom:1px solid rgba(244,235,208,0.05);}
+.vc-jogo-num{font-family:var(--mono);font-size:9px;color:var(--ink-faint);padding-left:2px;}
+.vc-jogo-times{font-family:var(--mono);font-size:8px;color:var(--ink-dim);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vc-cel{width:26px;text-align:center;}
+.vc-circulo{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);font-family:var(--mono);font-size:8px;font-weight:600;color:var(--ink-faint);cursor:default;}
+.vc-circulo.on{border-color:var(--amber);background:var(--amber);color:#0a1a14;}
 
-/* VOLANTE */
-.volante-wrap{display:none;padding:10px;border-top:1px solid var(--line);background:rgba(0,0,0,0.15);}
-.volante-wrap.open{display:block;}
-.volante-title{font-family:var(--mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;}
-.volante-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.vol-jogo{text-align:center;}
-.vol-jogo-num{font-family:var(--mono);font-size:7px;color:var(--ink-faint);margin-bottom:2px;}
-.vol-cols{display:flex;flex-direction:column;gap:1px;}
-.vol-cell{font-family:var(--mono);font-size:8px;text-align:center;padding:2px 0;border:1px solid var(--line);border-radius:1px;color:var(--ink-faint);line-height:1;}
-.vol-cell.marcado{border-color:var(--amber);color:var(--amber);background:var(--amber-dim);}
+/* sidebar box reutilizado como volante */
+.sidebar-box{background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:14px;}
+.sidebar-title{font-family:var(--mono);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
 
 /* LEGENDA */
 .legenda{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;padding:12px 16px;background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:4px;}
@@ -319,6 +323,12 @@ footer a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- BARRA DE CARTÕES HORIZONTAL -->
+  <div class="cartoes-bar" id="cartoesSel">
+    <div class="cartoes-bar-label">Escolha seu orçamento de aposta</div>
+    <div class="cartoes-chips" id="chipsContainer"></div>
+  </div>
+
   <!-- ABAS -->
   <div class="tabs">
     <button class="tab active" onclick="showTab('jogos',this)">⚽ 14 Jogos</button>
@@ -339,26 +349,31 @@ footer a:hover{text-decoration:underline;}
           <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div><span class="leg-txt">Aguardando análise</span></div>
         </div>
         <div class="section-label">Análise por Jogo</div>
-        <div class="cartao-aviso" id="cartaoAviso"></div>
-        <div class="jogos-list" id="jogosGrid"></div>
+<div class="jogos-list" id="jogosGrid"></div>
       </div>
 
-      <!-- SIDEBAR -->
+      <!-- SIDEBAR: volante sugerido sticky -->
       <div class="col-sidebar">
-
-        <!-- PREMIAÇÃO -->
-        <div class="sidebar-box" id="premiacaoBox">
-          <div class="sidebar-title">Premiação</div>
-          <div id="premiacaoContent"></div>
-        </div>
-
-        <!-- CARTÕES -->
         <div class="sidebar-box">
-          <div class="sidebar-title">Cartões — Escolha a quantidade de Duplos e Triplos</div>
-          <div class="cartao-list" id="cartaoList"></div>
+          <div class="sidebar-title" id="volanteNome">Volante Sugerido</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span id="volanteConfig"></span>
+            <span id="volantePreco" style="color:var(--amber);font-weight:600"></span>
+          </div>
+          <table class="vc-table">
+            <thead>
+              <tr>
+                <th class="th-jogo" colspan="2">Jogo</th>
+                <th>1</th><th>X</th><th>2</th>
+              </tr>
+            </thead>
+            <tbody id="volanteBody"></tbody>
+          </table>
         </div>
-
+        <div id="premiacaoBox" style="display:none"><div id="premiacaoContent"></div></div>
+        <div id="cartaoList" style="display:none"></div>
       </div>
+
     </div>
   </div>
 
@@ -525,50 +540,68 @@ function renderPremiacao(c) {
   }
 }
 
-// ─── RENDER CARTÕES ────────────────────────────────────────────────────────
+// ─── CARTÕES (chips horizontais + volante estilo Caixa) ─────────────────────
 let cartaoSelecionado = null;
 let jogosGlobal = [];
 let timesMapGlobal = {};
 
-function renderCartoes() {
-  const list = document.getElementById('cartaoList');
-  list.innerHTML = CARTOES.map(c => `
-    <div class="cartao-item${c.destaque?' destaque':''}" id="cartao-${c.id}" onclick="selecionarCartao('${c.id}')">
-      <div class="cartao-header">
-        <span class="cartao-nome">${c.nome} <span style="font-family:var(--mono);font-size:9px;color:var(--ink-faint)">${c.config}</span></span>
-        <span class="cartao-preco">R$${c.preco}</span>
-      </div>
-      <div class="cartao-info">
-        <div class="cartao-stat"><strong>${c.chance}</strong>acertar 14</div>
-        <div class="cartao-stat"><strong>${c.bonus}</strong>bônus 13pts</div>
-        ${c.badge ? `<span class="cartao-badge ${c.badge}">${c.badge==='star'?'★ Melhor':'◆ Pareto'}</span>` : ''}
-      </div>
-      <div class="volante-wrap" id="vol-${c.id}">
-        <div class="volante-title">Volante sugerido</div>
-        <div class="volante-grid" id="volgrid-${c.id}"></div>
-      </div>
-    </div>`).join('');
+function renderChips() {
+  const cont = document.getElementById('chipsContainer');
+  cont.innerHTML = CARTOES.map(c => {
+    const m = c.config.match(/(\d+)d\+(\d+)t/);
+    const nd = m ? +m[1] : 0, nt = m ? +m[2] : 0;
+    const cfg = [];
+    if (nd) cfg.push(nd + (nd>1?' duplos':' duplo'));
+    if (nt) cfg.push(nt + (nt>1?' triplos':' triplo'));
+    if (!nd && !nt) cfg.push('todos simples');
+    return `<div class="chip${c.destaque?' destaque':''}" id="chip-${c.id}" onclick="selecionarChip('${c.id}')">
+      <span class="chip-nome">${c.nome}</span>
+      <span class="chip-config">${cfg.join(' · ')}</span>
+      <span class="chip-preco">R$${c.preco}</span>
+    </div>`;
+  }).join('');
 }
+function renderCartoes() { renderChips(); }
 
-function selecionarCartao(id) {
+function selecionarChip(id) {
   if (cartaoSelecionado === id) {
-    // fechar / desselecionar
-    document.getElementById('cartao-'+id).classList.remove('selected');
-    document.getElementById('vol-'+id).classList.remove('open');
+    document.getElementById('chip-'+id).classList.remove('active');
     cartaoSelecionado = null;
+    // volante sempre visível na sidebar
     atualizarJogosComCartao(null);
     return;
   }
-  if (cartaoSelecionado) {
-    document.getElementById('cartao-'+cartaoSelecionado).classList.remove('selected');
-    document.getElementById('vol-'+cartaoSelecionado).classList.remove('open');
-  }
+  if (cartaoSelecionado) document.getElementById('chip-'+cartaoSelecionado).classList.remove('active');
   cartaoSelecionado = id;
-  document.getElementById('cartao-'+id).classList.add('selected');
-  const volWrap = document.getElementById('vol-'+id);
-  volWrap.classList.add('open');
-  gerarVolante(id);
+  document.getElementById('chip-'+id).classList.add('active');
+  renderVolanteCaixa(id);
   atualizarJogosComCartao(id);
+}
+function selecionarCartao(id) { selecionarChip(id); }
+
+function renderVolanteCaixa(cartaoId) {
+  if (jogosGlobal.length === 0) return;
+  const c = CARTOES.find(x => x.id === cartaoId);
+  if (!c) return;
+  const calc = calcularMarcacoes(cartaoId);
+  if (!calc) return;
+
+  document.getElementById('volanteNome').textContent = c.nome;
+  document.getElementById('volanteConfig').textContent = c.config;
+  document.getElementById('volantePreco').textContent = 'R$' + c.preco;
+
+  const cols = ['coluna1','empate','coluna2'];
+  document.getElementById('volanteBody').innerHTML = jogosGlobal.map(j => {
+    const marc = calc.marcacoes[j.ordem] || [];
+    const nc = (timesMapGlobal[j.time_casa_id]  || '');
+    const nv = (timesMapGlobal[j.time_visit_id] || '');
+    const times = nc && nv ? cap(nc)+' x '+cap(nv) : (j.resumo || 'Jogo '+j.ordem);
+    return `<tr>
+      <td class="vc-jogo-num">${j.ordem}</td>
+      <td class="vc-jogo-times">${times}</td>
+      ${cols.map(col => `<td class="vc-cel"><span class="vc-circulo${marc.includes(col)?' on':''}"></span></td>`).join('')}
+    </tr>`;
+  }).join('');
 }
 
 // Re-renderiza os cards dos jogos refletindo o cartão selecionado
@@ -627,22 +660,7 @@ function calcularMarcacoes(cartaoId) {
 }
 
 function gerarVolante(cartaoId) {
-  const calc = calcularMarcacoes(cartaoId);
-  if (!calc) return;
-
-  const grid = document.getElementById('volgrid-'+cartaoId);
-  const cols = ['coluna1','empate','coluna2'];
-  const labels = ['1','X','2'];
-
-  grid.innerHTML = jogosGlobal.map(j => {
-    const marc = calc.marcacoes[j.ordem] || [];
-    return `<div class="vol-jogo">
-      <div class="vol-jogo-num">${j.ordem}</div>
-      <div class="vol-cols">
-        ${cols.map((c,i) => `<div class="vol-cell${marc.includes(c)?' marcado':''}">${labels[i]}</div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
+  renderVolanteCaixa(cartaoId);
 }
 
 // ─── FATORES & FORMA ───────────────────────────────────────────────────────
@@ -890,6 +908,8 @@ function setStatus(cls, txt) {
     renderPremiacao(concurso);
     renderCartoes();
     renderVisaoGeral(jogos);
+    // Selecionar cartão Econômico por padrão
+    setTimeout(() => selecionarChip('ec'), 50);
 
     const grid = document.getElementById('jogosGrid');
     grid.innerHTML = jogos.length === 0
