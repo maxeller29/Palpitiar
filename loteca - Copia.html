@@ -96,7 +96,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 /* LAYOUT 2 COLUNAS: jogos + volante sticky */
 .main-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
 .col-sidebar{position:sticky;top:16px;}
-@media(max-width:860px){.main-layout{grid-template-columns:1fr;display:flex;flex-direction:column;}.col-sidebar{position:static;order:1;}.col-jogos{order:2;}}
+@media(max-width:860px){.main-layout{grid-template-columns:1fr;}.col-sidebar{position:static;}}
 
 /* SECTION LABEL */
 .section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);}
