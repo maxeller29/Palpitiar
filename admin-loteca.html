@@ -145,6 +145,17 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 .score-bar-bg{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease,background 0.5s;}
 
+/* TOOLTIP CUSTOMIZADO */
+.tt-wrap{position:relative;display:inline-flex;align-items:center;gap:4px;}
+.tt-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--amber-border);background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:8px;font-weight:700;cursor:default;flex-shrink:0;transition:background 0.15s;}
+.tt-icon:hover{background:rgba(232,150,58,0.28);}
+.tt-box{position:absolute;left:24px;top:50%;transform:translateY(-50%);z-index:50;width:240px;background:#0d2318;border:1px solid var(--amber-border);border-radius:4px;padding:10px 12px;pointer-events:none;opacity:0;transition:opacity 0.18s;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.tt-box::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-right:5px solid var(--amber-border);}
+.tt-box.show{opacity:1;}
+.tt-box-title{font-family:var(--mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:5px;}
+.tt-box-text{font-family:var(--mono);font-size:9px;color:var(--ink-dim);line-height:1.6;}
+.tt-box-peso{font-family:var(--mono);font-size:8px;color:var(--ink-faint);margin-top:5px;padding-top:5px;border-top:1px solid var(--line);}
+
 /* FATOR EXPANDIDO */
 .fat-table tr:hover td{background:rgba(255,255,255,0.02);}
 .fat-input::-webkit-inner-spin-button{opacity:0.5;}
@@ -444,6 +455,16 @@ function toggleFatores(idx) {
   btn.textContent = (open ? '▾' : '▸') + ' Fatores & forma';
 }
 
+function mostrarTooltip(id) {
+  document.querySelectorAll('.tt-box').forEach(b => b.classList.remove('show'));
+  const box = document.getElementById('tt-' + id);
+  if (box) box.classList.add('show');
+}
+function fecharTooltip(id) {
+  const box = document.getElementById('tt-' + id);
+  if (box) box.classList.remove('show');
+}
+
 // ─── SCORE COLOR ───────────────────────────────────────────────────────────
 function scoreColor(s) {
   if (s === null || s === undefined || s === '') return 'var(--ink-faint)';
@@ -697,10 +718,21 @@ function renderJogosAdmin() {
       const vv = fatVisit.fatores[f.k];
       const hasC = vc !== undefined && vc !== null;
       const hasV = vv !== undefined && vv !== null;
-      return `<tr title="${f.hint || ''}">
+      const ttId = `tt-${idx}-${f.k}`;
+      return `<tr>
         <td>
-          <span style="cursor:help" title="${f.hint || ''}">${f.label}</span>
-          ${f.hint ? '<span style="color:var(--ink-faint);font-size:9px;cursor:help" title="' + f.hint + '"> ⓘ</span>' : ''}
+          <div class="tt-wrap">
+            <span>${f.label}</span>
+            ${f.hint ? `
+            <span class="tt-icon"
+              onmouseenter="mostrarTooltip('${idx}-${f.k}')"
+              onmouseleave="fecharTooltip('${idx}-${f.k}')">i</span>
+            <div class="tt-box" id="tt-${idx}-${f.k}">
+              <div class="tt-box-title">${f.label}</div>
+              <div class="tt-box-text">${f.hint}</div>
+              <div class="tt-box-peso">Peso no score: ${f.peso}%</div>
+            </div>` : ''}
+          </div>
         </td>
         <td class="fat-peso">${f.peso}%</td>
         <td>
