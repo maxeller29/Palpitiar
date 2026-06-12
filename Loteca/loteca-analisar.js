@@ -32,7 +32,7 @@ const path = require('path');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://oslvqimllizsdtxwkrag.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const API_FUTEBOL_TOKEN = process.env.API_FUTEBOL_LOTECA || null;
-const FD_TOKEN = process.env.FOOTBALL_DATA_TOKEN || null;
+const FD_TOKEN = process.env.FOOTBALL_DATA_TOKEN || null; // mantido para compatibilidade
 
 const args = process.argv.slice(2);
 const NUMERO = parseInt(args.find(a => /^\d+$/.test(a)), 10);
@@ -154,92 +154,92 @@ function forcaFifa(nomeCaixa) {
   return Math.max(5, Math.min(98, Math.round(norm)));
 }
 
-// ─── Fator 2: FORMA (football-data.org — requer FOOTBALL_DATA_TOKEN) ─────────
-// Free tier: 10 req/min; competicoes incluem WC (Copa do Mundo) e BSA (Brasileirao)
+// ─── Fator 2: FORMA (api.football via RapidAPI — requer APIFOOTBALL_KEY) ────
+// Free tier: 100 req/dia; cobre todos os jogos de selecoes incluindo amistosos
+// Cadastro: https://rapidapi.com/api-sports/api/api-football
 
-const FD_DELAY = 6500; // 10 req/min
-const FD_COMPS = ['WC', 'BSA'];
-const FD_CACHE_FILE = path.join(__dirname, '.fd-cache.json');
-let fdCache = {};
-try { fdCache = JSON.parse(fs.readFileSync(FD_CACHE_FILE, 'utf8')); } catch { fdCache = {}; }
-function salvarFdCache() {
-  try { fs.writeFileSync(FD_CACHE_FILE, JSON.stringify(fdCache, null, 2)); } catch {}
+const APIFOOTBALL_KEY = process.env.APIFOOTBALL_KEY || null;
+const AF2_DELAY = 1200; // 100 req/dia = nao ha limite de req/s, mas vamos ser conservadores
+const AF2_CACHE_FILE = path.join(__dirname, '.af2-cache.json');
+let af2Cache = {};
+try { af2Cache = JSON.parse(fs.readFileSync(AF2_CACHE_FILE, 'utf8')); } catch { af2Cache = {}; }
+function salvarAf2Cache() {
+  try { fs.writeFileSync(AF2_CACHE_FILE, JSON.stringify(af2Cache, null, 2)); } catch {}
 }
 
 function normalizarNome(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 }
 
-async function fdGet(pathUrl) {
-  const url = `https://api.football-data.org/v4${pathUrl}`;
+async function af2Get(pathUrl) {
+  const url = `https://v3.football.api-sports.io${pathUrl}`;
   try {
-    return await httpGet(url, { 'X-Auth-Token': FD_TOKEN });
+    return await httpGet(url, {
+      'x-rapidapi-key': APIFOOTBALL_KEY,
+      'x-rapidapi-host': 'v3.football.api-sports.io',
+    });
   } catch (e) {
     if (String(e.message).includes('429')) {
-      console.log('      [football-data] rate limit — aguardando 65s...');
-      await sleep(65000);
-      return await httpGet(url, { 'X-Auth-Token': FD_TOKEN });
+      console.log('      [api-football] rate limit — aguardando 60s...');
+      await sleep(60000);
+      return await httpGet(url, {
+        'x-rapidapi-key': APIFOOTBALL_KEY,
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+      });
     }
     throw e;
   }
 }
 
-// Resolve o ID do time buscando nas listas de times das competicoes do free tier
-async function fdResolverTimeId(nomeEn) {
+// Resolve ID do time buscando por nome (cache local)
+async function af2ResolverTimeId(nomeEn) {
   const chave = normalizarNome(nomeEn);
-  if (fdCache.times && fdCache.times[chave]) return fdCache.times[chave];
+  if (af2Cache[chave]) return af2Cache[chave];
 
-  if (!fdCache.times) fdCache.times = {};
-
-  for (const comp of FD_COMPS) {
-    if (!fdCache['comp_' + comp]) {
-      try {
-        const data = await fdGet(`/competitions/${comp}/teams`);
-        await sleep(FD_DELAY);
-        fdCache['comp_' + comp] = (data.teams || []).map(t => ({
-          id: t.id, name: t.name, shortName: t.shortName, tla: t.tla,
-        }));
-        salvarFdCache();
-      } catch (e) {
-        console.log(`      [football-data] competicao ${comp}: ${e.message}`);
-        fdCache['comp_' + comp] = [];
-      }
-    }
-    const times = fdCache['comp_' + comp] || [];
-    const alvo = normalizarNome(nomeEn);
-    const hit = times.find(t =>
-      normalizarNome(t.name) === alvo || normalizarNome(t.shortName) === alvo ||
-      normalizarNome(t.name).includes(alvo) || alvo.includes(normalizarNome(t.shortName))
-    );
-    if (hit) {
-      fdCache.times[chave] = hit.id;
-      salvarFdCache();
-      return hit.id;
-    }
+  const data = await af2Get(`/teams?name=${encodeURIComponent(nomeEn)}&type=national`);
+  await sleep(AF2_DELAY);
+  const times = (data.response || []);
+  if (times.length === 0) {
+    // tentar sem filtro national
+    const data2 = await af2Get(`/teams?name=${encodeURIComponent(nomeEn)}`);
+    await sleep(AF2_DELAY);
+    const t = (data2.response || [])[0];
+    if (t) { af2Cache[chave] = t.team.id; salvarAf2Cache(); return t.team.id; }
+    return null;
   }
-  return null;
+  af2Cache[chave] = times[0].team.id;
+  salvarAf2Cache();
+  return times[0].team.id;
 }
 
-// Ultimos jogos finalizados (ate 5) nos ultimos 180 dias
-async function fdUltimosJogos(teamId) {
-  const hoje = new Date();
-  const de = new Date(hoje.getTime() - 180 * 86400000);
-  const fmt = d => d.toISOString().slice(0, 10);
-  const data = await fdGet(`/teams/${teamId}/matches?status=FINISHED&dateFrom=${fmt(de)}&dateTo=${fmt(hoje)}`);
-  const partidas = (data.matches || [])
-    .sort((a, b) => String(b.utcDate).localeCompare(String(a.utcDate)))
-    .slice(0, 5);
-  if (partidas.length === 0) return [];
+// Ultimos 5 jogos finalizados do time
+// Tenta: last=5 sem season; se vazio tenta season 2025 e 2024 explicitamente
+async function af2UltimosJogos(teamId) {
+  const anoAtual = new Date().getFullYear();
+  const tentativas = [
+    `/fixtures?team=${teamId}&last=10`,
+    `/fixtures?team=${teamId}&season=${anoAtual}&status=FT`,
+    `/fixtures?team=${teamId}&season=${anoAtual - 1}&status=FT`,
+  ];
 
-  return partidas.map(m => {
-    const isHome = m.homeTeam && m.homeTeam.id === teamId;
-    const ft = (m.score && m.score.fullTime) || {};
-    const gf = isHome ? ft.home : ft.away;
-    const gc = isHome ? ft.away : ft.home;
-    const adv = isHome ? (m.awayTeam || {}).name : (m.homeTeam || {}).name;
-    if (!Number.isFinite(gf) || !Number.isFinite(gc)) return null;
-    return { gf, gc, adv, r: gf > gc ? 'V' : gf === gc ? 'E' : 'D', data: String(m.utcDate).slice(0, 10) };
-  }).filter(Boolean);
+  for (const url of tentativas) {
+    const data = await af2Get(url);
+    await sleep(AF2_DELAY);
+    const todos = (data.response || [])
+      .filter(m => m.fixture.status && ['FT','AET','PEN'].includes(m.fixture.status.short))
+      .sort((a, b) => String(b.fixture.date).localeCompare(String(a.fixture.date)))
+      .slice(0, 5);
+    if (todos.length === 0) continue;
+    return todos.map(m => {
+      const isHome = m.teams.home.id === teamId;
+      const gf = isHome ? m.goals.home : m.goals.away;
+      const gc = isHome ? m.goals.away : m.goals.home;
+      const adv = isHome ? m.teams.away.name : m.teams.home.name;
+      if (!Number.isFinite(gf) || !Number.isFinite(gc)) return null;
+      return { gf, gc, adv, r: gf > gc ? 'V' : gf === gc ? 'E' : 'D', data: String(m.fixture.date).slice(0, 10) };
+    }).filter(Boolean);
+  }
+  return [];
 }
 
 // Mescla listas de jogos de varias fontes (dedup por data), mais recentes primeiro
@@ -527,20 +527,23 @@ async function analisarTime(time) {
     const nomeEn = (FIFA[nomeCaixa] && FIFA[nomeCaixa].en) || time.nome_popular || time.nome_caixa;
     const coletas = [];
 
-    // 3a. football-data.org (WC + Brasileirao no free tier)
-    if (FD_TOKEN) {
+    // 3a. api.football via RapidAPI (100 req/dia gratis, cobre amistosos)
+    if (APIFOOTBALL_KEY) {
       try {
-        const fdId = await fdResolverTimeId(nomeEn);
-        if (fdId) {
-          const jogos = await fdUltimosJogos(fdId);
-          await sleep(FD_DELAY);
+        const af2Id = await af2ResolverTimeId(nomeEn);
+        if (af2Id) {
+          const jogos = await af2UltimosJogos(af2Id);
           if (jogos.length > 0) {
             coletas.push(jogos);
-            resultado.fontes.push('football-data');
-            console.log(`      [football-data] ${resultado.nome}: ${jogos.length} jogo(s)`);
+            resultado.fontes.push('api-football');
+            console.log(`      [api-football] ${resultado.nome}: ${jogos.length} jogo(s) — ${jogos.map(j=>j.r).join('')}`);
+          } else {
+            console.log(`      [api-football] ${resultado.nome}: sem jogos recentes`);
           }
+        } else {
+          console.log(`      [api-football] ${resultado.nome}: time nao encontrado`);
         }
-      } catch (e) { console.log(`      [football-data] ${resultado.nome}: ${e.message}`); }
+      } catch (e) { console.log(`      [api-football] ${resultado.nome}: ${e.message}`); }
     }
 
     // 3b. TheSportsDB (free = 1 evento; ainda soma ao merge)
@@ -599,12 +602,14 @@ async function analisarTime(time) {
   console.log(`\n${'='.repeat(70)}`);
   console.log(`ANALISE AUTOMATICA — LOTECA CONCURSO ${NUMERO}`);
   const fontes = ['FIFA embutido'];
-  if (FD_TOKEN) fontes.push('football-data.org');
+  if (APIFOOTBALL_KEY) fontes.push('api.football (RapidAPI)');
+  else if (FD_TOKEN) fontes.push('football-data.org (legado)');
   fontes.push('TheSportsDB');
   if (API_FUTEBOL_TOKEN) fontes.push('API-Futebol');
   if (!SKIP_SOFA) fontes.push('SofaScore (fallback)');
   console.log(`Fontes: ${fontes.join(' + ')}`);
-  if (!FD_TOKEN) console.log(`DICA: defina FOOTBALL_DATA_TOKEN para ate 5 jogos/time (registro gratis em football-data.org)`);
+  if (!APIFOOTBALL_KEY) console.log(`DICA: defina APIFOOTBALL_KEY para ate 5 jogos/time incluindo amistosos`);
+  if (!APIFOOTBALL_KEY) console.log(`      Cadastro gratis: https://dashboard.api-football.com/register`);
   console.log(`Rate limits: execucao completa pode levar ${FD_TOKEN ? '~4-5 min' : '~2 min'} na primeira vez (caches aceleram as proximas)`);
   console.log('='.repeat(70));
 
