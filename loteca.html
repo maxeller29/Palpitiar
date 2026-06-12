@@ -563,26 +563,25 @@ function renderPremiacao(c) {
   }
 }
 
-// ─── RENDER CARTÕES (chips compactos + volante Caixa) ──────────────────────
+// ─── RENDER CARTÕES ────────────────────────────────────────────────────────
 let cartaoSelecionado = null;
 let jogosGlobal = [];
 let timesMapGlobal = {};
 
 function renderCartoes() {
   const list = document.getElementById('cartaoList');
-  list.innerHTML = CARTOES.map(c => {
-    const m = c.config.match(/(\d+)d\+(\d+)t/);
-    const nd = m ? +m[1] : 0, nt = m ? +m[2] : 0;
-    const partes = [];
-    if (nd) partes.push(nd + (nd>1?' duplos':' duplo'));
-    if (nt) partes.push(nt + (nt>1?' triplos':' triplo'));
-    if (!nd && !nt) partes.push('todos simples');
-    return `<div class="cartao-item${c.destaque?' destaque':''}" id="cartao-${c.id}" onclick="selecionarCartao('${c.id}')">
-      <span class="cartao-nome-chip">${c.nome}${c.badge==='star'?' <span class="cartao-badge-star">★</span>':''}</span>
-      <span class="cartao-config-chip">${partes.join(' · ')}</span>
-      <span class="cartao-preco-chip">R$${c.preco}</span>
-    </div>`;
-  }).join('');
+  list.innerHTML = CARTOES.map(c => `
+    <div class="cartao-item${c.destaque?' destaque':''}" id="cartao-${c.id}" onclick="selecionarCartao('${c.id}')">
+      <div class="cartao-header">
+        <span class="cartao-nome">${c.nome} <span style="font-family:var(--mono);font-size:9px;color:var(--ink-faint)">${c.config}</span></span>
+        <span class="cartao-preco">R$${c.preco}</span>
+      </div>
+      <div class="cartao-info">
+        <div class="cartao-stat"><strong>${c.chance}</strong>acertar 14</div>
+        <div class="cartao-stat"><strong>${c.bonus}</strong>bônus 13pts</div>
+        ${c.badge ? `<span class="cartao-badge ${c.badge}">${c.badge==='star'?'★ Melhor':'◆ Pareto'}</span>` : ''}
+      </div>
+    </div>`).join('');
 }
 
 function selecionarCartao(id) {
