@@ -32,6 +32,7 @@ const path = require('path');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://oslvqimllizsdtxwkrag.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const API_FUTEBOL_TOKEN = process.env.API_FUTEBOL_LOTECA || null;
+const FD_TOKEN = process.env.FOOTBALL_DATA_TOKEN || null;
 
 const args = process.argv.slice(2);
 const NUMERO = parseInt(args.find(a => /^\d+$/.test(a)), 10);
@@ -153,7 +154,112 @@ function forcaFifa(nomeCaixa) {
   return Math.max(5, Math.min(98, Math.round(norm)));
 }
 
-// ─── Fator 2: FORMA (TheSportsDB — fonte primária, inclui amistosos) ─────────
+// ─── Fator 2: FORMA (football-data.org — requer FOOTBALL_DATA_TOKEN) ─────────
+// Free tier: 10 req/min; competicoes incluem WC (Copa do Mundo) e BSA (Brasileirao)
+
+const FD_DELAY = 6500; // 10 req/min
+const FD_COMPS = ['WC', 'BSA'];
+const FD_CACHE_FILE = path.join(__dirname, '.fd-cache.json');
+let fdCache = {};
+try { fdCache = JSON.parse(fs.readFileSync(FD_CACHE_FILE, 'utf8')); } catch { fdCache = {}; }
+function salvarFdCache() {
+  try { fs.writeFileSync(FD_CACHE_FILE, JSON.stringify(fdCache, null, 2)); } catch {}
+}
+
+function normalizarNome(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+async function fdGet(pathUrl) {
+  const url = `https://api.football-data.org/v4${pathUrl}`;
+  try {
+    return await httpGet(url, { 'X-Auth-Token': FD_TOKEN });
+  } catch (e) {
+    if (String(e.message).includes('429')) {
+      console.log('      [football-data] rate limit — aguardando 65s...');
+      await sleep(65000);
+      return await httpGet(url, { 'X-Auth-Token': FD_TOKEN });
+    }
+    throw e;
+  }
+}
+
+// Resolve o ID do time buscando nas listas de times das competicoes do free tier
+async function fdResolverTimeId(nomeEn) {
+  const chave = normalizarNome(nomeEn);
+  if (fdCache.times && fdCache.times[chave]) return fdCache.times[chave];
+
+  if (!fdCache.times) fdCache.times = {};
+
+  for (const comp of FD_COMPS) {
+    if (!fdCache['comp_' + comp]) {
+      try {
+        const data = await fdGet(`/competitions/${comp}/teams`);
+        await sleep(FD_DELAY);
+        fdCache['comp_' + comp] = (data.teams || []).map(t => ({
+          id: t.id, name: t.name, shortName: t.shortName, tla: t.tla,
+        }));
+        salvarFdCache();
+      } catch (e) {
+        console.log(`      [football-data] competicao ${comp}: ${e.message}`);
+        fdCache['comp_' + comp] = [];
+      }
+    }
+    const times = fdCache['comp_' + comp] || [];
+    const alvo = normalizarNome(nomeEn);
+    const hit = times.find(t =>
+      normalizarNome(t.name) === alvo || normalizarNome(t.shortName) === alvo ||
+      normalizarNome(t.name).includes(alvo) || alvo.includes(normalizarNome(t.shortName))
+    );
+    if (hit) {
+      fdCache.times[chave] = hit.id;
+      salvarFdCache();
+      return hit.id;
+    }
+  }
+  return null;
+}
+
+// Ultimos jogos finalizados (ate 5) nos ultimos 180 dias
+async function fdUltimosJogos(teamId) {
+  const hoje = new Date();
+  const de = new Date(hoje.getTime() - 180 * 86400000);
+  const fmt = d => d.toISOString().slice(0, 10);
+  const data = await fdGet(`/teams/${teamId}/matches?status=FINISHED&dateFrom=${fmt(de)}&dateTo=${fmt(hoje)}`);
+  const partidas = (data.matches || [])
+    .sort((a, b) => String(b.utcDate).localeCompare(String(a.utcDate)))
+    .slice(0, 5);
+  if (partidas.length === 0) return [];
+
+  return partidas.map(m => {
+    const isHome = m.homeTeam && m.homeTeam.id === teamId;
+    const ft = (m.score && m.score.fullTime) || {};
+    const gf = isHome ? ft.home : ft.away;
+    const gc = isHome ? ft.away : ft.home;
+    const adv = isHome ? (m.awayTeam || {}).name : (m.homeTeam || {}).name;
+    if (!Number.isFinite(gf) || !Number.isFinite(gc)) return null;
+    return { gf, gc, adv, r: gf > gc ? 'V' : gf === gc ? 'E' : 'D', data: String(m.utcDate).slice(0, 10) };
+  }).filter(Boolean);
+}
+
+// Mescla listas de jogos de varias fontes (dedup por data), mais recentes primeiro
+function mesclarUltimos(listas) {
+  const vistos = new Set();
+  const out = [];
+  // ordenar tudo por data desc (itens sem data vao ao final na ordem original)
+  const todos = [].concat(...listas);
+  todos.sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')));
+  for (const u of todos) {
+    const k = u.data ? 'd' + u.data : 'x' + (u.adv || '') + u.gf + 'x' + u.gc;
+    if (vistos.has(k)) continue;
+    vistos.add(k);
+    out.push(u);
+    if (out.length === 5) break;
+  }
+  return out;
+}
+
+// ─── Fator 2b: FORMA (TheSportsDB — sem autenticacao, free = 1 evento) ───────
 // API gratuita: https://www.thesportsdb.com/api.php  (key publica '123')
 
 const TSDB_KEY = process.env.THESPORTSDB_KEY || '123';
@@ -210,7 +316,11 @@ function formaComGols(ultimos5) {
   const fRes  = pts / (v.length * 3) * 100;
   const saldo = (gp - gc) / v.length;
   const fGols = Math.max(0, Math.min(100, 50 + saldo * 12.5));
-  return Math.round(0.7 * fRes + 0.3 * fGols);
+  const bruta = 0.7 * fRes + 0.3 * fGols;
+  // Regressao a media por tamanho de amostra: com poucos jogos a forma
+  // encolhe na direcao de 50 (n=1 -> 45% do desvio; n=5 -> 100%)
+  const confianca = Math.sqrt(v.length / 5);
+  return Math.round(50 + (bruta - 50) * confianca);
 }
 
 async function tsdbFormaRecente(teamId) {
@@ -245,7 +355,7 @@ async function tsdbFormaRecente(teamId) {
     const adv = isHome ? e.strAwayTeam : e.strHomeTeam;
     const r = gf > gc ? 'V' : gf === gc ? 'E' : 'D';
     seq.push(r);
-    ultimos5.push({ gf, gc, adv, r });
+    ultimos5.push({ gf, gc, adv, r, data: e.dateEvent || null });
   }
   const forma = formaComGols(ultimos5);
   return { forma, sequencia: seq.join(''), jogos: comPlacar.length, ultimos5 };
@@ -412,50 +522,71 @@ async function analisarTime(time) {
     } catch (e) { console.log(`      [api-futebol] ${resultado.nome}: ${e.message}`); }
   }
 
-  // 3. Forma via TheSportsDB (inclui amistosos; sem autenticacao)
+  // 3. Ultimos jogos: coletar de multiplas fontes e mesclar (dedup por data)
   if (resultado.forma === null) {
+    const nomeEn = (FIFA[nomeCaixa] && FIFA[nomeCaixa].en) || time.nome_popular || time.nome_caixa;
+    const coletas = [];
+
+    // 3a. football-data.org (WC + Brasileirao no free tier)
+    if (FD_TOKEN) {
+      try {
+        const fdId = await fdResolverTimeId(nomeEn);
+        if (fdId) {
+          const jogos = await fdUltimosJogos(fdId);
+          await sleep(FD_DELAY);
+          if (jogos.length > 0) {
+            coletas.push(jogos);
+            resultado.fontes.push('football-data');
+            console.log(`      [football-data] ${resultado.nome}: ${jogos.length} jogo(s)`);
+          }
+        }
+      } catch (e) { console.log(`      [football-data] ${resultado.nome}: ${e.message}`); }
+    }
+
+    // 3b. TheSportsDB (free = 1 evento; ainda soma ao merge)
     try {
-      const nomeEn = (FIFA[nomeCaixa] && FIFA[nomeCaixa].en) || time.nome_popular || time.nome_caixa;
       const tsdbId = await tsdbBuscarTimeId(nomeEn);
       await sleep(TSDB_DELAY);
       if (tsdbId) {
         const tf = await tsdbFormaRecente(tsdbId);
         await sleep(TSDB_DELAY);
-        if (tf) {
-          resultado.forma = tf.forma;
-          resultado.formaSeq = tf.sequencia;
-          resultado.ultimos5 = tf.ultimos5;
+        if (tf && tf.ultimos5.length > 0) {
+          coletas.push(tf.ultimos5);
           resultado.fontes.push('thesportsdb');
-          console.log(`      [thesportsdb] ${resultado.nome}: ${tf.jogos} jogo(s) — ${tf.sequencia} — forma ${tf.forma}`);
         }
       }
     } catch (e) { console.log(`      [thesportsdb] ${resultado.nome}: ${e.message}`); }
-  }
 
-  // 4. Forma via SofaScore (fallback)
-  if (!SKIP_SOFA && resultado.forma === null) {
-    try {
-      let sofaId = time.sofascore_id;
-      if (!sofaId) {
-        const nomeBusca = (FIFA[nomeCaixa] && FIFA[nomeCaixa].en) || time.nome_popular || time.nome_caixa;
-        sofaId = await sofaBuscarTimeId(nomeBusca);
-        await sleep(700);
+    // 3c. SofaScore (fallback, costuma bloquear com 403)
+    if (!SKIP_SOFA && coletas.length === 0) {
+      try {
+        let sofaId = time.sofascore_id;
+        if (!sofaId) {
+          sofaId = await sofaBuscarTimeId(nomeEn);
+          await sleep(700);
+          if (sofaId) {
+            await supabase('PATCH', 'times_mapeamento', { sofascore_id: sofaId }, { id: `eq.${time.id}` });
+          }
+        }
         if (sofaId) {
-          // cachear no Supabase para próximas execuções
-          await supabase('PATCH', 'times_mapeamento', { sofascore_id: sofaId }, { id: `eq.${time.id}` });
+          const sf = await sofaFormaRecente(sofaId);
+          await sleep(700);
+          if (sf && sf.ultimos5.length > 0) {
+            coletas.push(sf.ultimos5);
+            resultado.fontes.push('sofascore');
+          }
         }
-      }
-      if (sofaId) {
-        const sf = await sofaFormaRecente(sofaId);
-        await sleep(700);
-        if (sf) {
-          resultado.forma = sf.forma;
-          resultado.formaSeq = sf.sequencia;
-          resultado.ultimos5 = sf.ultimos5;
-          resultado.fontes.push('sofascore');
-        }
-      }
-    } catch (e) { console.log(`      [sofascore] ${resultado.nome}: ${e.message}`); }
+      } catch (e) { console.log(`      [sofascore] ${resultado.nome}: ${e.message}`); }
+    }
+
+    // Merge final -> forma
+    if (coletas.length > 0) {
+      const merge = mesclarUltimos(coletas);
+      resultado.ultimos5 = merge;
+      resultado.forma = formaComGols(merge);
+      resultado.formaSeq = merge.map(u => u.r).join('');
+      console.log(`      [forma] ${resultado.nome}: ${merge.length} jogo(s) — ${resultado.formaSeq} — forma ${resultado.forma}`);
+    }
   }
 
   cacheTime[chave] = resultado;
@@ -467,8 +598,14 @@ async function analisarTime(time) {
 (async () => {
   console.log(`\n${'='.repeat(70)}`);
   console.log(`ANALISE AUTOMATICA — LOTECA CONCURSO ${NUMERO}`);
-  console.log(`Fontes: FIFA embutido + TheSportsDB${API_FUTEBOL_TOKEN ? ' + API-Futebol' : ''}${SKIP_SOFA ? '' : ' + SofaScore (fallback)'}`);
-  console.log(`Rate limit TheSportsDB: 1 req/2,2s — execucao completa leva ~2 min na primeira vez`);
+  const fontes = ['FIFA embutido'];
+  if (FD_TOKEN) fontes.push('football-data.org');
+  fontes.push('TheSportsDB');
+  if (API_FUTEBOL_TOKEN) fontes.push('API-Futebol');
+  if (!SKIP_SOFA) fontes.push('SofaScore (fallback)');
+  console.log(`Fontes: ${fontes.join(' + ')}`);
+  if (!FD_TOKEN) console.log(`DICA: defina FOOTBALL_DATA_TOKEN para ate 5 jogos/time (registro gratis em football-data.org)`);
+  console.log(`Rate limits: execucao completa pode levar ${FD_TOKEN ? '~4-5 min' : '~2 min'} na primeira vez (caches aceleram as proximas)`);
   console.log('='.repeat(70));
 
   try {

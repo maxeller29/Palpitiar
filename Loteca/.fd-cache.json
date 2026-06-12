@@ -1,0 +1,443 @@
+{
+  "times": {
+    "brazil": 764,
+    "morocco": 815,
+    "haiti": 836,
+    "scotland": 8873,
+    "germany": 759,
+    "curacao": 9460,
+    "netherlands": 8601,
+    "japan": 766,
+    "ivorycoast": 1935,
+    "ecuador": 791,
+    "sweden": 792,
+    "tunisia": 802,
+    "spain": 760,
+    "capeverde": 1930,
+    "belgium": 805,
+    "egypt": 825,
+    "saudiarabia": 801,
+    "uruguay": 758,
+    "france": 773,
+    "senegal": 804,
+    "iraq": 8062,
+    "norway": 8872,
+    "argentina": 762,
+    "algeria": 778,
+    "portugal": 765,
+    "england": 770,
+    "croatia": 799
+  },
+  "comp_WC": [
+    {
+      "id": 758,
+      "name": "Uruguay",
+      "shortName": "Uruguay",
+      "tla": "URY"
+    },
+    {
+      "id": 759,
+      "name": "Germany",
+      "shortName": "Germany",
+      "tla": "GER"
+    },
+    {
+      "id": 760,
+      "name": "Spain",
+      "shortName": "Spain",
+      "tla": "ESP"
+    },
+    {
+      "id": 761,
+      "name": "Paraguay",
+      "shortName": "Paraguay",
+      "tla": "PAR"
+    },
+    {
+      "id": 762,
+      "name": "Argentina",
+      "shortName": "Argentina",
+      "tla": "ARG"
+    },
+    {
+      "id": 763,
+      "name": "Ghana",
+      "shortName": "Ghana",
+      "tla": "GHA"
+    },
+    {
+      "id": 764,
+      "name": "Brazil",
+      "shortName": "Brazil",
+      "tla": "BRA"
+    },
+    {
+      "id": 765,
+      "name": "Portugal",
+      "shortName": "Portugal",
+      "tla": "POR"
+    },
+    {
+      "id": 766,
+      "name": "Japan",
+      "shortName": "Japan",
+      "tla": "JPN"
+    },
+    {
+      "id": 769,
+      "name": "Mexico",
+      "shortName": "Mexico",
+      "tla": "MEX"
+    },
+    {
+      "id": 770,
+      "name": "England",
+      "shortName": "England",
+      "tla": "ENG"
+    },
+    {
+      "id": 771,
+      "name": "United States",
+      "shortName": "USA",
+      "tla": "USA"
+    },
+    {
+      "id": 772,
+      "name": "South Korea",
+      "shortName": "Korea Republic",
+      "tla": "KOR"
+    },
+    {
+      "id": 773,
+      "name": "France",
+      "shortName": "France",
+      "tla": "FRA"
+    },
+    {
+      "id": 774,
+      "name": "South Africa",
+      "shortName": "South Africa",
+      "tla": "RSA"
+    },
+    {
+      "id": 778,
+      "name": "Algeria",
+      "shortName": "Algeria",
+      "tla": "ALG"
+    },
+    {
+      "id": 779,
+      "name": "Australia",
+      "shortName": "Australia",
+      "tla": "AUS"
+    },
+    {
+      "id": 783,
+      "name": "New Zealand",
+      "shortName": "New Zealand",
+      "tla": "NZL"
+    },
+    {
+      "id": 788,
+      "name": "Switzerland",
+      "shortName": "Switzerland",
+      "tla": "SUI"
+    },
+    {
+      "id": 791,
+      "name": "Ecuador",
+      "shortName": "Ecuador",
+      "tla": "ECU"
+    },
+    {
+      "id": 792,
+      "name": "Sweden",
+      "shortName": "Sweden",
+      "tla": "SWE"
+    },
+    {
+      "id": 798,
+      "name": "Czechia",
+      "shortName": "Czechia",
+      "tla": "CZE"
+    },
+    {
+      "id": 799,
+      "name": "Croatia",
+      "shortName": "Croatia",
+      "tla": "CRO"
+    },
+    {
+      "id": 801,
+      "name": "Saudi Arabia",
+      "shortName": "Saudi Arabia",
+      "tla": "KSA"
+    },
+    {
+      "id": 802,
+      "name": "Tunisia",
+      "shortName": "Tunisia",
+      "tla": "TUN"
+    },
+    {
+      "id": 803,
+      "name": "Turkey",
+      "shortName": "Turkey",
+      "tla": "TUR"
+    },
+    {
+      "id": 804,
+      "name": "Senegal",
+      "shortName": "Senegal",
+      "tla": "SEN"
+    },
+    {
+      "id": 805,
+      "name": "Belgium",
+      "shortName": "Belgium",
+      "tla": "BEL"
+    },
+    {
+      "id": 815,
+      "name": "Morocco",
+      "shortName": "Morocco",
+      "tla": "MAR"
+    },
+    {
+      "id": 816,
+      "name": "Austria",
+      "shortName": "Austria",
+      "tla": "AUT"
+    },
+    {
+      "id": 818,
+      "name": "Colombia",
+      "shortName": "Colombia",
+      "tla": "COL"
+    },
+    {
+      "id": 825,
+      "name": "Egypt",
+      "shortName": "Egypt",
+      "tla": "EGY"
+    },
+    {
+      "id": 828,
+      "name": "Canada",
+      "shortName": "Canada",
+      "tla": "CAN"
+    },
+    {
+      "id": 836,
+      "name": "Haiti",
+      "shortName": "Haiti",
+      "tla": "HAI"
+    },
+    {
+      "id": 840,
+      "name": "Iran",
+      "shortName": "Iran",
+      "tla": "IRN"
+    },
+    {
+      "id": 1060,
+      "name": "Bosnia-Herzegovina",
+      "shortName": "Bosnia-H.",
+      "tla": "BIH"
+    },
+    {
+      "id": 1836,
+      "name": "Panama",
+      "shortName": "Panama",
+      "tla": "PAN"
+    },
+    {
+      "id": 1930,
+      "name": "Cape Verde Islands",
+      "shortName": "Cape Verde",
+      "tla": "CPV"
+    },
+    {
+      "id": 1934,
+      "name": "Congo DR",
+      "shortName": "Congo DR",
+      "tla": "COD"
+    },
+    {
+      "id": 1935,
+      "name": "Ivory Coast",
+      "shortName": "Ivory Coast",
+      "tla": "CIV"
+    },
+    {
+      "id": 8030,
+      "name": "Qatar",
+      "shortName": "Qatar",
+      "tla": "QAT"
+    },
+    {
+      "id": 8049,
+      "name": "Jordan",
+      "shortName": "Jordan",
+      "tla": "JOR"
+    },
+    {
+      "id": 8062,
+      "name": "Iraq",
+      "shortName": "Iraq",
+      "tla": "IRQ"
+    },
+    {
+      "id": 8070,
+      "name": "Uzbekistan",
+      "shortName": "Uzbekistan",
+      "tla": "UZB"
+    },
+    {
+      "id": 8601,
+      "name": "Netherlands",
+      "shortName": "Netherlands",
+      "tla": "NED"
+    },
+    {
+      "id": 8872,
+      "name": "Norway",
+      "shortName": "Norway",
+      "tla": "NOR"
+    },
+    {
+      "id": 8873,
+      "name": "Scotland",
+      "shortName": "Scotland",
+      "tla": "SCO"
+    },
+    {
+      "id": 9460,
+      "name": "Curaçao",
+      "shortName": "Curaçao",
+      "tla": "CUW"
+    }
+  ],
+  "comp_BSA": [
+    {
+      "id": 1765,
+      "name": "Fluminense FC",
+      "shortName": "Fluminense",
+      "tla": "FLU"
+    },
+    {
+      "id": 1766,
+      "name": "CA Mineiro",
+      "shortName": "Mineiro",
+      "tla": "CAM"
+    },
+    {
+      "id": 1767,
+      "name": "Grêmio FBPA",
+      "shortName": "Grêmio",
+      "tla": "FBP"
+    },
+    {
+      "id": 1768,
+      "name": "CA Paranaense",
+      "shortName": "Paranaense",
+      "tla": "CAP"
+    },
+    {
+      "id": 1769,
+      "name": "SE Palmeiras",
+      "shortName": "Palmeiras",
+      "tla": "PAL"
+    },
+    {
+      "id": 1770,
+      "name": "Botafogo FR",
+      "shortName": "Botafogo",
+      "tla": "BOT"
+    },
+    {
+      "id": 1771,
+      "name": "Cruzeiro EC",
+      "shortName": "Cruzeiro",
+      "tla": "CRU"
+    },
+    {
+      "id": 1772,
+      "name": "Chapecoense AF",
+      "shortName": "Chapecoense",
+      "tla": "CHA"
+    },
+    {
+      "id": 1776,
+      "name": "São Paulo FC",
+      "shortName": "São Paulo",
+      "tla": "PAU"
+    },
+    {
+      "id": 1777,
+      "name": "EC Bahia",
+      "shortName": "Bahia",
+      "tla": "BAH"
+    },
+    {
+      "id": 1779,
+      "name": "SC Corinthians Paulista",
+      "shortName": "Corinthians",
+      "tla": "COR"
+    },
+    {
+      "id": 1780,
+      "name": "CR Vasco da Gama",
+      "shortName": "Vasco da Gama",
+      "tla": "VAS"
+    },
+    {
+      "id": 1782,
+      "name": "EC Vitória",
+      "shortName": "Vitória",
+      "tla": "VIT"
+    },
+    {
+      "id": 1783,
+      "name": "CR Flamengo",
+      "shortName": "Flamengo",
+      "tla": "FLA"
+    },
+    {
+      "id": 4241,
+      "name": "Coritiba FBC",
+      "shortName": "Coritiba",
+      "tla": "COR"
+    },
+    {
+      "id": 4286,
+      "name": "RB Bragantino",
+      "shortName": "Bragantino",
+      "tla": "RBB"
+    },
+    {
+      "id": 4287,
+      "name": "Clube do Remo",
+      "shortName": "Clube do Remo",
+      "tla": "CRE"
+    },
+    {
+      "id": 4364,
+      "name": "Mirassol FC",
+      "shortName": "Mirassol",
+      "tla": "MIR"
+    },
+    {
+      "id": 6684,
+      "name": "SC Internacional",
+      "shortName": "Internacional",
+      "tla": "SCI"
+    },
+    {
+      "id": 6685,
+      "name": "Santos FC",
+      "shortName": "Santos",
+      "tla": "SAN"
+    }
+  ]
+}
