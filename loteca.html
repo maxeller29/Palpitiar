@@ -201,7 +201,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .chip.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber);}
 .chip.destaque{border-color:rgba(212,168,75,0.35);}
 .chip-nome{font-weight:600;font-size:10px;letter-spacing:0.05em;}
-.chip-config{font-size:8px;letter-spacing:0.1em;color:var(--ink-faint);}
+.chip-config{font-size:10px;letter-spacing:0.08em;color:var(--ink-dim);}
 .chip.active .chip-config{color:rgba(232,150,58,0.7);}
 .chip-preco{font-size:11px;font-weight:600;color:var(--gold);}
 .chip.active .chip-preco{color:var(--amber);}
@@ -356,6 +356,7 @@ footer a:hover{text-decoration:underline;}
       <div class="col-sidebar">
         <div class="sidebar-box">
           <div class="sidebar-title" id="volanteNome">Volante Sugerido</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:8px;letter-spacing:0.06em">Volante sugerido: <span id="volanteCartaoNome" style="color:var(--ink-dim)">—</span></div>
           <div style="font-family:var(--mono);font-size:9px;color:var(--ink-dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
             <span id="volanteConfig"></span>
             <span id="volantePreco" style="color:var(--amber);font-weight:600"></span>
@@ -513,7 +514,7 @@ function renderConcursoBar(c) {
   if (c.acumulado) badges.innerHTML += `<span class="badge-status badge-acumulado">🔥 Acumulado</span>`;
 
   const extra = document.getElementById('concursoExtra');
-  if (c.estimativa_premio) extra.innerHTML = `Estimativa: <strong>${fmtBRL(c.estimativa_premio)}</strong>`;
+  if (c.estimativa_premio) extra.innerHTML = `<span style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint)">Estimativa 14 acertos</span><span style="font-family:var(--display);font-weight:800;font-style:italic;font-size:clamp(18px,2.8vw,34px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;text-shadow:0 0 20px rgba(232,150,58,0.3)">${fmtBRL(c.estimativa_premio)}</span>`;
   else if (c.arrecadacao) extra.innerHTML = `Arrecadação: <strong>${fmtBRL(c.arrecadacao)}</strong>`;
 }
 
@@ -586,7 +587,9 @@ function renderVolanteCaixa(cartaoId) {
   const calc = calcularMarcacoes(cartaoId);
   if (!calc) return;
 
-  document.getElementById('volanteNome').textContent = c.nome;
+  document.getElementById('volanteNome').textContent = 'Volante Sugerido';
+  const cartaoNomeEl = document.getElementById('volanteCartaoNome');
+  if (cartaoNomeEl) cartaoNomeEl.textContent = c.nome + ' · ' + c.config + ' · R$' + c.preco;
   document.getElementById('volanteConfig').textContent = c.config;
   document.getElementById('volantePreco').textContent = 'R$' + c.preco;
 
