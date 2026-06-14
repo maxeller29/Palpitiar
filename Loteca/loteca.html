@@ -96,7 +96,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 /* LAYOUT 2 COLUNAS: jogos + volante sticky */
 .main-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
 .col-sidebar{position:sticky;top:16px;}
-@media(max-width:860px){.main-layout{grid-template-columns:1fr;}.col-sidebar{position:static;}}
+@media(max-width:860px){.main-layout{grid-template-columns:1fr;display:flex;flex-direction:column;}.col-sidebar{position:static;order:1;}.col-jogos{order:2;}}
 
 /* SECTION LABEL */
 .section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);}
@@ -201,7 +201,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .chip.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber);}
 .chip.destaque{border-color:rgba(212,168,75,0.35);}
 .chip-nome{font-weight:600;font-size:10px;letter-spacing:0.05em;}
-.chip-config{font-size:8px;letter-spacing:0.1em;color:var(--ink-faint);}
+.chip-config{font-size:10px;letter-spacing:0.08em;color:var(--ink-dim);}
 .chip.active .chip-config{color:rgba(232,150,58,0.7);}
 .chip-preco{font-size:11px;font-weight:600;color:var(--gold);}
 .chip.active .chip-preco{color:var(--amber);}
@@ -249,6 +249,26 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .fator-nome{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:4px;}
 .fator-peso{font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink);}
 .fator-desc{font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-top:4px;line-height:1.5;}
+
+/* BACKTESTING */
+.bt-section{margin-top:28px;}
+.bt-table{width:100%;border-collapse:collapse;margin-top:12px;}
+.bt-table th{font-family:var(--mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faint);padding:8px 10px;border-bottom:2px solid var(--line);text-align:left;}
+.bt-table th.th-r{text-align:right;}
+.bt-table td{padding:7px 10px;border-bottom:1px solid rgba(244,235,208,0.05);font-family:var(--mono);font-size:11px;color:var(--ink-dim);}
+.bt-table tr:hover td{background:rgba(255,255,255,0.02);}
+.bt-nome{font-family:var(--display);font-weight:600;font-size:13px;color:var(--ink);}
+.bt-config{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:1px;}
+.bt-acertos{text-align:right;font-weight:600;font-size:13px;}
+.bt-bar-wrap{width:80px;display:inline-block;vertical-align:middle;margin-left:8px;}
+.bt-bar-bg{height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
+.bt-bar-fill{height:100%;border-radius:2px;}
+.bt-preco{text-align:right;color:var(--amber);font-weight:600;}
+.bt-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border-radius:2px;display:inline-block;}
+.bt-badge.ganhou{background:rgba(93,186,111,0.12);color:var(--emerald);border:1px solid rgba(93,186,111,0.25);}
+.bt-badge.quase{background:rgba(232,150,58,0.1);color:var(--amber);border:1px solid var(--amber-border);}
+.bt-badge.miss{background:rgba(244,235,208,0.04);color:var(--ink-faint);border:1px solid var(--line);}
+.bt-nota{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:10px;line-height:1.6;font-style:italic;}
 
 /* EMPTY / FOOTER */
 .empty-state{text-align:center;padding:80px 24px;font-family:var(--mono);color:var(--ink-dim);}
@@ -356,6 +376,7 @@ footer a:hover{text-decoration:underline;}
       <div class="col-sidebar">
         <div class="sidebar-box">
           <div class="sidebar-title" id="volanteNome">Volante Sugerido</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:8px;letter-spacing:0.06em">Volante sugerido: <span id="volanteCartaoNome" style="color:var(--ink-dim)">—</span></div>
           <div style="font-family:var(--mono);font-size:9px;color:var(--ink-dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
             <span id="volanteConfig"></span>
             <span id="volantePreco" style="color:var(--amber);font-weight:600"></span>
@@ -372,6 +393,40 @@ footer a:hover{text-decoration:underline;}
         </div>
         <div id="premiacaoBox" style="display:none"><div id="premiacaoContent"></div></div>
         <div id="cartaoList" style="display:none"></div>
+
+        <!-- BOLÃO -->
+        <div class="sidebar-box" id="bolaoBox" style="display:none">
+          <div class="sidebar-title">Bolão Particular</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:12px;line-height:1.6">
+            Custo por participante sem taxa da Caixa.
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <label style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap">Participantes</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="ajustarParticipantes(-1)" style="font-family:var(--mono);font-size:14px;font-weight:600;width:28px;height:28px;border-radius:2px;border:1px solid var(--line);background:rgba(255,255,255,0.03);color:var(--ink-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--amber-border)'" onmouseout="this.style.borderColor='var(--line)'">−</button>
+              <input type="number" id="bolaoParticipantes" value="2" min="1" max="999"
+                oninput="calcBolao()"
+                style="font-family:var(--mono);font-size:14px;font-weight:600;width:52px;text-align:center;padding:4px 6px;background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:2px;color:var(--ink);outline:none;">
+              <button onclick="ajustarParticipantes(1)" style="font-family:var(--mono);font-size:14px;font-weight:600;width:28px;height:28px;border-radius:2px;border:1px solid var(--line);background:rgba(255,255,255,0.03);color:var(--ink-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--amber-border)'" onmouseout="this.style.borderColor='var(--line)'">+</button>
+            </div>
+          </div>
+          <div style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:3px;padding:12px 14px;">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:6px">Por participante</div>
+            <div id="bolaoPorParticipante" style="font-family:var(--display);font-weight:800;font-style:italic;font-size:24px;color:var(--ink);letter-spacing:-0.02em">—</div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-faint);">
+              <span>Total do volante</span>
+              <span id="bolaoTotal" style="color:var(--ink-dim)">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:4px">
+              <span>Participantes</span>
+              <span id="bolaoQtd" style="color:var(--ink-dim)">—</span>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--ink-faint);margin-top:8px;line-height:1.6;font-style:italic">
+            * Bolão particular. Valores da Caixa podem incluir taxa adicional de até 35%.
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -381,7 +436,12 @@ footer a:hover{text-decoration:underline;}
   <div class="tab-panel" id="tab-visao">
     <div class="section-label" style="margin-top:8px">Distribuição de Probabilidades</div>
     <div class="stats-grid" id="statsGrid"></div>
-    <div class="section-label">Estatísticas Históricas</div>
+    <div class="section-label bt-section">Desempenho dos Cartões — Último Concurso Encerrado</div>
+    <div id="btContainer">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Carregando backtesting…</div>
+    </div>
+
+    <div class="section-label" style="margin-top:28px">Estatísticas Históricas</div>
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">Taxa de acúmulo</div><div class="stat-val" style="color:var(--crimson)">45,6%</div><div class="stat-sub">dos concursos acumulam</div></div>
       <div class="stat-card"><div class="stat-label">Rateio mediano 14pts</div><div class="stat-val" style="color:var(--amber)">R$105K</div><div class="stat-sub">sem acúmulo</div></div>
@@ -513,7 +573,7 @@ function renderConcursoBar(c) {
   if (c.acumulado) badges.innerHTML += `<span class="badge-status badge-acumulado">🔥 Acumulado</span>`;
 
   const extra = document.getElementById('concursoExtra');
-  if (c.estimativa_premio) extra.innerHTML = `Estimativa: <strong>${fmtBRL(c.estimativa_premio)}</strong>`;
+  if (c.estimativa_premio) extra.innerHTML = `<span style="font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint)">Estimativa 14 acertos</span><span style="font-family:var(--display);font-weight:800;font-style:italic;font-size:clamp(18px,2.8vw,34px);color:var(--amber);letter-spacing:-0.02em;display:block;margin-top:2px;text-shadow:0 0 20px rgba(232,150,58,0.3)">${fmtBRL(c.estimativa_premio)}</span>`;
   else if (c.arrecadacao) extra.innerHTML = `Arrecadação: <strong>${fmtBRL(c.arrecadacao)}</strong>`;
 }
 
@@ -586,7 +646,9 @@ function renderVolanteCaixa(cartaoId) {
   const calc = calcularMarcacoes(cartaoId);
   if (!calc) return;
 
-  document.getElementById('volanteNome').textContent = c.nome;
+  document.getElementById('volanteNome').textContent = 'Volante Sugerido';
+  const cartaoNomeEl = document.getElementById('volanteCartaoNome');
+  if (cartaoNomeEl) cartaoNomeEl.textContent = c.nome + ' · ' + c.config + ' · R$' + c.preco;
   document.getElementById('volanteConfig').textContent = c.config;
   document.getElementById('volantePreco').textContent = 'R$' + c.preco;
 
@@ -602,6 +664,36 @@ function renderVolanteCaixa(cartaoId) {
       ${cols.map(col => `<td class="vc-cel"><span class="vc-circulo${marc.includes(col)?' on':''}"></span></td>`).join('')}
     </tr>`;
   }).join('');
+
+  // Mostrar e atualizar bolão
+  document.getElementById('bolaoBox').style.display = '';
+  calcBolao();
+}
+
+// ─── BOLÃO ─────────────────────────────────────────────────────────────────
+function fmtBRLBolao(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function ajustarParticipantes(delta) {
+  const inp = document.getElementById('bolaoParticipantes');
+  const novo = Math.max(1, Math.min(999, (parseInt(inp.value) || 1) + delta));
+  inp.value = novo;
+  calcBolao();
+}
+
+function calcBolao() {
+  if (!cartaoSelecionado) return;
+  const c = CARTOES.find(x => x.id === cartaoSelecionado);
+  if (!c) return;
+
+  const n = Math.max(1, parseInt(document.getElementById('bolaoParticipantes').value) || 1);
+  const total = c.preco;
+  const porPart = total / n;
+
+  document.getElementById('bolaoPorParticipante').textContent = fmtBRLBolao(porPart);
+  document.getElementById('bolaoTotal').textContent = fmtBRLBolao(total);
+  document.getElementById('bolaoQtd').textContent = n + (n === 1 ? ' participante' : ' participantes');
 }
 
 // Re-renderiza os cards dos jogos refletindo o cartão selecionado
@@ -852,6 +944,124 @@ function renderVisaoGeral(jogos) {
   }
 }
 
+// ─── BACKTESTING ───────────────────────────────────────────────────────────
+// Simula quantos acertos cada cartão teria feito num concurso encerrado
+function simularCartao(cartaoId, jogosEncerrados) {
+  const c = CARTOES.find(x => x.id === cartaoId);
+  if (!c || !jogosEncerrados.length) return null;
+
+  const m = c.config.match(/(\d+)d\+(\d+)t/);
+  const nD = m ? +m[1] : 0, nT = m ? +m[2] : 0;
+  const ordemClasse = ['dificil','medio','facil'];
+  const sorted = [...jogosEncerrados].sort((a,b) =>
+    ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
+
+  const coberturas = {};
+  sorted.forEach((j, i) => {
+    if (i < nT) coberturas[j.ordem] = 'triplo';
+    else if (i < nT + nD) coberturas[j.ordem] = 'duplo';
+    else coberturas[j.ordem] = 'simples';
+  });
+
+  const marcacoes = {};
+  jogosEncerrados.forEach(j => {
+    const sug = j.resultado_sugerido || 'coluna1';
+    const cob = coberturas[j.ordem] || 'simples';
+    if (cob === 'simples') {
+      marcacoes[j.ordem] = [sug];
+    } else if (cob === 'duplo') {
+      const p1 = j.p_coluna1||34, pe = j.p_empate||33, p2 = j.p_coluna2||33;
+      const probs = [{k:'coluna1',v:p1},{k:'empate',v:pe},{k:'coluna2',v:p2}];
+      probs.sort((a,b)=>b.v-a.v);
+      marcacoes[j.ordem] = [probs[0].k, probs[1].k];
+    } else {
+      marcacoes[j.ordem] = ['coluna1','empate','coluna2'];
+    }
+  });
+
+  let acertos = 0;
+  jogosEncerrados.forEach(j => {
+    const marc = marcacoes[j.ordem] || [];
+    if (j.resultado_real && marc.includes(j.resultado_real)) acertos++;
+  });
+
+  return { cartao: c, acertos, total: jogosEncerrados.length, marcacoes, coberturas };
+}
+
+async function renderBacktesting() {
+  const cont = document.getElementById('btContainer');
+  if (!cont) return;
+  try {
+    // Buscar último concurso encerrado
+    const concursos = await sbGet('loteca_concursos', {
+      select:'*', status_analise:'eq.encerrado', order:'numero.desc', limit:1,
+    });
+    if (!concursos || concursos.length === 0) {
+      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Nenhum concurso encerrado ainda.</div>';
+      return;
+    }
+    const conc = concursos[0];
+
+    // Jogos com resultado real
+    const jogos = await sbGet('loteca_jogos_analise', {
+      select:'*', concurso_id:`eq.${conc.id}`, order:'ordem.asc',
+    });
+    const comResultado = jogos.filter(j => j.resultado_real);
+    if (!comResultado.length) {
+      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Resultados do concurso encerrado ainda não disponíveis.</div>';
+      return;
+    }
+
+    // Simular todos os 10 cartões
+    const resultados = CARTOES.map(c => simularCartao(c.id, comResultado)).filter(Boolean);
+    const maxAcertos = Math.max(...resultados.map(r => r.acertos));
+
+    const fmtBRL = v => 'R$' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    const linhas = resultados.map(r => {
+      const pct = Math.round(r.acertos / r.total * 100);
+      const barColor = pct >= 70 ? 'var(--emerald)' : pct >= 50 ? 'var(--amber)' : 'var(--crimson)';
+      let badge = '';
+      if (r.acertos >= 14) badge = '<span class="bt-badge ganhou">14 pts!</span>';
+      else if (r.acertos >= 13) badge = '<span class="bt-badge ganhou">13 pts</span>';
+      else if (r.acertos >= 10) badge = '<span class="bt-badge quase">' + r.acertos + ' pts</span>';
+      else badge = '<span class="bt-badge miss">' + r.acertos + ' pts</span>';
+      const destaque = r.acertos === maxAcertos;
+      return `<tr${destaque?' style="background:rgba(232,150,58,0.04)"':''}>
+        <td>
+          <div class="bt-nome">${r.cartao.nome}${r.cartao.badge==='star'?' ★':''}</div>
+          <div class="bt-config">${r.cartao.config}</div>
+        </td>
+        <td class="bt-acertos" style="color:${barColor}">
+          ${r.acertos}/${r.total}
+          <div class="bt-bar-wrap"><div class="bt-bar-bg"><div class="bt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div></div>
+        </td>
+        <td style="text-align:center">${badge}</td>
+        <td class="bt-preco">${fmtBRL(r.cartao.preco)}</td>
+      </tr>`;
+    }).join('');
+
+    cont.innerHTML = `
+      <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:10px">
+        Concurso <strong style="color:var(--ink)">${conc.numero}</strong> ·
+        ${comResultado.length} jogos com resultado ·
+        Simulação sobre as marcações de cada cartão vs resultado real
+      </div>
+      <table class="bt-table">
+        <thead><tr>
+          <th>Cartão</th>
+          <th class="th-r">Acertos</th>
+          <th style="text-align:center">Resultado</th>
+          <th class="th-r">Custo</th>
+        </tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+      <div class="bt-nota">* Simulação retroativa com as marcações que o modelo teria gerado. Acertos de 13+ pontos dão prêmio na Loteca.</div>`;
+  } catch(e) {
+    cont.innerHTML = `<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint)">Erro ao carregar backtesting: ${e.message}</div>`;
+  }
+}
+
 // ─── STATUS ────────────────────────────────────────────────────────────────
 function setStatus(cls, txt) {
   const el = document.getElementById('status');
@@ -909,6 +1119,7 @@ function setStatus(cls, txt) {
     renderPremiacao(concurso);
     renderCartoes();
     renderVisaoGeral(jogos);
+    renderBacktesting();
     // Selecionar cartão Econômico por padrão
     setTimeout(() => selecionarChip('ec'), 50);
 
