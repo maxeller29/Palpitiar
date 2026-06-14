@@ -1135,48 +1135,6 @@ async function renderBacktesting() {
   const cont = document.getElementById('btContainer');
   if (cont) cont.style.display = 'none';
 }
-  const c = CARTOES.find(x => x.id === cartaoId);
-  if (!c || !jogosEncerrados.length) return null;
-
-  const m = c.config.match(/(\d+)d\+(\d+)t/);
-  const nD = m ? +m[1] : 0, nT = m ? +m[2] : 0;
-  const ordemClasse = ['dificil','medio','facil'];
-  const sorted = [...jogosEncerrados].sort((a,b) =>
-    ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
-
-  const coberturas = {};
-  sorted.forEach((j, i) => {
-    if (i < nT) coberturas[j.ordem] = 'triplo';
-    else if (i < nT + nD) coberturas[j.ordem] = 'duplo';
-    else coberturas[j.ordem] = 'simples';
-  });
-
-  const marcacoes = {};
-  jogosEncerrados.forEach(j => {
-    const sug = j.resultado_sugerido || 'coluna1';
-    const cob = coberturas[j.ordem] || 'simples';
-    if (cob === 'simples') {
-      marcacoes[j.ordem] = [sug];
-    } else if (cob === 'duplo') {
-      const p1 = j.p_coluna1||34, pe = j.p_empate||33, p2 = j.p_coluna2||33;
-      const probs = [{k:'coluna1',v:p1},{k:'empate',v:pe},{k:'coluna2',v:p2}];
-      probs.sort((a,b)=>b.v-a.v);
-      marcacoes[j.ordem] = [probs[0].k, probs[1].k];
-    } else {
-      marcacoes[j.ordem] = ['coluna1','empate','coluna2'];
-    }
-  });
-
-  let acertos = 0;
-  jogosEncerrados.forEach(j => {
-    const marc = marcacoes[j.ordem] || [];
-    if (j.resultado_real && marc.includes(j.resultado_real)) acertos++;
-  });
-
-  return { cartao: c, acertos, total: jogosEncerrados.length, marcacoes, coberturas };
-}
-
-
 
 // ─── STATUS ────────────────────────────────────────────────────────────────
 function setStatus(cls, txt) {
