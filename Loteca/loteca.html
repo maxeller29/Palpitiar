@@ -466,8 +466,19 @@ footer a:hover{text-decoration:underline;}
 
   <!-- ABA: CONFERIR RESULTADOS -->
   <div class="tab-panel" id="tab-conferir">
-    <div style="margin-top:8px" id="conferirContainer">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Carregando…</div>
+    <div style="margin-top:8px">
+      <!-- SELETOR DE CONCURSO -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faint)">Concurso</div>
+        <select id="confSelect" onchange="carregarConferir()"
+          style="font-family:var(--mono);font-size:12px;padding:7px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;cursor:pointer;min-width:160px;">
+          <option value="">Carregando…</option>
+        </select>
+        <span id="confStatusBadge"></span>
+      </div>
+      <div id="conferirContainer">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Selecione um concurso acima.</div>
+      </div>
     </div>
   </div>
 
@@ -963,139 +974,196 @@ function renderVisaoGeral(jogos) {
   }
 }
 
-// ─── CONFERIR RESULTADOS + BACKTESTING ────────────────────────────────────
-// Simula acertos de um cartão usando os jogos COM resultados reais
-// IMPORTANTE: usa os jogos do próprio concurso encerrado, não do aberto
-function simularCartao(cartaoId, jogosEncerrados) {
-  const c = CARTOES.find(x => x.id === cartaoId);
-  if (!c || !jogosEncerrados.length) return null;
+// ─── CONFERIR RESULTADOS ──────────────────────────────────────────────────
+let concursosDisponiveis = [];
 
-  const m = c.config.match(/(\d+)d\+(\d+)t/);
-  const nD = m ? +m[1] : 0, nT = m ? +m[2] : 0;
-  const ordemClasse = ['dificil','medio','facil'];
-  const sorted = [...jogosEncerrados].sort((a,b) =>
-    ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
-
-  const coberturas = {};
-  sorted.forEach((j, i) => {
-    if (i < nT) coberturas[j.ordem] = 'triplo';
-    else if (i < nT + nD) coberturas[j.ordem] = 'duplo';
-    else coberturas[j.ordem] = 'simples';
-  });
-
-  const marcacoes = {};
-  jogosEncerrados.forEach(j => {
-    const sug = j.resultado_sugerido || 'coluna1';
-    const cob = coberturas[j.ordem] || 'simples';
-    if (cob === 'simples') {
-      marcacoes[j.ordem] = [sug];
-    } else if (cob === 'duplo') {
-      const p1 = j.p_coluna1||34, pe = j.p_empate||33, p2 = j.p_coluna2||33;
-      const probs = [{k:'coluna1',v:p1},{k:'empate',v:pe},{k:'coluna2',v:p2}];
-      probs.sort((a,b)=>b.v-a.v);
-      marcacoes[j.ordem] = [probs[0].k, probs[1].k];
-    } else {
-      marcacoes[j.ordem] = ['coluna1','empate','coluna2'];
-    }
-  });
-
-  let acertos = 0;
-  jogosEncerrados.forEach(j => {
-    const marc = marcacoes[j.ordem] || [];
-    if (j.resultado_real && marc.includes(j.resultado_real)) acertos++;
-  });
-  return { cartao: c, acertos, total: jogosEncerrados.length, marcacoes, coberturas };
+async function iniciarConferir(timesMapAtual) {
+  // Carregar lista de todos os concursos para o select
+  try {
+    concursosDisponiveis = await sbGet('loteca_concursos', {
+      select:'id,numero,data_sorteio,status_analise',
+      order:'numero.desc', limit:'20',
+    });
+    const sel = document.getElementById('confSelect');
+    if (!sel) return;
+    sel.innerHTML = concursosDisponiveis.map(c => {
+      const label = `Concurso ${c.numero} · ${fmtDate(c.data_sorteio)}`;
+      return `<option value="${c.id}">${label}</option>`;
+    }).join('');
+    // Selecionar automaticamente: primeiro encerrado, ou o mais recente
+    const encerrado = concursosDisponiveis.find(c => c.status_analise === 'encerrado');
+    if (encerrado) sel.value = encerrado.id;
+    carregarConferir();
+  } catch(e) {
+    document.getElementById('conferirContainer').innerHTML =
+      `<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint)">Erro: ${e.message}</div>`;
+  }
 }
 
-// Renderiza a aba "Conferir Resultados" com jogos + backtesting
-async function renderConferir(timesMap) {
-  const cont = document.getElementById('conferirContainer');
-  if (!cont) return;
+// timesMapConferir: cache de times carregados para a aba conferir
+let timesMapConferir = {};
+let concursosConferir = [];
+
+async function renderConferir(timesMapInicial) {
+  timesMapConferir = Object.assign({}, timesMapInicial);
+
+  // Buscar todos os concursos (abertos e encerrados) para o seletor
   try {
-    // Buscar último concurso encerrado
-    const encerrados = await sbGet('loteca_concursos', {
-      select:'*', status_analise:'eq.encerrado', order:'numero.desc', limit:1,
+    concursosConferir = await sbGet('loteca_concursos', {
+      select:'id,numero,data_sorteio,status_analise',
+      order:'numero.desc', limit:'20',
     });
-    if (!encerrados || encerrados.length === 0) {
-      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Nenhum concurso encerrado ainda. Os resultados aparecerão após o sorteio.</div>';
+  } catch(e) { concursosConferir = []; }
+
+  const sel = document.getElementById('confSelect');
+  if (!sel) return;
+
+  if (!concursosConferir.length) {
+    sel.innerHTML = '<option value="">Nenhum concurso disponível</option>';
+    return;
+  }
+
+  sel.innerHTML = concursosConferir.map(c => {
+    const data = c.data_sorteio ? c.data_sorteio.split('-').reverse().join('/') : '';
+    return `<option value="${c.id}">Concurso ${c.numero} · ${data}</option>`;
+  }).join('');
+
+  // Pré-selecionar o mais recente com algum resultado, ou o primeiro
+  const comResultado = concursosConferir.find(c => c.status_analise === 'encerrado');
+  const inicial = comResultado || concursosConferir[0];
+  if (inicial) sel.value = inicial.id;
+
+  await carregarConferir();
+}
+
+async function carregarConferir() {
+  const sel = document.getElementById('confSelect');
+  const cont = document.getElementById('conferirContainer');
+  const badge = document.getElementById('confStatusBadge');
+  if (!sel || !cont) return;
+
+  const concId = sel.value;
+  if (!concId) return;
+
+  const conc = concursosConferir.find(c => c.id === concId);
+  if (!conc) return;
+
+  cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Carregando…</div>';
+
+  // Badge de status
+  const stLabels = { encerrado:'ENCERRADO', final:'FINAL', preliminar:'PRELIMINAR',
+    rascunho:'RASCUNHO', coletando:'COLETANDO', aguardando:'AGUARDANDO' };
+  const stColors = { encerrado:'var(--emerald)', final:'var(--emerald)', preliminar:'var(--amber)',
+    rascunho:'var(--ink-faint)', coletando:'var(--sky)', aguardando:'var(--ink-faint)' };
+  if (badge) badge.innerHTML = `<span style="font-family:var(--mono);font-size:8px;letter-spacing:0.18em;padding:3px 8px;border-radius:2px;border:1px solid;color:${stColors[conc.status_analise]||'var(--ink-faint)'};border-color:currentColor;background:rgba(0,0,0,0.2)">${stLabels[conc.status_analise]||conc.status_analise}</span>`;
+
+  try {
+    // Buscar jogos do concurso selecionado
+    const jogos = await sbGet('loteca_jogos_analise', {
+      select:'*', concurso_id:`eq.${concId}`, order:'ordem.asc',
+    });
+
+    if (!jogos.length) {
+      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">Nenhum jogo encontrado para este concurso.</div>';
       return;
     }
-    const conc = encerrados[0];
 
-    // Jogos do concurso encerrado (com resultado_real)
-    const jogos = await sbGet('loteca_jogos_analise', {
-      select:'*', concurso_id:`eq.${conc.id}`, order:'ordem.asc',
-    });
-
-    // Times deste concurso
+    // Carregar times que ainda não temos no cache
     const tIds = [...new Set(jogos.flatMap(j=>[j.time_casa_id,j.time_visit_id]).filter(Boolean))];
-    let tMap = Object.assign({}, timesMap);
-    if (tIds.some(id => !tMap[id])) {
+    const faltam = tIds.filter(id => !timesMapConferir[id]);
+    if (faltam.length) {
       const extra = await sbGet('times_mapeamento', {
-        select:'id,nome_popular,nome_caixa', id:`in.(${tIds.join(',')})`,
+        select:'id,nome_popular,nome_caixa', id:`in.(${faltam.join(',')})`,
       });
-      extra.forEach(t => { tMap[t.id] = t.nome_popular || t.nome_caixa; });
+      extra.forEach(t => { timesMapConferir[t.id] = t.nome_popular || t.nome_caixa; });
     }
+
+    const comResult  = jogos.filter(j => j.resultado_real);
+    const semResult  = jogos.filter(j => !j.resultado_real);
+    const isCompleto = semResult.length === 0 && comResult.length > 0;
+    const isParcial  = comResult.length > 0 && semResult.length > 0;
+    const semNenhum  = comResult.length === 0;
 
     const resLabel = r => r === 'coluna1' ? 'COL. 1' : r === 'coluna2' ? 'COL. 2' : 'EMPATE';
     const resCls   = r => r === 'coluna1' ? 'c1' : r === 'coluna2' ? 'c2' : 'emp';
+    const dataBR   = conc.data_sorteio ? conc.data_sorteio.split('-').reverse().join('/') : '—';
+    const fmtBRL   = v => 'R$' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-    // Tabela de jogos
+    // ─ Aviso de status ─
+    let avisoHtml = '';
+    if (semNenhum) {
+      avisoHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(232,150,58,0.08);border:1px solid var(--amber-border);border-radius:3px;padding:10px 14px;margin-bottom:16px">
+        ⏳ Os resultados deste concurso ainda não foram publicados. Retorne após o sorteio (${dataBR}).
+      </div>`;
+    } else if (isParcial) {
+      avisoHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(232,150,58,0.08);border:1px solid var(--amber-border);border-radius:3px;padding:10px 14px;margin-bottom:16px">
+        ⚡ Resultado parcial — ${comResult.length} de ${jogos.length} jogos finalizados. Os acertos dos cartões são uma parcial e podem mudar.
+      </div>`;
+    }
+
+    // ─ Tabela de jogos ─
     const linhasJogos = jogos.map(j => {
-      const nc = cap(tMap[j.time_casa_id]  || '');
-      const nv = cap(tMap[j.time_visit_id] || '');
-      let dados = {};
-      try { dados = JSON.parse(j.justificativa||'{}'); } catch {}
-      const temPlacar = j.resultado_real && dados.golUm !== undefined && dados.golUm !== null;
-      const placar = temPlacar ? `${dados.golUm} × ${dados.golDois}` : '— × —';
-      const resHtml = j.resultado_real
-        ? `<span class="conf-res ${resCls(j.resultado_real)}">${resLabel(j.resultado_real)}</span>`
-        : `<span class="conf-res pend">Resultado pendente</span>`;
+      const nc = cap(timesMapConferir[j.time_casa_id]  || 'Time A');
+      const nv = cap(timesMapConferir[j.time_visit_id] || 'Time B');
+      let resHtml, placarHtml;
+      if (j.resultado_real) {
+        resHtml = `<span class="conf-res ${resCls(j.resultado_real)}">${resLabel(j.resultado_real)}</span>`;
+        // placar: tentar pegar de score_casa/visit como proxy (real = resultado_real)
+        placarHtml = `<span class="conf-placar">—</span>`;
+      } else {
+        resHtml = `<span class="conf-res pend">Aguardando resultado final</span>`;
+        placarHtml = `<span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint)">–</span>`;
+      }
+      // Sugestão do modelo
+      const sugLabel = j.resultado_sugerido === 'coluna1' ? 'C1' : j.resultado_sugerido === 'coluna2' ? 'C2' : j.resultado_sugerido === 'empate' ? 'X' : '—';
+      const acertou = j.resultado_real && j.resultado_real === j.resultado_sugerido;
+      const acertoIcon = j.resultado_real ? (acertou ? '<span style="color:var(--emerald)">✓</span>' : '<span style="color:var(--crimson)">✗</span>') : '';
       return `<tr>
-        <td style="width:28px;color:var(--ink-faint);font-size:9px">${j.ordem}</td>
+        <td style="width:22px;color:var(--ink-faint);font-size:9px">${j.ordem}</td>
         <td><span class="conf-jogo-nome">${nc} × ${nv}</span></td>
-        <td style="text-align:center"><span class="conf-placar">${placar}</span></td>
         <td style="text-align:center">${resHtml}</td>
+        <td style="text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-dim)">${sugLabel} ${acertoIcon}</td>
       </tr>`;
     }).join('');
 
-    // Backtesting — apenas jogos com resultado
-    const comResult = jogos.filter(j => j.resultado_real);
-    const fmtBRL = v => 'R$' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-
+    // ─ Backtesting dos cartões ─
     let btHtml = '';
     if (comResult.length > 0) {
-      const resultados = CARTOES.map(c => simularCartao(c.id, comResult)).filter(Boolean);
+      const resultados = CARTOES.map(c => simularCartao(c.id, jogos)).filter(Boolean);
       const maxAcertos = Math.max(...resultados.map(r => r.acertos));
 
       const linhasBt = resultados.map(r => {
-        const pct = Math.round(r.acertos / r.total * 100);
+        const pct = Math.round(r.acertos / comResult.length * 100);
         const barColor = pct >= 70 ? 'var(--emerald)' : pct >= 50 ? 'var(--amber)' : 'var(--crimson)';
-        let badge = '';
-        if (r.acertos >= 14) badge = '<span class="bt-badge ganhou">14 pts ★</span>';
-        else if (r.acertos >= 13) badge = '<span class="bt-badge ganhou">13 pts</span>';
-        else if (r.acertos >= 10) badge = `<span class="bt-badge quase">${r.acertos} pts</span>`;
-        else badge = `<span class="bt-badge miss">${r.acertos} pts</span>`;
+        let badge2 = '';
+        if (r.acertos >= 14) badge2 = '<span class="bt-badge ganhou">14 pts ★</span>';
+        else if (r.acertos >= 13) badge2 = '<span class="bt-badge ganhou">13 pts</span>';
+        else if (r.acertos >= 10) badge2 = `<span class="bt-badge quase">${r.acertos} pts</span>`;
+        else badge2 = `<span class="bt-badge miss">${r.acertos} pts</span>`;
         const dest = r.acertos === maxAcertos;
-        return `<tr${dest?' style="background:rgba(232,150,58,0.05)"':''}>
+        const parcialLabel = isParcial ? `<span style="font-size:8px;color:var(--ink-faint)"> (${comResult.length} jogos)</span>` : '';
+        return `<tr${dest ? ' style="background:rgba(232,150,58,0.05)"' : ''}>
           <td>
             <div class="bt-nome">${r.cartao.nome}${r.cartao.badge==='star'?' ★':''}</div>
             <div class="bt-config">${r.cartao.config}</div>
           </td>
           <td class="bt-acertos" style="color:${barColor}">
-            ${r.acertos}/${r.total}
+            ${r.acertos}/${comResult.length}${parcialLabel}
             <div class="bt-bar-wrap"><div class="bt-bar-bg"><div class="bt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div></div>
           </td>
-          <td style="text-align:center">${badge}</td>
+          <td style="text-align:center">${badge2}</td>
           <td class="bt-preco">${fmtBRL(r.cartao.preco)}</td>
         </tr>`;
       }).join('');
 
+      const labelBt = isCompleto ? 'Desempenho dos Cartões — Resultado Final'
+        : `Parcial dos Cartões — ${comResult.length}/${jogos.length} jogos`;
+      const notaBt = isCompleto
+        ? '* Simulação sobre as marcações que o modelo gerou vs resultado real. 13+ pontos dão prêmio.'
+        : '* Parcial — acertos podem mudar conforme os jogos restantes são finalizados.';
+
       btHtml = `
-        <div class="bt-section-label">Desempenho dos Cartões</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:10px">
-          Simulação retroativa: marcações de cada cartão vs resultado real dos ${comResult.length} jogos finalizados
-        </div>
+        <div class="bt-section-label">${labelBt}</div>
         <table class="bt-table">
           <thead><tr>
             <th>Cartão</th><th class="th-r">Acertos</th>
@@ -1103,35 +1171,30 @@ async function renderConferir(timesMap) {
           </tr></thead>
           <tbody>${linhasBt}</tbody>
         </table>
-        <div class="bt-nota">* Acertos de 13+ pontos dão prêmio na Loteca. A simulação usa as marcações que o modelo teria gerado para este concurso.</div>`;
+        <div class="bt-nota">${notaBt}</div>`;
     } else {
-      btHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:20px;font-style:italic">Os resultados dos cartões aparecerão após o sorteio.</div>`;
+      btHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:16px;font-style:italic">Os acertos dos cartões serão exibidos após os primeiros resultados.</div>`;
     }
 
-    const dataBR = conc.data_sorteio ? conc.data_sorteio.split('-').reverse().join('/') : '—';
     cont.innerHTML = `
-      <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-bottom:14px">
-        Concurso <strong style="color:var(--amber)">${conc.numero}</strong> · Sorteio: <strong style="color:var(--ink)">${dataBR}</strong>
-      </div>
+      ${avisoHtml}
       <div class="bt-section-label" style="margin-top:0">Resultados por Jogo</div>
       <table class="conf-table">
         <thead><tr>
-          <th style="width:28px">#</th>
+          <th style="width:22px">#</th>
           <th>Confronto</th>
-          <th style="text-align:center">Placar</th>
           <th style="text-align:center">Resultado</th>
+          <th style="text-align:center">Sugestão</th>
         </tr></thead>
         <tbody>${linhasJogos}</tbody>
       </table>
       ${btHtml}`;
+
   } catch(e) {
     cont.innerHTML = `<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint)">Erro: ${e.message}</div>`;
   }
 }
-
-// Mantida para compatibilidade — backtesting agora está na aba Conferir
 async function renderBacktesting() {
-  // removido da aba Visão Geral (movido para Conferir Resultados)
   const cont = document.getElementById('btContainer');
   if (cont) cont.style.display = 'none';
 }
