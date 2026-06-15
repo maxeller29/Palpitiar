@@ -1316,11 +1316,11 @@ function setStatus(cls, txt) {
 
     // Priorizar concurso aberto
     let concursos = await sbGet('loteca_concursos', {
-      select:'*', status_analise:'in.(aguardando,coletando,rascunho,preliminar)',
+      select:'*', status_analise:'in.(preliminar,publicado)',
       order:'numero.desc', limit:1,
     });
     if (!concursos || concursos.length === 0) {
-      concursos = await sbGet('loteca_concursos', { select:'*', order:'numero.desc', limit:1 });
+      concursos = await sbGet('loteca_concursos', { select:'*', status_analise:'in.(preliminar,publicado)', order:'numero.desc', limit:1 });
     }
     if (!concursos || concursos.length === 0) {
       document.getElementById('bootState').style.display = 'none';
