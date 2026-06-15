@@ -536,31 +536,36 @@ async function calcularTudoComPopup() {
   pcStep(5); document.getElementById('pcCur').textContent = 'Definindo sugestão e cobertura por jogo…'; await wait(200);
 
   jogos.forEach((j,idx)=>{
-    const{sc,sv}=scores[idx];
-    if(isNaN(sc)||isNaN(sv))return;
-    const probs=probsArr[idx];if(!probs)return;
-    const isC=document.getElementById('classico-'+idx).checked;
-    const isE=document.getElementById('elim-'+idx).checked;
-    const classe=classificar(probs,isC,isE),sug=sugerir(probs),cob=coberturaPorClasse(classe);
-    j.score_casa=sc;j.score_visit=sv;j.is_classico=isC;j.is_eliminatorio=isE;
-    j.p_coluna1=probs.p1;j.p_empate=probs.px;j.p_coluna2=probs.p2;
-    j.lambda_casa=probs.lambdaCasa;j.lambda_visit=probs.lambdaVisit;
-    j.classificacao=classe;j.resultado_sugerido=sug;j.cobertura=cob;
-    document.getElementById('sug-'+idx).value=sug;
-    document.getElementById('cob-'+idx).value=cob;
-    const badge=document.getElementById('classBadge-'+idx);
-    badge.className='ja-class-badge '+classe;badge.textContent=classe;
-    document.getElementById('probs-'+idx).innerHTML=`
-      <div class="ja-probs">
-        <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
-        <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
-        <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
-        <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
-      </div>`;
-    calculados++;
+    try {
+      const{sc,sv}=scores[idx];
+      if(isNaN(sc)||isNaN(sv))return;
+      const probs=probsArr[idx];if(!probs)return;
+      const elC=document.getElementById('classico-'+idx);
+      const elE=document.getElementById('elim-'+idx);
+      const isC=elC?elC.checked:false;
+      const isE=elE?elE.checked:false;
+      const classe=classificar(probs,isC,isE),sug=sugerir(probs),cob=coberturaPorClasse(classe);
+      j.score_casa=sc;j.score_visit=sv;j.is_classico=isC;j.is_eliminatorio=isE;
+      j.p_coluna1=probs.p1;j.p_empate=probs.px;j.p_coluna2=probs.p2;
+      j.lambda_casa=probs.lambdaCasa;j.lambda_visit=probs.lambdaVisit;
+      j.classificacao=classe;j.resultado_sugerido=sug;j.cobertura=cob;
+      const elSug=document.getElementById('sug-'+idx);if(elSug)elSug.value=sug;
+      const elCob=document.getElementById('cob-'+idx);if(elCob)elCob.value=cob;
+      const badge=document.getElementById('classBadge-'+idx);
+      if(badge){badge.className='ja-class-badge '+classe;badge.textContent=classe;}
+      const elProbs=document.getElementById('probs-'+idx);
+      if(elProbs)elProbs.innerHTML=`
+        <div class="ja-probs">
+          <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
+          <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
+          <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
+          <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+        </div>`;
+      calculados++;
+    } catch(e) { console.error('calcularAnalise jogo '+idx+':', e); }
   });
 
-  atualizarCobResumo();
+  try { atualizarCobResumo(); } catch(e) { console.error('atualizarCobResumo:', e); }
   document.getElementById('pcProg').style.width='100%';
   document.getElementById('pcSub').textContent = calculados>0 ? `✓ ${calculados} jogo(s) calculado(s)` : '⚠ Preencha os scores ou fatores primeiro';
   document.getElementById('pcCur').textContent = calculados>0 ? 'Revise os resultados e clique em Salvar tudo.' : '';
