@@ -262,6 +262,8 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .conf-res.emp{background:rgba(157,205,227,0.1);color:var(--sky);border:1px solid rgba(157,205,227,0.25);}
 .conf-res.c2{background:rgba(196,69,45,0.12);color:#e07060;border:1px solid rgba(196,69,45,0.3);}
 .conf-res.pend{background:rgba(244,235,208,0.04);color:var(--ink-faint);border:1px solid var(--line);font-style:italic;}
+.conf-res.live{background:rgba(196,69,45,0.15);color:#ff7060;border:1px solid rgba(196,69,45,0.4);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 
 /* BACKTESTING na aba conferir */
 .bt-section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--amber);margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
@@ -1004,25 +1006,150 @@ async function iniciarConferir(timesMapAtual) {
 let timesMapConferir = {};
 let concursosConferir = [];
 
-// Busca resultado da Caixa via proxy CORS (allorigins.win)
-async function buscarResultadoCaixa(numero) {
-  const url = `https://servicebus2.caixa.gov.br/portaldeloterias/api/loteca/${numero}`;
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  try {
-    const r = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return null;
-    const wrapper = await r.json();
-    const dados = JSON.parse(wrapper.contents);
-    return dados;
-  } catch(e) { return null; }
-}
-
-// Converte resultado de gols para coluna1/empate/coluna2
+// Converte gols para coluna1/empate/coluna2
 function calcResultadoCaixa(g1, g2) {
   if (g1 === null || g1 === undefined) return null;
   if (g1 > g2) return 'coluna1';
   if (g1 === g2) return 'empate';
   return 'coluna2';
+}
+
+// Normaliza nome para matching entre APIs
+function normNome(s) {
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]/g,'');
+}
+
+// Tenta casar nome do time com jogo da API (fuzzy)
+function casarTime(nomeDb, apiNome) {
+  const a = normNome(nomeDb), b = normNome(apiNome);
+  return a===b || a.includes(b) || b.includes(a) ||
+    a.slice(0,4)===b.slice(0,4);
+}
+
+// 1. ESPN API (CORS aberto, sem chave)
+async function buscarESPN(dataISO) {
+  try {
+    // Tenta scoreboard da data específica
+    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dataISO.replace(/-/g,'')}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (d.events || []).map(e => {
+      const c = e.competitions?.[0];
+      const comp = c?.competitors || [];
+      const home = comp.find(t => t.homeAway === 'home');
+      const away = comp.find(t => t.homeAway === 'away');
+      const status = c?.status?.type?.completed ? 'FT'
+        : c?.status?.type?.id === '2' ? 'LIVE' : 'NS';
+      return {
+        homeTeam: home?.team?.displayName || '',
+        awayTeam: away?.team?.displayName || '',
+        homeScore: status !== 'NS' ? parseInt(home?.score) : null,
+        awayScore: status !== 'NS' ? parseInt(away?.score) : null,
+        status,
+        fonte: 'espn',
+      };
+    }).filter(j => j.homeTeam);
+  } catch(e) { return []; }
+}
+
+// 2. API-Sports (chave do usuário, CORS ok via header)
+async function buscarAPISports(dataISO) {
+  try {
+    const key = 'fb7adb6b119535409dbfa87eb73134f0';
+    const url = `https://v3.football.api-sports.io/fixtures?league=1&season=2026&from=${dataISO}&to=${dataISO}`;
+    const r = await fetch(url, {
+      headers: { 'x-apisports-key': key },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (d.response || []).map(m => ({
+      homeTeam: m.teams.home.name,
+      awayTeam: m.teams.away.name,
+      homeScore: m.goals.home,
+      awayScore: m.goals.away,
+      status: m.fixture.status.short, // FT, NS, 1H, 2H, HT...
+      fonte: 'api-sports',
+    }));
+  } catch(e) { return []; }
+}
+
+// 3. API da Caixa (só disponível após todos os jogos terminarem)
+async function buscarCaixa(numero) {
+  try {
+    const url = `https://servicebus2.caixa.gov.br/portaldeloterias/api/loteca/${numero}`;
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const r = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return null;
+    const wrapper = await r.json();
+    return JSON.parse(wrapper.contents);
+  } catch(e) { return null; }
+}
+
+// Enriquece jogos do banco com resultados de fontes externas
+async function enriquecerResultados(jogos, conc, timesMap) {
+  const dataISO = conc.data_sorteio || new Date().toISOString().slice(0,10);
+
+  // 1. Tentar ESPN (mais permissiva com CORS)
+  let partidas = await buscarESPN(dataISO);
+
+  // 2. Fallback: API-Sports
+  if (!partidas.length) {
+    partidas = await buscarAPISports(dataISO);
+  }
+
+  // 3. Fallback: Caixa (só quando completo)
+  if (!partidas.length) {
+    const caixa = await buscarCaixa(conc.numero);
+    if (caixa?.listaResultadoEquipeEsportiva) {
+      const apiJogos = [...caixa.listaResultadoEquipeEsportiva]
+        .sort((a,b) => a.nuJogo - b.nuJogo);
+      apiJogos.forEach((aj, i) => {
+        const j = jogos[i];
+        if (!j) return;
+        if (aj.nuGolEquipeUm !== null && aj.nuGolEquipeUm !== undefined) {
+          j.resultado_real = calcResultadoCaixa(aj.nuGolEquipeUm, aj.nuGolEquipeDois);
+          j._placar = `${aj.nuGolEquipeUm} × ${aj.nuGolEquipeDois}`;
+          j._status = 'FT';
+          j._fonte = 'caixa';
+        }
+      });
+      return jogos;
+    }
+    return jogos; // sem dados
+  }
+
+  // Cruzar jogos do banco com partidas das APIs por nome do time
+  jogos.forEach(j => {
+    if (j.resultado_real) return; // já tem resultado no banco
+    const nc = timesMap[j.time_casa_id]  || '';
+    const nv = timesMap[j.time_visit_id] || '';
+    const match = partidas.find(p =>
+      casarTime(nc, p.homeTeam) && casarTime(nv, p.awayTeam) ||
+      casarTime(nc, p.awayTeam) && casarTime(nv, p.homeTeam)
+    );
+    if (!match) return;
+    const isInvertido = casarTime(nc, match.awayTeam);
+    const g1 = isInvertido ? match.awayScore : match.homeScore;
+    const g2 = isInvertido ? match.homeScore : match.awayScore;
+    if (g1 !== null && g1 !== undefined && !isNaN(g1)) {
+      const res = calcResultadoCaixa(g1, g2);
+      if (res) {
+        j.resultado_real = res;
+        j._placar = `${g1} × ${g2}`;
+        j._status = match.status;
+        j._fonte = match.fonte;
+      }
+    } else if (match.status === 'LIVE' || match.status === '1H' || match.status === '2H' || match.status === 'HT') {
+      j._status = 'LIVE';
+      if (g1 !== null && !isNaN(g1)) j._placar = `${g1} × ${g2} 🔴`;
+    }
+  });
+
+  return jogos;
 }
 
 async function renderConferir(timesMapInicial) {
@@ -1099,26 +1226,11 @@ async function carregarConferir() {
       extra.forEach(t => { timesMapConferir[t.id] = t.nome_popular || t.nome_caixa; });
     }
 
-    // Se houver jogos sem resultado no banco, tentar buscar da API da Caixa em tempo real
+    // Enriquecer com resultados ao vivo (ESPN → API-Sports → Caixa)
     const semResultBanco = jogos.filter(j => !j.resultado_real);
     if (semResultBanco.length > 0) {
-      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">🔍 Buscando resultados na Caixa…</div>';
-      const dadosCaixa = await buscarResultadoCaixa(conc.numero);
-      if (dadosCaixa && dadosCaixa.listaResultadoEquipeEsportiva) {
-        const apiJogos = [...dadosCaixa.listaResultadoEquipeEsportiva]
-          .sort((a, b) => a.nuJogo - b.nuJogo);
-        apiJogos.forEach((aj, i) => {
-          const j = jogos[i];
-          if (!j) return;
-          const g1 = aj.nuGolEquipeUm;
-          const g2 = aj.nuGolEquipeDois;
-          if (g1 !== null && g1 !== undefined) {
-            j.resultado_real = calcResultadoCaixa(g1, g2);
-            j._placar = `${g1} × ${g2}`;
-            j._fonte = 'caixa-live';
-          }
-        });
-      }
+      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">🔍 Buscando resultados em tempo real…</div>';
+      await enriquecerResultados(jogos, conc, timesMapConferir);
     }
 
     const comResult  = jogos.filter(j => j.resultado_real);
@@ -1139,10 +1251,12 @@ async function carregarConferir() {
         ⏳ Nenhum resultado disponível ainda. Se o sorteio já ocorreu, a Caixa pode levar alguns minutos para publicar.
       </div>`;
     } else if (isParcial) {
-      const fonteLabel = comResult.some(j => j._fonte === 'caixa-live')
-        ? ' · dados buscados em tempo real da Caixa' : '';
+      const fontes = [...new Set(jogos.filter(j=>j._fonte).map(j=>j._fonte))];
+      const fonteLabel = fontes.length ? ` · fonte: ${fontes.join('/')}` : '';
+      const liveCt = jogos.filter(j=>j._status==='LIVE').length;
+      const liveLabel = liveCt ? ` · ${liveCt} jogo(s) ao vivo 🔴` : '';
       avisoHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(232,150,58,0.08);border:1px solid var(--amber-border);border-radius:3px;padding:10px 14px;margin-bottom:16px">
-        ⚡ Resultado parcial — ${comResult.length} de ${jogos.length} jogos finalizados${fonteLabel}. Os acertos podem mudar.
+        ⚡ ${comResult.length} de ${jogos.length} jogos com resultado${liveLabel}${fonteLabel}. Parcial — pode mudar.
       </div>`;
     }
 
@@ -1153,10 +1267,14 @@ async function carregarConferir() {
       let resHtml, placarHtml;
       if (j.resultado_real) {
         const placarStr = j._placar || '—';
-        resHtml = `<span class="conf-res ${resCls(j.resultado_real)}">${resLabel(j.resultado_real)}</span>`;
+        const finalLabel = j._status === 'FT' ? resLabel(j.resultado_real) : resLabel(j.resultado_real)+' *';
+        resHtml = `<span class="conf-res ${resCls(j.resultado_real)}">${finalLabel}</span>`;
         placarHtml = `<span class="conf-placar">${placarStr}</span>`;
+      } else if (j._status === 'LIVE') {
+        resHtml = `<span class="conf-res live">🔴 AO VIVO</span>`;
+        placarHtml = `<span class="conf-placar">${j._placar || '–'}</span>`;
       } else {
-        resHtml = `<span class="conf-res pend">Aguardando resultado final</span>`;
+        resHtml = `<span class="conf-res pend">Aguardando resultado</span>`;
         placarHtml = `<span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint)">–</span>`;
       }
       // Sugestão do modelo
