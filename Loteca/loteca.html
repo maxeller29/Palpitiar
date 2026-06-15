@@ -1004,6 +1004,27 @@ async function iniciarConferir(timesMapAtual) {
 let timesMapConferir = {};
 let concursosConferir = [];
 
+// Busca resultado da Caixa via proxy CORS (allorigins.win)
+async function buscarResultadoCaixa(numero) {
+  const url = `https://servicebus2.caixa.gov.br/portaldeloterias/api/loteca/${numero}`;
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  try {
+    const r = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return null;
+    const wrapper = await r.json();
+    const dados = JSON.parse(wrapper.contents);
+    return dados;
+  } catch(e) { return null; }
+}
+
+// Converte resultado de gols para coluna1/empate/coluna2
+function calcResultadoCaixa(g1, g2) {
+  if (g1 === null || g1 === undefined) return null;
+  if (g1 > g2) return 'coluna1';
+  if (g1 === g2) return 'empate';
+  return 'coluna2';
+}
+
 async function renderConferir(timesMapInicial) {
   timesMapConferir = Object.assign({}, timesMapInicial);
 
@@ -1078,6 +1099,28 @@ async function carregarConferir() {
       extra.forEach(t => { timesMapConferir[t.id] = t.nome_popular || t.nome_caixa; });
     }
 
+    // Se houver jogos sem resultado no banco, tentar buscar da API da Caixa em tempo real
+    const semResultBanco = jogos.filter(j => !j.resultado_real);
+    if (semResultBanco.length > 0) {
+      cont.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);font-style:italic">🔍 Buscando resultados na Caixa…</div>';
+      const dadosCaixa = await buscarResultadoCaixa(conc.numero);
+      if (dadosCaixa && dadosCaixa.listaResultadoEquipeEsportiva) {
+        const apiJogos = [...dadosCaixa.listaResultadoEquipeEsportiva]
+          .sort((a, b) => a.nuJogo - b.nuJogo);
+        apiJogos.forEach((aj, i) => {
+          const j = jogos[i];
+          if (!j) return;
+          const g1 = aj.nuGolEquipeUm;
+          const g2 = aj.nuGolEquipeDois;
+          if (g1 !== null && g1 !== undefined) {
+            j.resultado_real = calcResultadoCaixa(g1, g2);
+            j._placar = `${g1} × ${g2}`;
+            j._fonte = 'caixa-live';
+          }
+        });
+      }
+    }
+
     const comResult  = jogos.filter(j => j.resultado_real);
     const semResult  = jogos.filter(j => !j.resultado_real);
     const isCompleto = semResult.length === 0 && comResult.length > 0;
@@ -1093,11 +1136,13 @@ async function carregarConferir() {
     let avisoHtml = '';
     if (semNenhum) {
       avisoHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(232,150,58,0.08);border:1px solid var(--amber-border);border-radius:3px;padding:10px 14px;margin-bottom:16px">
-        ⏳ Os resultados deste concurso ainda não foram publicados. Retorne após o sorteio (${dataBR}).
+        ⏳ Nenhum resultado disponível ainda. Se o sorteio já ocorreu, a Caixa pode levar alguns minutos para publicar.
       </div>`;
     } else if (isParcial) {
+      const fonteLabel = comResult.some(j => j._fonte === 'caixa-live')
+        ? ' · dados buscados em tempo real da Caixa' : '';
       avisoHtml = `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(232,150,58,0.08);border:1px solid var(--amber-border);border-radius:3px;padding:10px 14px;margin-bottom:16px">
-        ⚡ Resultado parcial — ${comResult.length} de ${jogos.length} jogos finalizados. Os acertos dos cartões são uma parcial e podem mudar.
+        ⚡ Resultado parcial — ${comResult.length} de ${jogos.length} jogos finalizados${fonteLabel}. Os acertos podem mudar.
       </div>`;
     }
 
@@ -1107,9 +1152,9 @@ async function carregarConferir() {
       const nv = cap(timesMapConferir[j.time_visit_id] || 'Time B');
       let resHtml, placarHtml;
       if (j.resultado_real) {
+        const placarStr = j._placar || '—';
         resHtml = `<span class="conf-res ${resCls(j.resultado_real)}">${resLabel(j.resultado_real)}</span>`;
-        // placar: tentar pegar de score_casa/visit como proxy (real = resultado_real)
-        placarHtml = `<span class="conf-placar">—</span>`;
+        placarHtml = `<span class="conf-placar">${placarStr}</span>`;
       } else {
         resHtml = `<span class="conf-res pend">Aguardando resultado final</span>`;
         placarHtml = `<span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint)">–</span>`;
@@ -1121,6 +1166,7 @@ async function carregarConferir() {
       return `<tr>
         <td style="width:22px;color:var(--ink-faint);font-size:9px">${j.ordem}</td>
         <td><span class="conf-jogo-nome">${nc} × ${nv}</span></td>
+        <td style="text-align:center">${placarHtml}</td>
         <td style="text-align:center">${resHtml}</td>
         <td style="text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-dim)">${sugLabel} ${acertoIcon}</td>
       </tr>`;
@@ -1183,6 +1229,7 @@ async function carregarConferir() {
         <thead><tr>
           <th style="width:22px">#</th>
           <th>Confronto</th>
+          <th style="text-align:center">Placar</th>
           <th style="text-align:center">Resultado</th>
           <th style="text-align:center">Sugestão</th>
         </tr></thead>
