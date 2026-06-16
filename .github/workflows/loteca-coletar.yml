@@ -1,0 +1,115 @@
+name: Loteca — Coletar e Analisar
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 10h BRT
+    - cron: '0 21 * * *'   # 18h BRT
+  workflow_dispatch:
+    inputs:
+      forcar:
+        description: 'Forcar coleta mesmo sem novo concurso'
+        required: false
+        default: 'false'
+
+jobs:
+  coletar:
+    name: Coletar novo concurso Loteca
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      novo_concurso: ${{ steps.coletar.outputs.novo_concurso }}
+      numero:        ${{ steps.coletar.outputs.numero }}
+      data_sorteio:  ${{ steps.coletar.outputs.data_sorteio }}
+      jogos:         ${{ steps.coletar.outputs.jogos }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Coletar concurso
+        id: coletar
+        env:
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: node Loteca/loteca-coletar-auto.js
+
+      - name: Analisar concurso
+        if: steps.coletar.outputs.novo_concurso == 'true' || github.event.inputs.forcar == 'true'
+        env:
+          SUPABASE_KEY:            ${{ secrets.SUPABASE_KEY }}
+          APIFOOTBALL_KEY:         ${{ secrets.APIFOOTBALL_KEY }}
+          FOOTBALL_DATA_TOKEN:     ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: node Loteca/loteca-analisar.js ${{ steps.coletar.outputs.numero }} --skip-sofascore
+
+      - name: Publicar como preliminar
+        if: steps.coletar.outputs.novo_concurso == 'true'
+        env:
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          node -e "
+          const https=require('https');
+          const url=new URL('https://oslvqimllizsdtxwkrag.supabase.co/rest/v1/loteca_concursos');
+          url.searchParams.set('numero','eq.${{ steps.coletar.outputs.numero }}');
+          const req=https.request(url,{method:'PATCH',headers:{
+            'apikey':process.env.SUPABASE_KEY,'Authorization':'Bearer '+process.env.SUPABASE_KEY,
+            'Content-Type':'application/json','Prefer':'return=representation'
+          }},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>console.log('Status:',res.statusCode));});
+          req.write(JSON.stringify({status_analise:'preliminar'}));req.end();
+          "
+
+      - name: Notificar por email
+        if: steps.coletar.outputs.novo_concurso == 'true'
+        run: |
+          python3 - << 'PYEOF'
+          import smtplib, os
+          from email.mime.multipart import MIMEMultipart
+          from email.mime.text import MIMEText
+
+          numero      = "${{ steps.coletar.outputs.numero }}"
+          data        = "${{ steps.coletar.outputs.data_sorteio }}"
+          jogos       = "${{ steps.coletar.outputs.jogos }}"
+          gmail_user  = os.environ['GMAIL_USER']
+          gmail_pass  = os.environ['GMAIL_APP_PASSWORD']
+          admin_email = os.environ['ADMIN_EMAIL']
+
+          msg = MIMEMultipart('alternative')
+          msg['Subject'] = f"🎯 Loteca {numero} — Novo concurso coletado e analisado"
+          msg['From']    = f"Palpitiar Bot <{gmail_user}>"
+          msg['To']      = admin_email
+
+          html = f"""
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#0a1a14;color:#f4ebd0;padding:32px;border-radius:8px">
+            <h2 style="color:#d4a84b;margin-top:0">🎯 Loteca {numero}</h2>
+            <p style="color:#a0b890">Novo concurso coletado e analisado automaticamente.</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0">
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Concurso</td><td style="color:#f4ebd0;font-weight:bold">{numero}</td></tr>
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Data do sorteio</td><td style="color:#f4ebd0">{data}</td></tr>
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Jogos</td><td style="color:#f4ebd0">{jogos} partidas</td></tr>
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Status</td><td style="color:#5dba6f">✓ Preliminar publicado</td></tr>
+            </table>
+            <a href="https://palpitiar.com.br/admin-loteca.html"
+               style="display:inline-block;background:#d4a84b;color:#0a1a14;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold;margin-top:8px">
+              Revisar no Admin →
+            </a>
+            <p style="margin-top:24px;font-size:11px;color:#4a5a44">Palpitiar · palpitiar.com.br</p>
+          </div>
+          """
+
+          msg.attach(MIMEText(html, 'html'))
+
+          with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(gmail_user, gmail_pass)
+            smtp.sendmail(gmail_user, admin_email, msg.as_string())
+            print(f"Email enviado para {admin_email}")
+          PYEOF
+        env:
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADMIN_EMAIL:        ${{ secrets.ADMIN_EMAIL }}

@@ -1,0 +1,93 @@
+name: Loteca — Conferir Resultados
+
+on:
+  schedule:
+    - cron: '0 15 * * *'   # 12h BRT
+    - cron: '0 18 * * *'   # 15h BRT
+    - cron: '0 21 * * *'   # 18h BRT
+    - cron: '0 0  * * *'   # 21h BRT
+    - cron: '0 2  * * *'   # 23h BRT
+  workflow_dispatch:
+
+jobs:
+  conferir:
+    name: Conferir resultados Loteca
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      conferidos: ${{ steps.conferir.outputs.conferidos }}
+      encerrados: ${{ steps.conferir.outputs.encerrados }}
+      resumo:     ${{ steps.conferir.outputs.resumo }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Conferir resultados
+        id: conferir
+        env:
+          SUPABASE_KEY:            ${{ secrets.SUPABASE_KEY }}
+          FOOTBALL_DATA_TOKEN:     ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: node Loteca/loteca-conferir-auto.js
+
+      - name: Notificar por email (encerramento)
+        if: steps.conferir.outputs.encerrados != '0'
+        run: |
+          python3 - << 'PYEOF'
+          import smtplib, os
+          from email.mime.multipart import MIMEMultipart
+          from email.mime.text import MIMEText
+
+          resumo      = "${{ steps.conferir.outputs.resumo }}"
+          encerrados  = "${{ steps.conferir.outputs.encerrados }}"
+          conferidos  = "${{ steps.conferir.outputs.conferidos }}"
+          gmail_user  = os.environ['GMAIL_USER']
+          gmail_pass  = os.environ['GMAIL_APP_PASSWORD']
+          admin_email = os.environ['ADMIN_EMAIL']
+
+          msg = MIMEMultipart('alternative')
+          msg['Subject'] = f"🏆 Loteca encerrada — {resumo}"
+          msg['From']    = f"Palpitiar Bot <{gmail_user}>"
+          msg['To']      = admin_email
+
+          html = f"""
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#0a1a14;color:#f4ebd0;padding:32px;border-radius:8px">
+            <h2 style="color:#d4a84b;margin-top:0">🏆 Concurso Encerrado</h2>
+            <p style="color:#a0b890">{resumo}</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0">
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Concursos encerrados</td><td style="color:#5dba6f;font-weight:bold">{encerrados}</td></tr>
+              <tr><td style="padding:8px 0;color:#8a9a80;font-size:13px">Jogos atualizados</td><td style="color:#f4ebd0">{conferidos}</td></tr>
+            </table>
+            <a href="https://palpitiar.com.br/loteca.html"
+               style="display:inline-block;background:#d4a84b;color:#0a1a14;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold;margin-top:8px">
+              Ver Resultados →
+            </a>
+            <p style="margin-top:24px;font-size:11px;color:#4a5a44">Palpitiar · palpitiar.com.br</p>
+          </div>
+          """
+
+          msg.attach(MIMEText(html, 'html'))
+
+          with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(gmail_user, gmail_pass)
+            smtp.sendmail(gmail_user, admin_email, msg.as_string())
+            print(f"Email enviado para {admin_email}")
+          PYEOF
+        env:
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADMIN_EMAIL:        ${{ secrets.ADMIN_EMAIL }}
+
+      - name: Resumo
+        if: always()
+        run: |
+          echo "Jogos atualizados : ${{ steps.conferir.outputs.conferidos }}"
+          echo "Concursos encerrados: ${{ steps.conferir.outputs.encerrados }}"
+          echo "Resumo: ${{ steps.conferir.outputs.resumo }}"
