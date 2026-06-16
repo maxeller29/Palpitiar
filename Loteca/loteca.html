@@ -1121,6 +1121,46 @@ async function renderConferir(timesMapInicial) {
   await carregarConferir();
 }
 
+function simularCartao(cartaoId, jogos) {
+  const c = CARTOES.find(x => x.id === cartaoId);
+  if (!c || !jogos || jogos.length === 0) return null;
+
+  const partes = c.config.match(/(\d+)d\+(\d+)t/);
+  const nDuplos  = partes ? parseInt(partes[1]) : 0;
+  const nTriplos = partes ? parseInt(partes[2]) : 0;
+
+  const ordemClasse = ['dificil','medio','facil'];
+  const sorted = [...jogos].sort((a,b) => ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
+
+  const coberturas = {};
+  sorted.forEach((j, i) => {
+    if (i < nTriplos) coberturas[j.ordem] = 'triplo';
+    else if (i < nTriplos + nDuplos) coberturas[j.ordem] = 'duplo';
+    else coberturas[j.ordem] = 'simples';
+  });
+
+  let acertos = 0;
+  jogos.forEach(j => {
+    if (!j.resultado_real) return;
+    const sug = j.resultado_sugerido || 'coluna1';
+    const cob = coberturas[j.ordem] || 'simples';
+    let marcacoes;
+    if (cob === 'simples') {
+      marcacoes = [sug];
+    } else if (cob === 'duplo') {
+      const p1 = j.p_coluna1 || 34, pe = j.p_empate || 33, p2 = j.p_coluna2 || 33;
+      const probs = [{k:'coluna1',v:p1},{k:'empate',v:pe},{k:'coluna2',v:p2}];
+      probs.sort((a,b)=>b.v-a.v);
+      marcacoes = [probs[0].k, probs[1].k];
+    } else {
+      marcacoes = ['coluna1','empate','coluna2'];
+    }
+    if (marcacoes.includes(j.resultado_real)) acertos++;
+  });
+
+  return { cartao: c, acertos };
+}
+
 async function carregarConferir() {
   const sel = document.getElementById('confSelect');
   const cont = document.getElementById('conferirContainer');
@@ -1316,11 +1356,11 @@ function setStatus(cls, txt) {
 
     // Priorizar concurso aberto
     let concursos = await sbGet('loteca_concursos', {
-      select:'*', status_analise:'in.(preliminar,publicado)',
+      select:'*', status_analise:'in.(aguardando,coletando,rascunho,preliminar)',
       order:'numero.desc', limit:1,
     });
     if (!concursos || concursos.length === 0) {
-      concursos = await sbGet('loteca_concursos', { select:'*', status_analise:'in.(preliminar,publicado)', order:'numero.desc', limit:1 });
+      concursos = await sbGet('loteca_concursos', { select:'*', order:'numero.desc', limit:1 });
     }
     if (!concursos || concursos.length === 0) {
       document.getElementById('bootState').style.display = 'none';
