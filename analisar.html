@@ -1231,7 +1231,8 @@ const LOTERIAS = {
 let loteriaAtual = null;
 let selNumeros = new Set();
 let historicoCache = {};
-// Controle de sincronização: chave = cfg.id, valor = { dataSync: 'YYYY-MM-DD', novosInjetados: N }
+// Controle de sincronização: chave = cfg.id, valor = { ultimoInjetado: N, novosInjetados: N }
+// Cache por número do último concurso — não por data, para buscar novos intra-dia
 let syncCache = {};
 
 // ═══════════════════════════════════════════════════════════
@@ -1244,10 +1245,13 @@ let syncCache = {};
 const DATA_PLANO_REAL = '1994-07-01';
 
 async function sincronizarHistorico(cfg, historico) {
-  const hoje = new Date().toISOString().slice(0, 10);
+  // Verifica o último concurso atual no JSON (antes de injetar)
+  const ultimoAtual = Array.isArray(draws[draws.length - 1])
+    ? draws[draws.length - 1][0]
+    : (draws[draws.length - 1]?.concurso || 0);
 
-  // Já sincronizou hoje para esta loteria?
-  if (syncCache[cfg.id] && syncCache[cfg.id].dataSync === hoje) {
+  // Já sincronizou até este concurso? Só repete se o JSON cresceu (novo deploy)
+  if (syncCache[cfg.id] && syncCache[cfg.id].ultimoInjetado >= ultimoAtual) {
     return syncCache[cfg.id].novosInjetados;
   }
 
@@ -1260,10 +1264,8 @@ async function sincronizarHistorico(cfg, historico) {
     Object.keys(d[4]).length === 0
   );
 
-  // ── Passo 2: último concurso local ──
-  const ultimoLocal = Array.isArray(draws[draws.length - 1])
-    ? draws[draws.length - 1][0]
-    : (draws[draws.length - 1]?.concurso || 0);
+  // ── Passo 2: último concurso local (igual ao ultimoAtual calculado acima) ──
+  const ultimoLocal = ultimoAtual;
 
   let novosInjetados = 0;
   let remendados = 0;
@@ -1350,7 +1352,11 @@ async function sincronizarHistorico(cfg, historico) {
   }
 
   const total = novosInjetados + remendados;
-  syncCache[cfg.id] = { dataSync: hoje, novosInjetados: total, remendados };
+  // Registra o último concurso agora no JSON (após injeção)
+  const ultimoFinal = Array.isArray(draws[draws.length - 1])
+    ? draws[draws.length - 1][0]
+    : (draws[draws.length - 1]?.concurso || ultimoLocal);
+  syncCache[cfg.id] = { ultimoInjetado: ultimoFinal, novosInjetados: total, remendados };
   return total;
 }
 
@@ -1509,12 +1515,9 @@ async function startAnalysis() {
 
     // 2. Sincroniza com a Caixa (uma vez por loteria por dia, em memória)
     // Só tenta se ainda não sincronizou hoje — se falhar, segue normalmente
-    const jaSync = syncCache[loteriaAtual];
-    const hoje = new Date().toISOString().slice(0, 10);
-    if (!jaSync || jaSync.dataSync !== hoje) {
-      document.getElementById('loading-text').textContent = 'Verificando sorteios recentes...';
-      await sleep(40);
-    }
+    // Sempre mostra "verificando" — a guarda real está dentro de sincronizarHistorico
+    document.getElementById('loading-text').textContent = 'Verificando sorteios recentes...';
+    await sleep(40);
     const novosInjetados = await sincronizarHistorico(cfg, historico);
 
     document.getElementById('loading-text').textContent = 'Processando estatísticas...';
@@ -1864,10 +1867,18 @@ function renderReport(combo, r, cfg) {
     window._temPremiosNoJson = r.temPremiosNoJson;
     window._cfgAtual = cfg;
     window._expandido = false;
-    window._comboAtual = combo; // para destacar acertos nas dezenas sorteadas
-    // Mapa concurso → dezenas para fallback API
-    window._dezenasMap = {};
-    for (const p of r.premiados) window._dezenasMap[p.concurso] = p.dezenas;
+    window._comboAtual = combo;
+    // Mapas auxiliares para buscarRateioUnico
+    window._dezenasMap    = {};
+    window._datasMap      = {};
+    window._acertosMap    = {};
+    window._premiosMemMap = {};
+    for (const p of r.premiados) {
+      window._dezenasMap[p.concurso]    = p.dezenas;
+      window._datasMap[p.concurso]      = p.data || null;
+      window._acertosMap[p.concurso]    = p.acertos;
+      window._premiosMemMap[p.concurso] = p.premiosJson || null;
+    }
 
     renderListaPremiados('antigo');
   }
@@ -2149,41 +2160,93 @@ async function buscarRateioUnico(concurso, cfg) {
   const dataEl = document.getElementById('rateio-data-' + concurso);
   if (!loadingEl || !dataEl) return;
 
-  // Prepara o card de dezenas para injetar no grid
   const userSet = new Set(window._comboAtual || []);
-  const dezenas = (window._dezenasMap || {})[concurso] || [];
-  const dezenasHtml = renderDezenasCard(dezenas, userSet, cfg);
+  const dezenasEntry = (window._dezenasMap || {})[concurso] || [];
+  const dataEntry = (window._datasMap || {})[concurso] || null;
+  const dezenasHtml = renderDezenasCard(dezenasEntry, userSet, cfg);
+  const acertosUsuario = (window._acertosMap || {})[concurso] || 0;
 
+  // 1. Tentar premiosJson já injetado em memória (concursos recentes sincronizados)
+  const premiosInMem = (window._premiosMemMap || {})[concurso];
+  if (premiosInMem && Object.keys(premiosInMem).length > 0) {
+    loadingEl.style.display = 'none';
+    dataEl.innerHTML = renderRateioDoJson(premiosInMem, acertosUsuario, cfg, dezenasHtml, dataEntry).replace('<div class="award-rateio" style="display:block">', '<div class="award-rateio" style="display:block">').replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
+    // Simpler: just render the grid directly
+    const chaves = CHAVES_PREMIO[cfg.id] || [];
+    const nomesG = CHAVES_GANHADORES[cfg.id] || {};
+    const nomes  = NOMES_FAIXA[cfg.id] || {};
+    const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
+    const preReal = dataEntry && dataEntry < DATA_PLANO_REAL;
+    const avisoMoeda = preReal ? `<div style="font-family:var(--mono);font-size:9px;color:var(--amber);background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.2);border-radius:3px;padding:4px 8px;margin-bottom:8px">⚠ Concurso anterior ao Plano Real. Valores em Cruzeiro Real (CR$).</div>` : '';
+    const itens = chaves.filter(k => premiosInMem[k] !== undefined).map(k => {
+      const valor = premiosInMem[k];
+      const chaveG = nomesG[k];
+      const ganhadores = chaveG ? (premiosInMem[chaveG] ?? '—') : '—';
+      const isDestaque = k === chaveUsuario;
+      return `<div class="rateio-item${isDestaque ? ' destaque' : ''}">
+        <div class="rateio-faixa">${nomes[k] || k}</div>
+        <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
+        <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
+      </div>`;
+    }).join('');
+    dataEl.innerHTML = `${avisoMoeda}<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
+    dataEl.style.display = 'block';
+    return;
+  }
+
+  // 2. Tentar API Caixa diretamente (concursos recentes — CORS aberto)
+  try {
+    const CAIXA_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
+    const res = await fetch(`${CAIXA_BASE}/${cfg.caixaSlug}/${concurso}`, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const dados = await res.json();
+      const rateio = dados.listaRateioPremio || [];
+      loadingEl.style.display = 'none';
+      if (rateio.length) {
+        const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
+        const itens = rateio.map(item => {
+          const faixa = item.descricaoFaixa || item.faixa || '';
+          const ganhadores = item.numeroDeGanhadores ?? item.ganhadores ?? '—';
+          const valor = item.valorPremio ?? item.premio ?? 0;
+          const isDestaque = faixa.toLowerCase().includes(getNomeFaixa(acertosUsuario, cfg).toLowerCase());
+          return `<div class="rateio-item${isDestaque ? ' destaque' : ''}">
+            <div class="rateio-faixa">${faixa}</div>
+            <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
+            <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
+          </div>`;
+        }).join('');
+        dataEl.innerHTML = `<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
+        dataEl.style.display = 'block';
+        return;
+      }
+    }
+  } catch(_) { /* fallback para Netlify Function */ }
+
+  // 3. Fallback: Netlify Function resultado
   try {
     const url = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-
     loadingEl.style.display = 'none';
-
     const rateio = data.listaRateioPremio || data.premiacoes || [];
     if (!rateio.length) {
-      dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Dados de rateio não disponíveis para este concurso.</div></div>`;
+      dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Dados de rateio não disponíveis.</div></div>`;
       dataEl.style.display = 'block';
       return;
     }
-
     const itens = rateio.map(item => {
       const faixa = item.descricaoFaixa || item.faixa || '';
       const ganhadores = item.numeroDeGanhadores ?? item.ganhadores ?? '—';
       const valor = item.valorPremio ?? item.premio ?? 0;
-      return `
-        <div class="rateio-item">
-          <div class="rateio-faixa">${faixa}</div>
-          <div class="rateio-val">${formatarMoeda(valor)}</div>
-          <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
-        </div>`;
+      return `<div class="rateio-item">
+        <div class="rateio-faixa">${faixa}</div>
+        <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
+        <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
+      </div>`;
     }).join('');
-
     dataEl.innerHTML = `<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
     dataEl.style.display = 'block';
-
   } catch(e) {
     loadingEl.style.display = 'none';
     dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Rateio não disponível (${e.message}).</div></div>`;
