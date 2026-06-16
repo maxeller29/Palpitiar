@@ -167,8 +167,15 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .cob-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);}
 .btn-expand{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.25);border-radius:2px;cursor:pointer;padding:4px 10px;transition:all 0.2s;font-weight:500;}
 .btn-expand:hover{background:rgba(212,168,75,0.18);border-color:var(--amber);}
-.sb-fator-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:2px;line-height:1.5;}
-.sb-fator-ref{font-family:var(--mono);font-size:8px;color:rgba(212,168,75,0.5);margin-top:1px;font-style:italic;}
+.tt-wrap{position:relative;display:inline-flex;align-items:center;gap:5px;}
+.tt-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--amber-border);background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:8px;font-weight:700;cursor:default;flex-shrink:0;}
+.tt-icon:hover{background:rgba(232,150,58,0.28);}
+.tt-box{position:absolute;left:22px;top:50%;transform:translateY(-50%);z-index:999;width:240px;background:#0d2318;border:1px solid var(--amber-border);border-radius:4px;padding:10px 12px;pointer-events:none;opacity:0;transition:opacity 0.18s;box-shadow:0 8px 24px rgba(0,0,0,0.6);}
+.tt-box::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:var(--amber-border);}
+.tt-box.show{opacity:1;}
+.tt-title{font-family:var(--mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:5px;}
+.tt-text{font-family:var(--mono);font-size:9px;color:var(--ink-dim);line-height:1.6;}
+.tt-ref{font-family:var(--mono);font-size:8px;color:var(--ink-faint);margin-top:5px;padding-top:5px;border-top:1px solid var(--line);}
 
 .res-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:600;}
 .res-badge.coluna1{background:rgba(93,186,111,0.15);color:var(--emerald);}
@@ -882,14 +889,20 @@ function renderJogo(jogo, timesMap, calcCartao) {
     if (Object.keys(bv).length === 0 && jogo.score_breakdown_visit) {
       try { bv = typeof jogo.score_breakdown_visit === 'string' ? JSON.parse(jogo.score_breakdown_visit) : jogo.score_breakdown_visit; } catch {}
     }
-    const rows = FATORES_DEF.filter(f => bc[f.k] !== undefined || bv[f.k] !== undefined).map(f => {
+    const rows = FATORES_DEF.filter(f => bc[f.k] !== undefined || bv[f.k] !== undefined).map((f, fi) => {
       const vc = bc[f.k] ?? 0, vv = bv[f.k] ?? 0;
+      const ttId = `${jogo.id}-${f.k}`;
+      const ttHtml = f.hint ? `
+        <span class="tt-wrap">
+          <span class="tt-icon" onmouseenter="showTT('${ttId}')" onmouseleave="hideTT('${ttId}')">i</span>
+          <div class="tt-box" id="ttb-${ttId}">
+            <div class="tt-title">${f.label}</div>
+            <div class="tt-text">${f.hint}</div>
+            ${f.ref ? `<div class="tt-ref">${f.ref}</div>` : ''}
+          </div>
+        </span>` : '';
       return `<div class="sb-row">
-        <div style="display:flex;flex-direction:column;min-width:0">
-          <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span></span>
-          ${f.hint ? `<span class="sb-fator-hint">${f.hint}</span>` : ''}
-          ${f.ref  ? `<span class="sb-fator-ref">${f.ref}</span>` : ''}
-        </div>
+        <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span> ${ttHtml}</span>
         <div class="sb-bars">
           <div class="sb-bar-bg" style="transform:scaleX(-1)"><div class="sb-bar-fill" style="width:${vc}%;background:${scoreColor(vc)}"></div></div>
           <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:${vv}%;background:${scoreColor(vv)}"></div></div>
@@ -956,6 +969,16 @@ function renderJogo(jogo, timesMap, calcCartao) {
         </div>
       </div>
     </div>`;
+}
+
+function showTT(id) {
+  document.querySelectorAll('.tt-box').forEach(b => b.classList.remove('show'));
+  const b = document.getElementById('ttb-'+id);
+  if (b) b.classList.add('show');
+}
+function hideTT(id) {
+  const b = document.getElementById('ttb-'+id);
+  if (b) b.classList.remove('show');
 }
 
 function toggleBreakdown(id, btn) {
