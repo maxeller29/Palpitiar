@@ -1338,7 +1338,7 @@ async function sincronizarHistorico(cfg, historico) {
   for (const d of drawsVazios.slice(0, 10)) { // limita a 10 por vez
     const concurso = d[0];
     try {
-      const urlR = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
+      const urlR = `/.netlify/functions/resultado?loteria=${netlifyLoteria(cfg.caixaSlug)}&concurso=${concurso}`;
       const resR = await fetch(urlR, { signal: AbortSignal.timeout(5000) });
       if (!resR.ok) continue;
       const dadosR = await resR.json();
@@ -2171,6 +2171,11 @@ async function buscarRateios(premiados, cfg) {
   }
 }
 
+function netlifyLoteria(caixaSlug) {
+  // Netlify Function usa 'mega-sena', API Caixa usa 'megasena'
+  return caixaSlug === 'megasena' ? 'mega-sena' : caixaSlug;
+}
+
 async function buscarRateioUnico(concurso, cfg) {
   const loadingEl = document.getElementById('rateio-loading-' + concurso);
   const dataEl    = document.getElementById('rateio-data-'    + concurso);
@@ -2226,7 +2231,7 @@ async function buscarRateioUnico(concurso, cfg) {
 
   // 3. Netlify Function (fallback para concursos antigos)
   try {
-    const url = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
+    const url = `/.netlify/functions/resultado?loteria=${netlifyLoteria(cfg.caixaSlug)}&concurso=${concurso}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       const data   = await res.json();
