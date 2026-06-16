@@ -33,10 +33,16 @@ const LOTERIAS = [
     arquivo: 'mega-sena-historico.json',
     qtdDez:  6,
     premios(r) {
-      const p = {}, f = r.premiacoes || [];
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
       const mF = { 0:'s',  1:'qn',  2:'qd'  };
       const mG = { 0:'gs', 1:'gqn', 2:'gqd' };
-      f.forEach((x,i) => { if(mF[i]){p[mF[i]]=x.valorPremio||0;p[mG[i]]=x.numeradorGanhadores||0;} });
+      f.forEach((x,i) => {
+        if (mF[i]) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
       return p;
     }
   },
@@ -46,10 +52,16 @@ const LOTERIAS = [
     arquivo: 'lotofacil-historico.json',
     qtdDez:  15,
     premios(r) {
-      const p = {}, f = r.premiacoes || [];
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
       const mF = { 0:'15',1:'14',2:'13',3:'12',4:'11' };
       const mG = { 0:'g15',1:'g14',2:'g13',3:'g12',4:'g11' };
-      f.forEach((x,i) => { if(mF[i]){p[mF[i]]=x.valorPremio||0;p[mG[i]]=x.numeradorGanhadores||0;} });
+      f.forEach((x,i) => {
+        if (mF[i]) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
       return p;
     }
   },
@@ -59,10 +71,16 @@ const LOTERIAS = [
     arquivo: 'quina-historico.json',
     qtdDez:  5,
     premios(r) {
-      const p = {}, f = r.premiacoes || [];
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
       const mF = { 0:'5',1:'4',2:'3',3:'2' };
       const mG = { 0:'g5',1:'g4',2:'g3',3:'g2' };
-      f.forEach((x,i) => { if(mF[i]){p[mF[i]]=x.valorPremio||0;p[mG[i]]=x.numeradorGanhadores||0;} });
+      f.forEach((x,i) => {
+        if (mF[i]) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
       return p;
     }
   }
@@ -148,7 +166,7 @@ async function atualizarLoteria(cfg) {
     if (dezenas.length !== cfg.qtdDez) { console.log('dezenas invalidas ('+dezenas.length+'). Abortando.'); break; }
 
     const data=formatarData(resultado.dataApuracao||resultado.data);
-    const ganhadores=resultado.numeradorGanhadores||resultado.ganhadores||0;
+    const ganhadores=resultado.numeroDeGanhadores??resultado.numeradorGanhadores??resultado.ganhadores??0;
     draws.push([proximo, data, dezenas, ganhadores, cfg.premios(resultado)]);
     novos++; ultimoProcessado=proximo; ultimaData=data;
     console.log('OK ('+data+')');
