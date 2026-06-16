@@ -1139,14 +1139,15 @@ function simularCartao(cartaoId, jogos) {
     else coberturas[j.ordem] = 'simples';
   });
 
+  const resLabel = r => r === 'coluna1' ? 'Col.1' : r === 'coluna2' ? 'Col.2' : 'Empate';
+  const marcLabel = m => m === 'coluna1' ? 'C1' : m === 'coluna2' ? 'C2' : 'X';
+
   let acertos = 0;
-  jogos.forEach(j => {
-    if (!j.resultado_real) return;
-    const sug = j.resultado_sugerido || 'coluna1';
+  const detalhe = jogos.map(j => {
     const cob = coberturas[j.ordem] || 'simples';
     let marcacoes;
     if (cob === 'simples') {
-      marcacoes = [sug];
+      marcacoes = [j.resultado_sugerido || 'coluna1'];
     } else if (cob === 'duplo') {
       const p1 = j.p_coluna1 || 34, pe = j.p_empate || 33, p2 = j.p_coluna2 || 33;
       const probs = [{k:'coluna1',v:p1},{k:'empate',v:pe},{k:'coluna2',v:p2}];
@@ -1155,10 +1156,13 @@ function simularCartao(cartaoId, jogos) {
     } else {
       marcacoes = ['coluna1','empate','coluna2'];
     }
-    if (marcacoes.includes(j.resultado_real)) acertos++;
+    const finalizado = !!j.resultado_real;
+    const acertou = finalizado && marcacoes.includes(j.resultado_real);
+    if (acertou) acertos++;
+    return { jogo: j, cob, marcacoes, acertou, finalizado };
   });
 
-  return { cartao: c, acertos };
+  return { cartao: c, acertos, detalhe };
 }
 
 async function carregarConferir() {
@@ -1273,7 +1277,11 @@ async function carregarConferir() {
       const resultados = CARTOES.map(c => simularCartao(c.id, jogos)).filter(Boolean);
       const maxAcertos = Math.max(...resultados.map(r => r.acertos));
 
-      const linhasBt = resultados.map(r => {
+      const resLbl = r => r === 'coluna1' ? 'Col.1' : r === 'coluna2' ? 'Col.2' : 'Empate';
+      const marcLbl = m => m === 'coluna1' ? 'C1' : m === 'coluna2' ? 'C2' : 'X';
+      const cobLbl  = c => c === 'triplo' ? 'C1+X+C2' : null;
+
+      const linhasBt = resultados.map((r, ri) => {
         const pct = Math.round(r.acertos / comResult.length * 100);
         const barColor = pct >= 70 ? 'var(--emerald)' : pct >= 50 ? 'var(--amber)' : 'var(--crimson)';
         let badge2 = '';
@@ -1283,9 +1291,36 @@ async function carregarConferir() {
         else badge2 = `<span class="bt-badge miss">${r.acertos} pts</span>`;
         const dest = r.acertos === maxAcertos;
         const parcialLabel = isParcial ? `<span style="font-size:8px;color:var(--ink-faint)"> (${comResult.length} jogos)</span>` : '';
-        return `<tr${dest ? ' style="background:rgba(232,150,58,0.05)"' : ''}>
+
+        // Detalhe expandível por jogo
+        const detId = `bt-det-${ri}`;
+        const detLinhas = r.detalhe.map(d => {
+          const nc = cap(timesMapConferir[d.jogo.time_casa_id]  || 'Time A');
+          const nv = cap(timesMapConferir[d.jogo.time_visit_id] || 'Time B');
+          const marcStr = d.marcacoes.map(marcLbl).join('+');
+          if (!d.finalizado) {
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(244,235,208,0.04);opacity:0.45">
+              <span style="font-size:10px">${d.jogo.ordem}. ${nc} × ${nv}</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--ink-faint)">${marcStr} · aguardando</span>
+            </div>`;
+          }
+          const icon = d.acertou ? '✓' : '✗';
+          const cor  = d.acertou ? 'var(--emerald)' : 'var(--crimson)';
+          const resStr = resLbl(d.jogo.resultado_real);
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(244,235,208,0.04)">
+            <span style="font-size:10px;color:var(--ink-dim)">${d.jogo.ordem}. ${nc} × ${nv}</span>
+            <span style="font-family:var(--mono);font-size:9px;display:flex;gap:8px;align-items:center">
+              <span style="color:var(--ink-faint)">${marcStr}</span>
+              <span style="color:var(--ink-faint)">→</span>
+              <span style="color:var(--ink-dim)">${resStr}</span>
+              <span style="color:${cor};font-weight:600">${icon}</span>
+            </span>
+          </div>`;
+        }).join('');
+
+        return `<tr${dest ? ' style="background:rgba(232,150,58,0.05)"' : ''} style="cursor:pointer" onclick="(function(){const el=document.getElementById('${detId}');el.style.display=el.style.display==='none'?'table-row':'none'})()">
           <td>
-            <div class="bt-nome">${r.cartao.nome}${r.cartao.badge==='star'?' ★':''}</div>
+            <div class="bt-nome">${r.cartao.nome}${r.cartao.badge==='star'?' ★':''} <span style="font-size:9px;color:var(--ink-faint);font-family:var(--mono)">▾ detalhes</span></div>
             <div class="bt-config">${r.cartao.config}</div>
           </td>
           <td class="bt-acertos" style="color:${barColor}">
@@ -1294,6 +1329,11 @@ async function carregarConferir() {
           </td>
           <td style="text-align:center">${badge2}</td>
           <td class="bt-preco">${fmtBRL(r.cartao.preco)}</td>
+        </tr>
+        <tr id="${detId}" style="display:none">
+          <td colspan="4" style="padding:8px 16px 12px;background:rgba(0,0,0,0.2)">
+            ${detLinhas}
+          </td>
         </tr>`;
       }).join('');
 
