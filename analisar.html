@@ -1268,79 +1268,68 @@ async function sincronizarHistorico(cfg, historico) {
   let novosInjetados = 0;
   let remendados = 0;
 
-  // ── Passo 3: busca concursos novos via API Caixa diretamente ──
+  // ── Passo 3: busca concursos novos diretamente na API Caixa (CORS aberto) ──
+  // Vai do próximo após o último local até encontrar 404/500 ou limite
   try {
-    // Primeiro tenta a Netlify Function (mais rápida, sem CORS)
-    let novosOk = false;
-    try {
-      const urlNovos = `/.netlify/functions/ultimo-concurso?loteria=${cfg.caixaSlug}&desde=${ultimoLocal}`;
-      const resNovos = await fetch(urlNovos, { signal: AbortSignal.timeout(5000) });
-      if (resNovos.ok) {
-        const dataNovos = await resNovos.json();
-        if (dataNovos.novos && dataNovos.novos.length > 0) {
-          for (const c of dataNovos.novos) {
-            draws.push([c.concurso, c.data, c.dezenas, c.ganhadores, c.premiosJson || {}]);
-            novosInjetados++;
-          }
-          if (historico.meta) {
-            const ultimo = dataNovos.novos[dataNovos.novos.length - 1];
-            historico.meta.totalConcursos = draws.length;
-            historico.meta.ultimoConcurso = ultimo.concurso;
-            historico.meta.ultimaData = ultimo.data;
-          }
-          novosOk = true;
-        } else {
-          novosOk = true; // função ok, sem novos
+    const CAIXA_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
+    let proximo = ultimoLocal + 1;
+    const MAX_NOVOS = 30; // até 30 concursos novos por sessão
+
+    while (novosInjetados < MAX_NOVOS) {
+      try {
+        const res = await fetch(
+          `${CAIXA_BASE}/${cfg.caixaSlug}/${proximo}`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+
+        // 404 = concurso não existe ainda | 500 = não publicado
+        if (res.status === 404 || res.status >= 500) break;
+        if (!res.ok) break;
+
+        const dados = await res.json();
+
+        // Dezenas — campo varia por loteria
+        const dezenasRaw = dados.listaDezenas
+          || dados.dezenasSorteadasOrdemSorteio
+          || dados.dezenas
+          || [];
+        const dezenasNum = dezenasRaw.map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
+        if (!dezenasNum.length) break; // concurso sem dezenas = futuro/inválido
+
+        // Data → YYYY-MM-DD
+        const dataRaw = dados.dataApuracao || dados.data || '';
+        const dataFmt = dataRaw.includes('/')
+          ? dataRaw.split('/').reverse().join('-')
+          : dataRaw.slice(0, 10);
+
+        // Ganhadores
+        const ganhadores = dados.ganhadores
+          ?? dados.numeroGanhadores
+          ?? dados.quantidadeGanhadoresSena
+          ?? 0;
+
+        // premiosJson via rateio
+        const rateio = dados.listaRateioPremio || dados.rateio || [];
+        const premiosJson = construirPremiosJson(cfg.id, rateio);
+
+        draws.push([proximo, dataFmt, dezenasNum, ganhadores, premiosJson]);
+        novosInjetados++;
+
+        if (historico.meta) {
+          historico.meta.totalConcursos = draws.length;
+          historico.meta.ultimoConcurso = proximo;
+          historico.meta.ultimaData = dataFmt;
         }
-      }
-    } catch (_) { /* Netlify Function falhou, tenta API Caixa */ }
 
-    // Fallback: busca diretamente na API da Caixa concurso por concurso
-    if (!novosOk) {
-      const CAIXA_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
-      let proximo = ultimoLocal + 1;
-      let tentativas = 0;
-      const MAX_NOVOS = 20; // limita para não travar o browser
-
-      while (tentativas < MAX_NOVOS) {
-        try {
-          const res = await fetch(`${CAIXA_BASE}/${cfg.caixaSlug}/${proximo}`, { signal: AbortSignal.timeout(6000) });
-          if (!res.ok) break; // 404 ou 500 = não existe ainda
-          const dados = await res.json();
-          const dezenas = dados.listaDezenas || dados.dezenasSorteadasOrdemSorteio || [];
-          const dezenasNum = dezenas.map(Number).sort((a,b)=>a-b);
-          if (!dezenasNum.length) break;
-
-          // Data no formato YYYY-MM-DD
-          const dataRaw = dados.dataApuracao || '';
-          const dataFmt = dataRaw.includes('/')
-            ? dataRaw.split('/').reverse().join('-')
-            : dataRaw.slice(0,10);
-
-          // Ganhadores
-          const ganhadores = dados.ganhadores ?? dados.numeroGanhadores ?? 0;
-
-          // premiosJson via rateio
-          const rateio = dados.listaRateioPremio || dados.rateio || [];
-          const premiosJson = construirPremiosJson(cfg.id, rateio);
-
-          draws.push([proximo, dataFmt, dezenasNum, ganhadores, premiosJson]);
-          novosInjetados++;
-
-          if (historico.meta) {
-            historico.meta.totalConcursos = draws.length;
-            historico.meta.ultimoConcurso = proximo;
-            historico.meta.ultimaData = dataFmt;
-          }
-
-          proximo++;
-          tentativas++;
-          await new Promise(r => setTimeout(r, 200)); // respeita rate limit
-        } catch (_) { break; }
+        proximo++;
+        await new Promise(r => setTimeout(r, 150)); // respeita rate limit da Caixa
+      } catch (e) {
+        // timeout ou erro de rede — para aqui
+        break;
       }
     }
   } catch (err) {
-    console.warn(`[Palpitiar] Sincronização falhou (${cfg.id}): ${err.message}`);
+    console.warn(`[Palpitiar] Sincronização Caixa falhou (${cfg.id}): ${err.message}`);
   }
 
   // ── Passo 4: remenda draws com premiosJson={} vazio ──
@@ -1371,30 +1360,66 @@ function construirPremiosJson(loteriaId, rateio) {
   const p = {};
   if (!rateio || rateio.length === 0) return p;
 
-  const mapas = {
-    megasena: {
-      f: { 0:'s',   1:'qn',  2:'qd'  },
-      g: { 0:'gs',  1:'gqn', 2:'gqd' }
+  // Normaliza ID: 'mega' e 'megasena' -> 'mega'
+  const id = loteriaId === 'megasena' ? 'mega' : loteriaId;
+
+  // Mapeamento por descricaoFaixa (robusto, independente de ordem)
+  // Chave = texto que aparece no campo descricaoFaixa da API Caixa
+  const mapaFaixa = {
+    mega: {
+      // Sena / Quina / Quadra
+      '6 acertos': { f: 's',   g: 'gs'  },
+      'sena':      { f: 's',   g: 'gs'  },
+      '5 acertos': { f: 'qn',  g: 'gqn' },
+      'quina':     { f: 'qn',  g: 'gqn' },
+      '4 acertos': { f: 'qd',  g: 'gqd' },
+      'quadra':    { f: 'qd',  g: 'gqd' },
     },
     lotofacil: {
-      f: { 0:'15', 1:'14', 2:'13', 3:'12', 4:'11' },
-      g: { 0:'g15',1:'g14',2:'g13',3:'g12',4:'g11' }
+      '15 acertos': { f: '15', g: 'g15' },
+      '14 acertos': { f: '14', g: 'g14' },
+      '13 acertos': { f: '13', g: 'g13' },
+      '12 acertos': { f: '12', g: 'g12' },
+      '11 acertos': { f: '11', g: 'g11' },
     },
     quina: {
-      f: { 0:'5', 1:'4', 2:'3', 3:'2' },
-      g: { 0:'g5',1:'g4',2:'g3',3:'g2' }
+      '5 acertos': { f: '5', g: 'g5' },
+      'quina':     { f: '5', g: 'g5' },
+      '4 acertos': { f: '4', g: 'g4' },
+      'quadra':    { f: '4', g: 'g4' },
+      '3 acertos': { f: '3', g: 'g3' },
+      'terno':     { f: '3', g: 'g3' },
+      '2 acertos': { f: '2', g: 'g2' },
+      'duque':     { f: '2', g: 'g2' },
     }
   };
 
-  const mapa = mapas[loteriaId];
-  if (!mapa) return p;
+  // Fallback posicional (caso descricaoFaixa não esteja disponível)
+  const mapaPos = {
+    mega:      { f: ['s','qn','qd'],        g: ['gs','gqn','gqd']       },
+    lotofacil: { f: ['15','14','13','12','11'], g: ['g15','g14','g13','g12','g11'] },
+    quina:     { f: ['5','4','3','2'],       g: ['g5','g4','g3','g2']    }
+  };
+
+  const mapF = mapaFaixa[id];
+  const mapP = mapaPos[id];
+  if (!mapF && !mapP) return p;
 
   rateio.forEach((x, i) => {
-    if (mapa.f[i]) {
-      p[mapa.f[i]] = x.valor      || 0;
-      p[mapa.g[i]] = x.ganhadores || 0;
+    // Tenta pelo descricaoFaixa primeiro
+    const desc = (x.descricaoFaixa || x.faixa || '').toLowerCase().trim();
+    const entrada = mapF && (mapF[desc] || Object.entries(mapF).find(([k]) => desc.includes(k))?.[1]);
+
+    if (entrada) {
+      p[entrada.f] = x.valorPremio ?? x.valor ?? 0;
+      p[entrada.g] = x.numeroDeGanhadores ?? x.ganhadores ?? 0;
+    } else if (mapP && mapP.f[i]) {
+      // Fallback posicional
+      p[mapP.f[i]] = x.valorPremio ?? x.valor ?? 0;
+      p[mapP.g[i]] = x.numeroDeGanhadores ?? x.ganhadores ?? 0;
     }
   });
+
   return p;
 }
 
@@ -1661,7 +1686,8 @@ function analisarCombo(combo, historico, cfg) {
       dezenas = d.dezenas || d.numeros;
     }
     if (!dezenas) continue;
-    const acertos = combo.filter(n => dezenas.includes(n) || dezenas.map(Number).includes(n)).length;
+    const dezenasNum = dezenas.map(Number);
+    const acertos = combo.filter(n => dezenasNum.includes(n)).length;
     if (acertos >= cfg.minAcertos) {
       const premiosJson = Array.isArray(d) ? (d[4] || null) : null;
       premiados.push({ concurso: numConcurso, data: dataSorteio, acertos, dezenas, premiosJson });
