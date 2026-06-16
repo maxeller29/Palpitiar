@@ -1245,6 +1245,8 @@ let syncCache = {};
 const DATA_PLANO_REAL = '1994-07-01';
 
 async function sincronizarHistorico(cfg, historico) {
+  const draws = historico.draws || historico;
+
   // Verifica o último concurso atual no JSON (antes de injetar)
   const ultimoAtual = Array.isArray(draws[draws.length - 1])
     ? draws[draws.length - 1][0]
@@ -1254,8 +1256,6 @@ async function sincronizarHistorico(cfg, historico) {
   if (syncCache[cfg.id] && syncCache[cfg.id].ultimoInjetado >= ultimoAtual) {
     return syncCache[cfg.id].novosInjetados;
   }
-
-  const draws = historico.draws || historico;
 
   // ── Passo 1: detecta draws existentes com premiosJson vazio ──
   const drawsVazios = draws.filter(d =>
