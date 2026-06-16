@@ -536,36 +536,31 @@ async function calcularTudoComPopup() {
   pcStep(5); document.getElementById('pcCur').textContent = 'Definindo sugestão e cobertura por jogo…'; await wait(200);
 
   jogos.forEach((j,idx)=>{
-    try {
-      const{sc,sv}=scores[idx];
-      if(isNaN(sc)||isNaN(sv))return;
-      const probs=probsArr[idx];if(!probs)return;
-      const elC=document.getElementById('classico-'+idx);
-      const elE=document.getElementById('elim-'+idx);
-      const isC=elC?elC.checked:false;
-      const isE=elE?elE.checked:false;
-      const classe=classificar(probs,isC,isE),sug=sugerir(probs),cob=coberturaPorClasse(classe);
-      j.score_casa=sc;j.score_visit=sv;j.is_classico=isC;j.is_eliminatorio=isE;
-      j.p_coluna1=probs.p1;j.p_empate=probs.px;j.p_coluna2=probs.p2;
-      j.lambda_casa=probs.lambdaCasa;j.lambda_visit=probs.lambdaVisit;
-      j.classificacao=classe;j.resultado_sugerido=sug;j.cobertura=cob;
-      const elSug=document.getElementById('sug-'+idx);if(elSug)elSug.value=sug;
-      const elCob=document.getElementById('cob-'+idx);if(elCob)elCob.value=cob;
-      const badge=document.getElementById('classBadge-'+idx);
-      if(badge){badge.className='ja-class-badge '+classe;badge.textContent=classe;}
-      const elProbs=document.getElementById('probs-'+idx);
-      if(elProbs)elProbs.innerHTML=`
-        <div class="ja-probs">
-          <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
-          <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
-          <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
-          <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
-        </div>`;
-      calculados++;
-    } catch(e) { console.error('calcularAnalise jogo '+idx+':', e); }
+    const{sc,sv}=scores[idx];
+    if(isNaN(sc)||isNaN(sv))return;
+    const probs=probsArr[idx];if(!probs)return;
+    const isC=document.getElementById('classico-'+idx).checked;
+    const isE=document.getElementById('elim-'+idx).checked;
+    const classe=classificar(probs,isC,isE),sug=sugerir(probs),cob=coberturaPorClasse(classe);
+    j.score_casa=sc;j.score_visit=sv;j.is_classico=isC;j.is_eliminatorio=isE;
+    j.p_coluna1=probs.p1;j.p_empate=probs.px;j.p_coluna2=probs.p2;
+    j.lambda_casa=probs.lambdaCasa;j.lambda_visit=probs.lambdaVisit;
+    j.classificacao=classe;j.resultado_sugerido=sug;j.cobertura=cob;
+    document.getElementById('sug-'+idx).value=sug;
+    document.getElementById('cob-'+idx).value=cob;
+    const badge=document.getElementById('classBadge-'+idx);
+    badge.className='ja-class-badge '+classe;badge.textContent=classe;
+    document.getElementById('probs-'+idx).innerHTML=`
+      <div class="ja-probs">
+        <span class="ja-prob c1">C1 <strong>${probs.p1}%</strong></span>
+        <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
+        <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
+        <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+      </div>`;
+    calculados++;
   });
 
-  try { atualizarCobResumo(); } catch(e) { console.error('atualizarCobResumo:', e); }
+  atualizarCobResumo();
   document.getElementById('pcProg').style.width='100%';
   document.getElementById('pcSub').textContent = calculados>0 ? `✓ ${calculados} jogo(s) calculado(s)` : '⚠ Preencha os scores ou fatores primeiro';
   document.getElementById('pcCur').textContent = calculados>0 ? 'Revise os resultados e clique em Salvar tudo.' : '';
@@ -874,21 +869,47 @@ async function salvarTudo() {
       document.getElementById('fbadges-'+idx+'-c').innerHTML = badgesForma(u5c);
       document.getElementById('fbadges-'+idx+'-v').innerHTML = badgesForma(u5v);
 
+      const isC = document.getElementById('classico-'+idx)?.checked || false;
+      const isE = document.getElementById('elim-'+idx)?.checked || false;
+
+      // Recalcular probabilidades e classificação a partir dos scores atuais
+      let p1 = j.p_coluna1, px = j.p_empate, p2 = j.p_coluna2;
+      let lCasa = j.lambda_casa, lVisit = j.lambda_visit;
+      let classe = j.classificacao, sug = j.resultado_sugerido, cob = j.cobertura;
+      if (!isNaN(sc) && !isNaN(sv)) {
+        const probs = calcProbs(sc, sv);
+        p1 = probs.p1; px = probs.px; p2 = probs.p2;
+        lCasa = probs.lambdaCasa; lVisit = probs.lambdaVisit;
+        classe = classificar(probs, isC, isE);
+        sug = sugerir(probs);
+        cob = coberturaPorClasse(classe);
+        // Atualizar DOM e objeto em memória
+        j.p_coluna1=p1; j.p_empate=px; j.p_coluna2=p2;
+        j.lambda_casa=lCasa; j.lambda_visit=lVisit;
+        j.classificacao=classe; j.resultado_sugerido=sug; j.cobertura=cob;
+        const elSug=document.getElementById('sug-'+idx); if(elSug) elSug.value=sug;
+        const elCob=document.getElementById('cob-'+idx); if(elCob) elCob.value=cob;
+        const badge=document.getElementById('classBadge-'+idx);
+        if(badge){badge.className='ja-class-badge '+classe;badge.textContent=classe;}
+        const elProbs=document.getElementById('probs-'+idx);
+        if(elProbs) elProbs.innerHTML=`<div class="ja-probs"><span class="ja-prob c1">C1 <strong>${p1}%</strong></span><span class="ja-prob px">X <strong>${px}%</strong></span><span class="ja-prob c2">C2 <strong>${p2}%</strong></span></div>`;
+      }
+
       const body = {
         score_casa:  isNaN(sc) ? null : sc,
         score_visit: isNaN(sv) ? null : sv,
-        is_classico: document.getElementById('classico-'+idx).checked,
-        is_eliminatorio: document.getElementById('elim-'+idx).checked,
-        resultado_sugerido: document.getElementById('sug-'+idx).value,
-        cobertura: document.getElementById('cob-'+idx).value,
-        classificacao: j.classificacao,
-        p_coluna1: j.p_coluna1, p_empate: j.p_empate, p_coluna2: j.p_coluna2,
-        lambda_casa: j.lambda_casa, lambda_visit: j.lambda_visit,
+        is_classico: isC,
+        is_eliminatorio: isE,
+        resultado_sugerido: document.getElementById('sug-'+idx)?.value || sug,
+        cobertura: document.getElementById('cob-'+idx)?.value || cob,
+        classificacao: classe,
+        p_coluna1: p1, p_empate: px, p_coluna2: p2,
+        lambda_casa: lCasa, lambda_visit: lVisit,
         fatores_casa:  JSON.stringify({ fatores: fatC, ultimos5: u5c }),
         fatores_visit: JSON.stringify({ fatores: fatV, ultimos5: u5v }),
         score_breakdown_casa:  Object.keys(fatC).length ? JSON.stringify(fatC) : j.score_breakdown_casa,
         score_breakdown_visit: Object.keys(fatV).length ? JSON.stringify(fatV) : j.score_breakdown_visit,
-        resumo: document.getElementById('resumo-'+idx).value || null,
+        resumo: document.getElementById('resumo-'+idx)?.value || null,
         revisado_editor: true,
         revisado_em: new Date().toISOString(),
       };
