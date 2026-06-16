@@ -165,8 +165,10 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:32px
 .sug-val.coluna2{background:rgba(196,69,45,0.12);color:#e07060;border:1px solid rgba(196,69,45,0.25);}
 .sug-val.triplo{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);}
 .cob-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);}
-.btn-expand{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);background:none;border:none;cursor:pointer;padding:2px 6px;transition:color 0.2s;}
-.btn-expand:hover{color:var(--amber);}
+.btn-expand{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.25);border-radius:2px;cursor:pointer;padding:4px 10px;transition:all 0.2s;font-weight:500;}
+.btn-expand:hover{background:rgba(212,168,75,0.18);border-color:var(--amber);}
+.sb-fator-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:2px;line-height:1.5;}
+.sb-fator-ref{font-family:var(--mono);font-size:8px;color:rgba(212,168,75,0.5);margin-top:1px;font-style:italic;}
 
 .res-badge{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:600;}
 .res-badge.coluna1{background:rgba(93,186,111,0.15);color:var(--emerald);}
@@ -789,13 +791,13 @@ function gerarVolante(cartaoId) {
 
 // ─── FATORES & FORMA ───────────────────────────────────────────────────────
 const FATORES_DEF = [
-  { k:'forca',      label:'Força relativa',  peso:25 },
-  { k:'forma',      label:'Forma recente',   peso:20 },
-  { k:'competicao', label:'Competição',      peso:20 },
-  { k:'mando',      label:'Mando de campo',  peso:15 },
-  { k:'h2h',        label:'H2H',             peso:10 },
-  { k:'motivacao',  label:'Motivação',       peso:7  },
-  { k:'odds',       label:'Odds mercado',    peso:3  },
+  { k:'forca',      label:'Força relativa',  peso:25, hint:'Ranking FIFA/CBF, valor de mercado e histórico de resultados.', ref:'Top 10 mundial ≈ 90–100 · seleção média ≈ 40–60 · fraca ≈ 10–30' },
+  { k:'forma',      label:'Forma recente',   peso:20, hint:'Desempenho nos últimos 5 jogos (vitórias, empates, gols).', ref:'V=100 · E=50 · D=0 — média ponderada com peso maior nos jogos recentes' },
+  { k:'competicao', label:'Competição',      peso:20, hint:'Fase e importância do jogo na competição.', ref:'Final/decisão = 30–45 · mata-mata = 40–60 · grupos = 55–70 · amistoso = 45–60' },
+  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Vantagem histórica de jogar em casa ou em campo neutro.', ref:'Clubes BR em casa ≈ 65–75 · campo neutro ≈ 50 · visitante forte ≈ 35–45' },
+  { k:'h2h',        label:'Histórico H2H',   peso:10, hint:'Resultado dos últimos confrontos diretos entre as equipes.', ref:'Domina = 80–95 · equilíbrio = 40–60 · costuma perder = 10–35' },
+  { k:'motivacao',  label:'Motivação',       peso:7,  hint:'Contexto e necessidade do resultado neste jogo.', ref:'Decisão de título/rebaixamento = 80–100 · neutro = 50 · poupar titulares = 15–30' },
+  { k:'odds',       label:'Odds mercado',    peso:3,  hint:'Validação com probabilidades das casas de apostas.', ref:'Odd 1.40 → 71% · 2.00 → 50% · 2.50 → 40% · 3.00 → 33%' },
 ];
 function getFatObj(j, lado) {
   let raw = lado === 'casa' ? j.fatores_casa : j.fatores_visit;
@@ -883,7 +885,11 @@ function renderJogo(jogo, timesMap, calcCartao) {
     const rows = FATORES_DEF.filter(f => bc[f.k] !== undefined || bv[f.k] !== undefined).map(f => {
       const vc = bc[f.k] ?? 0, vv = bv[f.k] ?? 0;
       return `<div class="sb-row">
-        <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span></span>
+        <div style="display:flex;flex-direction:column;min-width:0">
+          <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span></span>
+          ${f.hint ? `<span class="sb-fator-hint">${f.hint}</span>` : ''}
+          ${f.ref  ? `<span class="sb-fator-ref">${f.ref}</span>` : ''}
+        </div>
         <div class="sb-bars">
           <div class="sb-bar-bg" style="transform:scaleX(-1)"><div class="sb-bar-fill" style="width:${vc}%;background:${scoreColor(vc)}"></div></div>
           <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:${vv}%;background:${scoreColor(vv)}"></div></div>
@@ -946,7 +952,7 @@ function renderJogo(jogo, timesMap, calcCartao) {
         </div>`}
         <div style="display:flex;align-items:center;gap:8px">
           ${resBadge}
-          ${breakdownHtml ? `<button class="btn-expand" onclick="toggleBreakdown('${jogo.id}',this)">+ detalhes</button>` : ''}
+          ${breakdownHtml ? `<button class="btn-expand" onclick="toggleBreakdown('${jogo.id}',this)">+ DETALHES</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -956,7 +962,7 @@ function toggleBreakdown(id, btn) {
   const el = document.getElementById('bd-'+id);
   if (!el) return;
   const open = el.classList.toggle('open');
-  btn.textContent = open ? '− detalhes' : '+ detalhes';
+  btn.textContent = open ? '− DETALHES' : '+ DETALHES';
 }
 
 // ─── RENDER VISÃO GERAL ────────────────────────────────────────────────────
