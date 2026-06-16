@@ -2,7 +2,10 @@ name: Atualizar Historico de Loterias
 
 on:
   schedule:
-    - cron: '0 1 * * 2,3,4,5,6,0'
+    # 22h BRT = 01h UTC (dia seguinte) — logo após os sorteios
+    - cron: '0 1 * * *'
+    # 04h BRT = 07h UTC — garante o que ficou para trás na noite
+    - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       forcar_commit:
@@ -14,7 +17,7 @@ jobs:
   atualizar:
     name: Buscar concursos novos
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -28,8 +31,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Atualizar historicos
+      - name: Atualizar historicos (novos concursos)
         run: node scripts/atualizar-historico.js
+
+      - name: Reprocessar premiosJson vazios
+        run: node scripts/reprocessar-premios.js
 
       - name: Verificar mudancas
         id: check
@@ -62,46 +68,11 @@ jobs:
       - name: Deploy no Netlify
         if: steps.check.outputs.mudancas == 'true' || github.event.inputs.forcar_commit == 'true'
         run: |
-          echo "Disparando deploy no Netlify..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
-            "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITE_ID }}/deploys")
-          echo "Status da API Netlify: $RESPONSE"
-          if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "201" ]; then
-            echo "Deploy disparado com sucesso."
-          else
-            echo "Aviso: resposta inesperada da API ($RESPONSE). Verifique o painel do Netlify."
-          fi
-
-      - name: Deploy no Netlify via ZIP
-        if: steps.check.outputs.mudancas == 'true' || github.event.inputs.forcar_commit == 'true'
-        run: |
-          echo "Preparando deploy dos JSONs no Netlify..."
-
-          # Criar ZIP apenas com os 3 JSONs históricos para atualizar no Netlify
-          # O Netlify aceita deploy parcial via API com os arquivos individuais
-          
-          # Upload de cada JSON diretamente via Files API do Netlify
-          for arquivo in mega-sena-historico.json lotofacil-historico.json quina-historico.json; do
-            sha=$(openssl dgst -sha1 "$arquivo" | awk '{print $2}')
-            echo "Enviando $arquivo (SHA1: $sha)..."
-            
-            curl -s -X PUT \
-              "https://api.netlify.com/api/v1/deploys/${{ secrets.NETLIFY_SITE_ID }}/files/$arquivo" \
-              -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary "@$arquivo" \
-              -o /dev/null -w "  Status HTTP: %{http_code}\n" || echo "  Erro no upload de $arquivo"
-          done
-
-          # Disparar novo deploy do último estado do site
-          echo "Disparando rebuild do Netlify..."
           RESULT=$(curl -s -X POST \
             "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITE_ID }}/builds" \
             -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
             -H "Content-Type: application/json")
-          echo "Resposta: $(echo $RESULT | grep -o '"state":"[^"]*"' || echo 'deploy iniciado')"
+          echo "Deploy: $(echo $RESULT | grep -o '"state":"[^"]*"' || echo 'iniciado')"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -109,14 +80,11 @@ jobs:
       - name: Resumo
         if: always()
         run: |
-          echo "=== Estado atual dos JSONs ==="
           node -e "
             ['mega-sena','lotofacil','quina'].forEach(n => {
               try {
                 const d = JSON.parse(require('fs').readFileSync(n+'-historico.json'));
                 console.log(n+': concurso '+d.meta.ultimoConcurso+' | '+d.meta.totalConcursos+' draws | '+d.meta.ultimaData);
-              } catch(e) {
-                console.log(n+': arquivo nao encontrado');
-              }
+              } catch(e) { console.log(n+': erro'); }
             });
           "
