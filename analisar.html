@@ -1373,7 +1373,6 @@ function construirPremiosJson(loteriaId, rateio) {
   // Chave = texto que aparece no campo descricaoFaixa da API Caixa
   const mapaFaixa = {
     mega: {
-      // Sena / Quina / Quadra
       '6 acertos': { f: 's',   g: 'gs'  },
       'sena':      { f: 's',   g: 'gs'  },
       '5 acertos': { f: 'qn',  g: 'gqn' },
@@ -1387,16 +1386,27 @@ function construirPremiosJson(loteriaId, rateio) {
       '13 acertos': { f: '13', g: 'g13' },
       '12 acertos': { f: '12', g: 'g12' },
       '11 acertos': { f: '11', g: 'g11' },
+      // variações sem espaço
+      '15acertos':  { f: '15', g: 'g15' },
+      '14acertos':  { f: '14', g: 'g14' },
+      '13acertos':  { f: '13', g: 'g13' },
+      '12acertos':  { f: '12', g: 'g12' },
+      '11acertos':  { f: '11', g: 'g11' },
     },
     quina: {
-      '5 acertos': { f: '5', g: 'g5' },
-      'quina':     { f: '5', g: 'g5' },
-      '4 acertos': { f: '4', g: 'g4' },
-      'quadra':    { f: '4', g: 'g4' },
-      '3 acertos': { f: '3', g: 'g3' },
-      'terno':     { f: '3', g: 'g3' },
-      '2 acertos': { f: '2', g: 'g2' },
-      'duque':     { f: '2', g: 'g2' },
+      '5 acertos':  { f: '5', g: 'g5' },
+      'quina':      { f: '5', g: 'g5' },
+      '4 acertos':  { f: '4', g: 'g4' },
+      'quadra':     { f: '4', g: 'g4' },
+      '3 acertos':  { f: '3', g: 'g3' },
+      'terno':      { f: '3', g: 'g3' },
+      '2 acertos':  { f: '2', g: 'g2' },
+      'duque':      { f: '2', g: 'g2' },
+      // variações sem espaço
+      '5acertos':   { f: '5', g: 'g5' },
+      '4acertos':   { f: '4', g: 'g4' },
+      '3acertos':   { f: '3', g: 'g3' },
+      '2acertos':   { f: '2', g: 'g2' },
     }
   };
 
@@ -1413,8 +1423,14 @@ function construirPremiosJson(loteriaId, rateio) {
 
   rateio.forEach((x, i) => {
     // Tenta pelo descricaoFaixa primeiro
-    const desc = (x.descricaoFaixa || x.faixa || '').toLowerCase().trim();
-    const entrada = mapF && (mapF[desc] || Object.entries(mapF).find(([k]) => desc.includes(k))?.[1]);
+    const descRaw = (x.descricaoFaixa || x.faixa || '').toLowerCase().trim();
+    const desc = descRaw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+    const descSemEsp = desc.replace(/\s/g, '');
+    const entrada = mapF && (
+      mapF[desc] ||
+      mapF[descSemEsp] ||
+      Object.entries(mapF).find(([k]) => desc.includes(k) || descSemEsp.includes(k))?.[1]
+    );
 
     if (entrada) {
       p[entrada.f] = x.valorPremio ?? x.valor ?? 0;
@@ -2118,10 +2134,10 @@ function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml, data)
   // Determina a chave correspondente à faixa do usuário
   const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
 
-  // Aviso de moeda pré-Real
+  // Aviso de moeda pré-Real (valor já convertido em formatarMoeda)
   const avisoMoeda = preReal
     ? `<div style="font-family:var(--mono);font-size:9px;color:var(--amber);background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.2);border-radius:3px;padding:4px 8px;margin-bottom:8px">
-        ⚠ Concurso anterior ao Plano Real (01/07/1994). Valores em Cruzeiro Real (CR$) — moeda da época, não comparável ao R$ atual.
+        ⚠ Concurso anterior ao Plano Real (01/07/1994). Valores convertidos de Cruzeiro Real ÷ 1000.
        </div>`
     : '';
 
@@ -2157,111 +2173,90 @@ async function buscarRateios(premiados, cfg) {
 
 async function buscarRateioUnico(concurso, cfg) {
   const loadingEl = document.getElementById('rateio-loading-' + concurso);
-  const dataEl = document.getElementById('rateio-data-' + concurso);
+  const dataEl    = document.getElementById('rateio-data-'    + concurso);
   if (!loadingEl || !dataEl) return;
 
-  const userSet = new Set(window._comboAtual || []);
-  const dezenasEntry = (window._dezenasMap || {})[concurso] || [];
-  const dataEntry = (window._datasMap || {})[concurso] || null;
-  const dezenasHtml = renderDezenasCard(dezenasEntry, userSet, cfg);
-  const acertosUsuario = (window._acertosMap || {})[concurso] || 0;
-
-  // 1. Tentar premiosJson já injetado em memória (concursos recentes sincronizados)
+  const userSet      = new Set(window._comboAtual || []);
+  const dezenas      = (window._dezenasMap    || {})[concurso] || [];
+  const dataEntry    = (window._datasMap      || {})[concurso] || null;
+  const acertos      = (window._acertosMap    || {})[concurso] || 0;
   const premiosInMem = (window._premiosMemMap || {})[concurso];
-  if (premiosInMem && Object.keys(premiosInMem).length > 0) {
+  const dezenasHtml  = renderDezenasCard(dezenas, userSet, cfg);
+
+  function mostrar(premiosJson) {
+    // Atualiza objeto premiado para recalcular total
+    const premiado = (window._premiadosAtual || []).find(p => p.concurso === concurso);
+    if (premiado && premiosJson && Object.keys(premiosJson).length > 0) {
+      premiado.premiosJson = premiosJson;
+      renderTotalPremiado(window._premiadosAtual, true, cfg);
+    }
     loadingEl.style.display = 'none';
-    dataEl.innerHTML = renderRateioDoJson(premiosInMem, acertosUsuario, cfg, dezenasHtml, dataEntry).replace('<div class="award-rateio" style="display:block">', '<div class="award-rateio" style="display:block">').replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
-    // Simpler: just render the grid directly
-    const chaves = CHAVES_PREMIO[cfg.id] || [];
-    const nomesG = CHAVES_GANHADORES[cfg.id] || {};
-    const nomes  = NOMES_FAIXA[cfg.id] || {};
-    const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
-    const preReal = dataEntry && dataEntry < DATA_PLANO_REAL;
-    const avisoMoeda = preReal ? `<div style="font-family:var(--mono);font-size:9px;color:var(--amber);background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.2);border-radius:3px;padding:4px 8px;margin-bottom:8px">⚠ Concurso anterior ao Plano Real. Valores em Cruzeiro Real (CR$).</div>` : '';
-    const itens = chaves.filter(k => premiosInMem[k] !== undefined).map(k => {
-      const valor = premiosInMem[k];
-      const chaveG = nomesG[k];
-      const ganhadores = chaveG ? (premiosInMem[chaveG] ?? '—') : '—';
-      const isDestaque = k === chaveUsuario;
-      return `<div class="rateio-item${isDestaque ? ' destaque' : ''}">
-        <div class="rateio-faixa">${nomes[k] || k}</div>
-        <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
-        <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
-      </div>`;
-    }).join('');
-    dataEl.innerHTML = `${avisoMoeda}<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
+    const html = renderRateioDoJson(premiosJson, acertos, cfg, dezenasHtml, dataEntry);
+    // renderRateioDoJson retorna <div class="award-rateio"...>conteudo</div>
+    // Queremos só o conteúdo interno
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const inner = tmp.querySelector('.award-rateio');
+    dataEl.innerHTML = inner ? inner.innerHTML : html;
     dataEl.style.display = 'block';
+  }
+
+  // 1. premiosJson já em memória e não vazio
+  if (premiosInMem && Object.keys(premiosInMem).length > 0) {
+    mostrar(premiosInMem);
     return;
   }
 
-  // 2. Tentar API Caixa diretamente (concursos recentes — CORS aberto)
+  // 2. API Caixa direta (CORS aberto, mais confiável para recentes)
   try {
     const CAIXA_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
-    const res = await fetch(`${CAIXA_BASE}/${cfg.caixaSlug}/${concurso}`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(`${CAIXA_BASE}/${cfg.caixaSlug}/${concurso}`,
+      { signal: AbortSignal.timeout(8000) });
     if (res.ok) {
-      const dados = await res.json();
+      const dados  = await res.json();
       const rateio = dados.listaRateioPremio || [];
-      loadingEl.style.display = 'none';
-      if (rateio.length) {
-        const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
-        const itens = rateio.map(item => {
-          const faixa = item.descricaoFaixa || item.faixa || '';
-          const ganhadores = item.numeroDeGanhadores ?? item.ganhadores ?? '—';
-          const valor = item.valorPremio ?? item.premio ?? 0;
-          const isDestaque = faixa.toLowerCase().includes(getNomeFaixa(acertosUsuario, cfg).toLowerCase());
-          return `<div class="rateio-item${isDestaque ? ' destaque' : ''}">
-            <div class="rateio-faixa">${faixa}</div>
-            <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
-            <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
-          </div>`;
-        }).join('');
-        dataEl.innerHTML = `<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
-        dataEl.style.display = 'block';
+      if (rateio.length > 0) {
+        const premios = construirPremiosJson(cfg.id, rateio);
+        if (window._premiosMemMap) window._premiosMemMap[concurso] = premios;
+        mostrar(premios);
         return;
       }
     }
-  } catch(_) { /* fallback para Netlify Function */ }
+  } catch(_) { /* fallback Netlify */ }
 
-  // 3. Fallback: Netlify Function resultado
+  // 3. Netlify Function (fallback para concursos antigos)
   try {
     const url = `/.netlify/functions/resultado?loteria=${cfg.caixaSlug}&concurso=${concurso}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    loadingEl.style.display = 'none';
-    const rateio = data.listaRateioPremio || data.premiacoes || [];
-    if (!rateio.length) {
-      dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Dados de rateio não disponíveis.</div></div>`;
-      dataEl.style.display = 'block';
-      return;
+    if (res.ok) {
+      const data   = await res.json();
+      const rateio = data.listaRateioPremio || data.premiacoes || [];
+      if (rateio.length > 0) {
+        const premios = construirPremiosJson(cfg.id, rateio);
+        mostrar(premios);
+        return;
+      }
     }
-    const itens = rateio.map(item => {
-      const faixa = item.descricaoFaixa || item.faixa || '';
-      const ganhadores = item.numeroDeGanhadores ?? item.ganhadores ?? '—';
-      const valor = item.valorPremio ?? item.premio ?? 0;
-      return `<div class="rateio-item">
-        <div class="rateio-faixa">${faixa}</div>
-        <div class="rateio-val">${formatarMoeda(valor, dataEntry)}</div>
-        <div class="rateio-ganhadores">${ganhadores} ganhador${ganhadores != 1 ? 'es' : ''}</div>
-      </div>`;
-    }).join('');
-    dataEl.innerHTML = `<div class="rateio-grid">${itens}${dezenasHtml}</div>`;
-    dataEl.style.display = 'block';
-  } catch(e) {
-    loadingEl.style.display = 'none';
-    dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Rateio não disponível (${e.message}).</div></div>`;
-    dataEl.style.display = 'block';
-  }
-}
+  } catch(_) {}
 
+  // Sem dados
+  loadingEl.style.display = 'none';
+  dataEl.innerHTML = `<div class="rateio-grid">${dezenasHtml}<div class="rateio-error">Rateio não disponível para este concurso.</div></div>`;
+  dataEl.style.display = 'block';
+}
 function formatarMoeda(valor, data) {
   if (!valor && valor !== 0) return '—';
   const n = typeof valor === 'string' ? parseFloat(valor.replace(',', '.')) : valor;
   if (isNaN(n)) return valor;
-  // Concursos anteriores ao Plano Real (01/07/1994) usavam Cruzeiro Real (CR$)
+  // Concursos anteriores ao Plano Real (01/07/1994): converter dividindo por 1000
+  // Taxa de conversão Cruzeiro Real → Real = 1000:1 (em 01/07/1994)
   const preReal = data && data < DATA_PLANO_REAL;
-  const prefixo = preReal ? 'CR$\u00a0' : 'R$\u00a0';
-  return prefixo + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (preReal) {
+    const convertido = n / 1000;
+    return 'R$\u00a0' + convertido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      + ' <span style="font-size:9px;color:var(--ink-faint);font-family:var(--mono)">(valor original em CR$, convertido ÷1000)</span>';
+  }
+  return 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 </script>
 </body>
