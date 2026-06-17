@@ -837,9 +837,9 @@
            loading="eager">
     </div>
     <h1 style="display:none;" aria-hidden="false">Palpit<em>ia</em>r</h1>
-    <div class="hero-desc">Combinações geradas por <strong>Inteligência Artificial</strong> com base na análise estatística da série histórica completa de cada loteria — padrões, frequências, paridade e distribuição calculados sobre mais de 13.700 concursos reais.</div>
+    <div class="hero-desc">Combinações geradas por <strong>Inteligência Artificial</strong> com base na análise estatística da série histórica completa de cada loteria — padrões, frequências, paridade e distribuição calculados sobre mais de <span id="hero-total-concursos">13.700</span> concursos reais.</div>
     <div class="hero-stats">
-      <span><strong>13.730+</strong> concursos analisados</span>
+      <span><strong id="stat-total-concursos">13.730+</strong> concursos analisados</span>
       <span><strong>100%</strong> gratuito</span>
     </div>
   </section>
@@ -1028,7 +1028,7 @@
       <div class="card-top-line"></div>
       <div class="card-tag">⬡ Mega-Sena</div>
       <h2 class="card-title">Mega <em>·</em><br>Sena</h2>
-      <div class="card-sub">1996–hoje · 3.009 concursos</div>
+      <div class="card-sub" id="ms-card-sub">1996–hoje · 3.009 concursos</div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinações</div>
@@ -1055,7 +1055,7 @@
       <div class="card-top-line"></div>
       <div class="card-tag">⬡ Lotofácil</div>
       <h2 class="card-title">Loto<em>fácil</em></h2>
-      <div class="card-sub">2003–hoje · 3.690 concursos</div>
+      <div class="card-sub" id="lf-card-sub">2003–hoje · 3.690 concursos</div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinações</div>
@@ -1084,7 +1084,7 @@
       <div class="card-top-line"></div>
       <div class="card-tag">&#x2B21; Quina</div>
       <h2 class="card-title">Qui<em>na</em></h2>
-      <div class="card-sub">1994&ndash;hoje &middot; 7.031 concursos</div>
+      <div class="card-sub" id="qn-card-sub">1994&ndash;hoje &middot; 7.031 concursos</div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinacoes</div>
@@ -1342,6 +1342,70 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== CONTADORES DINÂMICOS — busca nº de concursos na API Caixa ===== -->
+  <script>
+  (function() {
+    'use strict';
+    var APIS = {
+      ms: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/megasena/',
+      lf: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil/',
+      qn: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina/'
+    };
+
+    function fmt(n) { return n.toLocaleString('pt-BR'); }
+
+    function fetchJSON(url) {
+      return fetch(url, { cache: 'no-cache' }).then(function(r) { return r.json(); });
+    }
+
+    Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn)])
+      .then(function(resultados) {
+        var numMS = parseInt(resultados[0].numero) || 0;
+        var numLF = parseInt(resultados[1].numero) || 0;
+        var numQN = parseInt(resultados[2].numero) || 0;
+        var total = numMS + numLF + numQN;
+
+        /* Cards individuais */
+        if (numMS) {
+          var elMS = document.getElementById('ms-card-sub');
+          if (elMS) elMS.textContent = '1996\u2013hoje \u00b7 ' + fmt(numMS) + ' concursos';
+        }
+        if (numLF) {
+          var elLF = document.getElementById('lf-card-sub');
+          if (elLF) elLF.textContent = '2003\u2013hoje \u00b7 ' + fmt(numLF) + ' concursos';
+        }
+        if (numQN) {
+          var elQN = document.getElementById('qn-card-sub');
+          if (elQN) elQN.textContent = '1994\u2013hoje \u00b7 ' + fmt(numQN) + ' concursos';
+        }
+
+        /* Hero: arredonda para a centena abaixo e exibe com "+" */
+        if (total) {
+          var totalArred = Math.floor(total / 100) * 100;
+          var totalStr   = fmt(totalArred) + '+';
+
+          var elHeroStat = document.getElementById('stat-total-concursos');
+          if (elHeroStat) elHeroStat.textContent = totalStr;
+
+          var elHeroDesc = document.getElementById('hero-total-concursos');
+          if (elHeroDesc) elHeroDesc.textContent = fmt(totalArred);
+
+          /* Meta tags (SEO) */
+          var metas = document.querySelectorAll(
+            'meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]'
+          );
+          metas.forEach(function(m) {
+            var c = m.getAttribute('content') || '';
+            m.setAttribute('content',
+              c.replace(/13[\.\d]+\+?\s*concursos/g, totalStr + ' concursos')
+            );
+          });
+        }
+      })
+      .catch(function() { /* falha silenciosa — mantém valores hardcoded */ });
+  })();
+  </script>
 
   <script>
   /* ===== LGPD COOKIE CONSENT ===== */
