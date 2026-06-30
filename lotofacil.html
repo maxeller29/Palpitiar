@@ -306,7 +306,7 @@
   .strategy-section { margin-bottom: 32px; }
   .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
   .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-  .strategies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .strategies { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .strategy { border: 1px solid var(--line); background: rgba(18,32,18,0.3); padding: 20px 22px; cursor: pointer; border-radius: 2px; transition: all 0.25s; text-align: left; color: inherit; font-family: inherit; }
   .strategy:hover { border-color: rgba(137,37,137,0.35); transform: translateY(-2px); }
   .strategy.active { border-color: var(--purple); background: rgba(137,37,137,0.06); }
@@ -864,14 +864,9 @@
     <section class="strategy-section">
       <div class="section-label">Estratégia de geração</div>
       <div class="strategies">
-        <button class="strategy" data-strategy="conservadora">
-          <div class="strat-name">Conservadora</div>
-          <div class="strat-desc">Segue os padrões mais frequentes. Cartões equilibrados por faixa, paridade e soma histórica.</div>
-          <div class="strat-tag">Padrão típico</div>
-        </button>
         <button class="strategy active" data-strategy="equilibrada">
           <div class="strat-name">Equilibrada</div>
-          <div class="strat-desc">Combina dezenas quentes, frias e atrasadas. Máxima diversificação mantendo equilíbrio estatístico.</div>
+          <div class="strat-desc">Segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas. Cartões equilibrados por faixa, paridade e soma.</div>
           <div class="strat-tag">Recomendada</div>
         </button>
         <button class="strategy" data-strategy="contrarian">
@@ -1031,8 +1026,8 @@
           <p>Cada cartão é validado por: soma das dezenas (166–224), entre 5 e 9 pares, pelo menos 1 dezena em cada faixa de 5, máximo de 8 consecutivas — todos calibrados com 3.690 sorteios.</p>
         </div>
         <div class="hiw-item">
-          <h3>Três estratégias</h3>
-          <p>Conservadora (padrões mais frequentes), Equilibrada (mix de perfis) ou Arrojada (dezenas menos jogadas pelos apostadores, para reduzir rateio caso ganhe).</p>
+          <h3>Duas estratégias</h3>
+          <p>Equilibrada (segue os padrões da série histórica, recomendada) ou Arrojada (dezenas menos jogadas pelos apostadores, para reduzir rateio caso ganhe).</p>
         </div>
         <div class="hiw-item">
           <h3>Unicidade verificada</h3>
@@ -1268,7 +1263,7 @@ function qualidadeCartao(dz, estrategia) {
   // 1. Soma proporcional
   const sMin = HIST.soma_min * fator;
   const sMax = HIST.soma_max * fator;
-  const margem = estrategia === 'conservadora' ? 8*fator : estrategia === 'equilibrada' ? 12*fator : 20*fator;
+  const margem = estrategia === 'equilibrada' ? 12*fator : 20*fator;
   if (a.soma < sMin - margem || a.soma > sMax + margem) return false;
 
   // 2. Paridade proporcional
@@ -1349,9 +1344,7 @@ function sampleSemReposicao(pesos, k) {
 
 function escolherPerfil(estrategia) {
   const r = Math.random();
-  if (estrategia === 'conservadora') {
-    if (r < 0.65) return 'equilibrado'; if (r < 0.90) return 'quente'; return 'atrasado';
-  } else if (estrategia === 'contrarian') {
+  if (estrategia === 'contrarian') {
     if (r < 0.40) return 'frio'; if (r < 0.65) return 'atrasado'; if (r < 0.85) return 'equilibrado'; return 'quente';
   } else {
     if (r < 0.45) return 'equilibrado'; if (r < 0.65) return 'quente'; if (r < 0.80) return 'frio'; return 'atrasado';
@@ -1536,8 +1529,7 @@ function renderReport(cartoes, dezenasPorCartao, estrategia) {
     `<span class="freq-pill cold">${String(n).padStart(2,'0')} · ${STATS.freq[n]}×</span>`
   ).join('');
   const desc = {
-    conservadora: 'segue os padrões mais frequentes, priorizando dezenas quentes e distribuições típicas',
-    equilibrada:  'mistura perfis (equilibrado 45%, quente 20%, frio 15%, atrasado 20%)',
+    equilibrada:  'segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas (equilibrado 45%, quente 20%, frio 15%, atrasado 20%)',
     contrarian:   'aposta de forma arrojada, privilegia dezenas frias e atrasadas para reduzir rateio caso ganhe'
   }[estrategia];
 

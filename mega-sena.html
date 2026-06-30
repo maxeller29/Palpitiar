@@ -314,7 +314,7 @@
   .strategy-section { margin-bottom: 32px; }
   .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
   .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-  .strategies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .strategies { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .strategy { border: 1px solid var(--line); background: rgba(15,36,25,0.3); padding: 20px 22px; cursor: pointer; border-radius: 2px; transition: all 0.25s; text-align: left; color: inherit; font-family: inherit; }
   .strategy:hover { border-color: rgba(212,168,75,0.4); transform: translateY(-2px); }
   .strategy.active { border-color: var(--gold); background: rgba(212,168,75,0.08); }
@@ -1070,14 +1070,9 @@
     <section class="strategy-section">
       <div class="section-label">Estratégia de geração</div>
       <div class="strategies" id="strategies">
-        <button class="strategy" data-strategy="conservadora">
-          <div class="strat-name">Conservadora</div>
-          <div class="strat-desc">Segue os padrões mais frequentes da série histórica. Cartões equilibrados e tradicionais.</div>
-          <div class="strat-tag">Padrão típico</div>
-        </button>
         <button class="strategy active" data-strategy="equilibrada">
           <div class="strat-name">Equilibrada</div>
-          <div class="strat-desc">Combina padrões frequentes com diversificação. Mistura dezenas quentes, frias e atrasadas.</div>
+          <div class="strat-desc">Segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas. Cartões equilibrados e diversificados.</div>
           <div class="strat-tag">Recomendada</div>
         </button>
         <button class="strategy" data-strategy="contrarian">
@@ -1471,9 +1466,7 @@ function qualidadeCartao(dz, estrategia) {
   // Soma: janela proporcional
   const somaMinExp = HISTORICAL_PROFILE.soma_otima.min * fator;
   const somaMaxExp = HISTORICAL_PROFILE.soma_otima.max * fator;
-  if (estrategia === 'conservadora') {
-    if (a.soma < somaMinExp + 10*fator || a.soma > somaMaxExp - 10*fator) return false;
-  } else if (estrategia === 'equilibrada') {
+  if (estrategia === 'equilibrada') {
     if (a.soma < somaMinExp - 5*fator || a.soma > somaMaxExp + 5*fator) return false;
   } else {
     if (a.soma < somaMinExp - 20*fator || a.soma > somaMaxExp + 20*fator) return false;
@@ -1554,11 +1547,7 @@ function sampleSemReposicao(pesos, k) {
 
 function escolherPerfil(estrategia) {
   const r = Math.random();
-  if (estrategia === 'conservadora') {
-    if (r < 0.65) return 'equilibrado';
-    if (r < 0.95) return 'quente';
-    return 'atrasado';
-  } else if (estrategia === 'contrarian') {
+  if (estrategia === 'contrarian') {
     if (r < 0.35) return 'frio';
     if (r < 0.65) return 'atrasado';
     if (r < 0.85) return 'equilibrado';
@@ -1811,8 +1800,7 @@ function renderReport(cartoes, dezenasPorCartao, estrategia) {
     `<span class="freq-pill cold">${String(n).padStart(2,'0')} · ${STATS.freq[n]}×</span>`
   ).join('');
   const desc = {
-    'conservadora': 'segue padrões mais frequentes, priorizando dezenas quentes e distribuições típicas',
-    'equilibrada': 'mistura perfis (equilibrado 45%, quente 20%, frio 15%, atrasado 20%) para máxima diversificação',
+    'equilibrada': 'segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas (equilibrado 45%, quente 20%, frio 15%, atrasado 20%) para máxima diversificação',
     'contrarian': 'aposta de forma arrojada, fugindo dos padrões comuns escolhidos por outros apostadores, privilegiando dezenas frias e atrasadas'
   }[estrategia];
 
