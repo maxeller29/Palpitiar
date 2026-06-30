@@ -170,6 +170,17 @@
     font-weight: 700;
     box-shadow: 0 2px 0 0 #6b8cda;
   }
+  /* Loteca ativo */
+  .site-nav-link.lc { color: rgba(15,122,58,0.75); }
+  .site-nav-link.lc:hover, .site-nav-link.lc-active {
+    color: #0f7a3a !important;
+    background: rgba(15,122,58,0.1) !important;
+    border-color: rgba(15,122,58,0.35) !important;
+  }
+  .site-nav-link.lc-active {
+    font-weight: 700;
+    box-shadow: 0 2px 0 0 #0f7a3a;
+  }
   .site-nav-link.lf:hover, .site-nav-link.lf-active {
     color: var(--purple); border-color: rgba(137,37,137,0.28);
     background: rgba(107,27,107,0.05);
@@ -790,6 +801,7 @@
       <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
       <a class="site-nav-link lf lf-active" href="lotofacil.html">Lotofácil</a>
       <a class="site-nav-link qn" href="quina.html">Quina</a>
+          <a class="site-nav-link lc" href="loteca.html">Loteca</a>
           <a class="site-nav-link" href="/analisar.html">Analisador</a>
           <a class="site-nav-link" href="/blog.html">Blog</a>
     </div>
