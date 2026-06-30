@@ -488,7 +488,7 @@ h1 em { color: var(--gold); font-style: normal; }
 /* ─── MÉTRICAS ────────────────────────────── */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1px;
   background: var(--line);
   border-bottom: 1px solid var(--line);
@@ -1187,8 +1187,15 @@ const LOTERIAS = {
     caixaSlug: 'megasena',
     faixas: { 4: 'Quadra', 5: 'Quina', 6: 'Sena' },
     minAcertos: 4,
-    somaIdeal: [100, 220],
-    parIdeal: [2, 4],
+    somaIdeal: [155, 211],
+    parIdeal: [3, 3],
+    parOk: [2, 4],
+    consecMax: 1,
+    maxSeqHard: 4,
+    gruposMin: 4,
+    gruposIdeal: 5,
+    ampIdeal: [38, 51],
+    termMax: 2,
     grupos: 5, // grupos de 12 dezenas
     descFaixas: ['1–12', '13–24', '25–36', '37–48', '49–60'],
     grupoTam: 12,
@@ -1202,8 +1209,15 @@ const LOTERIAS = {
     caixaSlug: 'lotofacil',
     faixas: { 11: '11 acertos', 12: '12 acertos', 13: '13 acertos', 14: '14 acertos', 15: '15 acertos' },
     minAcertos: 11,
-    somaIdeal: [140, 225],
-    parIdeal: [6, 9],
+    somaIdeal: [183, 208],
+    parIdeal: [7, 8],
+    parOk: [6, 9],
+    consecMax: 5,
+    maxSeqHard: 7,
+    gruposMin: 5,
+    gruposIdeal: 5,
+    ampIdeal: [23, 24],
+    termMax: 2,
     grupos: 5,
     descFaixas: ['1–5', '6–10', '11–15', '16–20', '21–25'],
     grupoTam: 5,
@@ -1217,8 +1231,15 @@ const LOTERIAS = {
     caixaSlug: 'quina',
     faixas: { 2: 'Duque', 3: 'Terno', 4: 'Quadra', 5: 'Quina' },
     minAcertos: 2,
-    somaIdeal: [100, 290],
+    somaIdeal: [167, 237],
     parIdeal: [2, 3],
+    parOk: [1, 4],
+    consecMax: 1,
+    maxSeqHard: 3,
+    gruposMin: 4,
+    gruposIdeal: 5,
+    ampIdeal: [45, 65],
+    termMax: 2,
     grupos: 8,
     descFaixas: ['1–10', '11–20', '21–30', '31–40', '41–50', '51–60', '61–70', '71–80'],
     grupoTam: 10,
@@ -1655,42 +1676,100 @@ function analisarCombo(combo, historico, cfg) {
   }
   const gruposUsados = Object.values(grupos).filter(v => v > 0).length;
 
-  // ── 5. Consecutivos ───────────────────────────────────
-  let consecutivos = 0;
-  for (let i = 1; i < combo.length; i++) {
-    if (combo[i] - combo[i-1] === 1) consecutivos++;
+  // ── 5. Sequências consecutivas ────────────────────────
+  // comboOrd garante ordenação para medir sequências corretamente
+  const comboOrd = [...combo].sort((a, b) => a - b);
+  let consecutivos = 0;       // total de pares seguidos (informativo)
+  let maiorSeq = 1;           // maior sequência ininterrupta (ex: 3-4-5 = 3)
+  let run = 1;
+  for (let i = 1; i < comboOrd.length; i++) {
+    if (comboOrd[i] - comboOrd[i-1] === 1) {
+      consecutivos++;
+      run++;
+      if (run > maiorSeq) maiorSeq = run;
+    } else {
+      run = 1;
+    }
   }
 
-  // ── 6. Pontuação geral (0-100) ────────────────────────
-  let score = 50;
+  // ── 6. Amplitude (max − min) ──────────────────────────
+  const amplitude = comboOrd[comboOrd.length - 1] - comboOrd[0];
 
-  // Frequência média (±15 pontos)
-  if (freqPctMedio >= 40 && freqPctMedio <= 80) score += 15;
-  else if (freqPctMedio >= 25 && freqPctMedio <= 90) score += 7;
-  else score -= 10;
+  // ── 7. Repetição de terminações (mesmo dígito final) ──
+  const termContagem = {};
+  for (const n of comboOrd) {
+    const t = n % 10;
+    termContagem[t] = (termContagem[t] || 0) + 1;
+  }
+  const termMaxRepet = Math.max(...Object.values(termContagem));
 
-  // Paridade (±15 pontos)
+  // ── 8. Pontuação geral (0-100) ────────────────────────
+  // Modelo por critérios ponderados pela criticidade + vetos rígidos.
+  // Pesos: dispersão (grupos) e sequência são os sinais mais fortes.
+  let score = 10; // base
+  const detalhes = {};
+
+  // Grupos / dispersão (peso 20) — o sinal mais forte de equilíbrio
+  if (gruposUsados >= cfg.gruposIdeal) { score += 20; detalhes.grupos = 'ideal'; }
+  else if (gruposUsados >= cfg.gruposMin) { score += 11; detalhes.grupos = 'bom'; }
+  else if (gruposUsados >= cfg.gruposMin - 1) { score += 3; detalhes.grupos = 'limitado'; }
+  else { score -= 12; detalhes.grupos = 'concentrado'; }
+
+  // Maior sequência ininterrupta (peso 18)
+  if (maiorSeq <= cfg.consecMax) { score += 18; detalhes.seq = 'ideal'; }
+  else if (maiorSeq <= cfg.consecMax + 1) { score += 10; detalhes.seq = 'aceitavel'; }
+  else if (maiorSeq <= cfg.maxSeqHard) { score -= 4; detalhes.seq = 'alto'; }
+  else { score -= 22; detalhes.seq = 'critico'; }
+
+  // Paridade (peso 16)
   const [pMin, pMax] = cfg.parIdeal;
-  if (pares >= pMin && pares <= pMax) score += 15;
-  else if (pares >= pMin - 1 && pares <= pMax + 1) score += 7;
-  else score -= 8;
+  const [poMin, poMax] = cfg.parOk;
+  if (pares >= pMin && pares <= pMax) { score += 16; detalhes.par = 'ideal'; }
+  else if (pares >= poMin && pares <= poMax) { score += 8; detalhes.par = 'ok'; }
+  else { score -= 10; detalhes.par = 'ruim'; }
 
-  // Soma (±15 pontos)
+  // Soma (peso 16)
   const [sMin, sMax] = cfg.somaIdeal;
-  if (soma >= sMin && soma <= sMax) score += 15;
-  else if (soma >= sMin - (sMax-sMin)*0.1 && soma <= sMax + (sMax-sMin)*0.1) score += 7;
-  else score -= 10;
+  const sRng = sMax - sMin;
+  if (soma >= sMin && soma <= sMax) { score += 16; detalhes.soma = 'ideal'; }
+  else if (soma >= sMin - sRng*0.4 && soma <= sMax + sRng*0.4) { score += 7; detalhes.soma = 'ok'; }
+  else { score -= 10; detalhes.soma = soma < sMin ? 'baixa' : 'alta'; }
 
-  // Distribuição de grupos (±5 pontos)
-  const grupoIdeal = Math.ceil(cfg.qtd / cfg.grupos);
-  if (gruposUsados >= Math.floor(cfg.grupos * 0.6)) score += 5;
-  else score -= 5;
+  // Frequência média (peso 14)
+  if (freqPctMedio >= 38 && freqPctMedio <= 72) { score += 14; detalhes.freq = 'ideal'; }
+  else if (freqPctMedio >= 28 && freqPctMedio <= 82) { score += 7; detalhes.freq = 'ok'; }
+  else if (freqPctMedio >= 18 && freqPctMedio <= 90) { score += 2; detalhes.freq = 'limite'; }
+  else { score -= 6; detalhes.freq = 'extrema'; }
+
+  // Amplitude (peso 10)
+  const [aMin, aMax] = cfg.ampIdeal;
+  if (amplitude >= aMin && amplitude <= aMax) { score += 10; detalhes.amp = 'ideal'; }
+  else if (amplitude >= aMin*0.8) { score += 4; detalhes.amp = 'ok'; }
+  else { score -= 8; detalhes.amp = 'estreita'; }
+
+  // Terminações repetidas (peso 6)
+  if (termMaxRepet <= cfg.termMax) { score += 6; detalhes.term = 'ok'; }
+  else if (termMaxRepet <= cfg.termMax + 1) { score += 2; detalhes.term = 'limite'; }
+  else { score -= 6; detalhes.term = 'repetido'; }
 
   score = Math.max(0, Math.min(100, score));
 
+  // ── VETOS (teto rígido) ───────────────────────────────
+  // Padrões patológicos não podem ser classificados como boas,
+  // independentemente de acertarem outros critérios.
+  const vetos = [];
+  if (maiorSeq > cfg.maxSeqHard) {
+    score = Math.min(score, 28);
+    vetos.push('sequencia');
+  }
+  if (gruposUsados <= Math.max(1, cfg.gruposMin - 2)) {
+    score = Math.min(score, 35);
+    vetos.push('concentracao');
+  }
+
   let classificacao;
-  if (score >= 65) classificacao = 'boa';
-  else if (score >= 40) classificacao = 'media';
+  if (score >= 72) classificacao = 'boa';
+  else if (score >= 45) classificacao = 'media';
   else classificacao = 'fraca';
 
   // ── 7. Buscar premiações na série histórica ───────────
@@ -1742,7 +1821,8 @@ function analisarCombo(combo, historico, cfg) {
     freqCombo, freqPctMedio, freqMap, maxFreq, minFreq, total,
     pares, impares, soma,
     grupos, gruposUsados,
-    consecutivos,
+    consecutivos, maiorSeq, amplitude, termMaxRepet,
+    detalhes, vetos,
     premiados: premiadosFinal,
     temPremiosNoJson,
     ultimoConcurso
@@ -1770,17 +1850,26 @@ function renderReport(combo, r, cfg) {
     media: 'Alguns critérios fora do padrão histórico',
     fraca: 'Diverge dos padrões mais frequentes da ' + cfg.nome
   };
+  // Mensagem específica quando um veto foi acionado (padrão patológico)
+  let subTexto = subs[r.classificacao];
+  if (r.vetos && r.vetos.length > 0) {
+    const motivos = [];
+    if (r.vetos.includes('sequencia')) motivos.push('sequência longa de dezenas seguidas');
+    if (r.vetos.includes('concentracao')) motivos.push('dezenas concentradas em poucas faixas');
+    subTexto = 'Padrão muito raro nos sorteios reais: ' + motivos.join(' e ') + '.';
+  }
   document.getElementById('class-icon').textContent = icons[r.classificacao];
   document.getElementById('class-label').textContent = labels[r.classificacao];
   document.getElementById('class-title').textContent = titles[r.classificacao];
-  document.getElementById('class-sub').textContent = subs[r.classificacao];
+  document.getElementById('class-sub').textContent = subTexto;
   document.getElementById('class-score').textContent = r.score;
 
   // Métricas
   const somaOk = r.soma >= cfg.somaIdeal[0] && r.soma <= cfg.somaIdeal[1];
-  const parOk = r.pares >= cfg.parIdeal[0] && r.pares <= cfg.parIdeal[1];
-  const freqOk = r.freqPctMedio >= 30 && r.freqPctMedio <= 85;
-  const grupoOk = r.gruposUsados >= Math.floor(cfg.grupos * 0.6);
+  const parOk = r.pares >= cfg.parOk[0] && r.pares <= cfg.parOk[1];
+  const freqOk = r.freqPctMedio >= 28 && r.freqPctMedio <= 82;
+  const grupoOk = r.gruposUsados >= cfg.gruposMin;
+  const seqOk = r.maiorSeq <= cfg.consecMax + 1;
 
   document.getElementById('metrics-grid').innerHTML = `
     <div class="metric-cell">
@@ -1789,7 +1878,7 @@ function renderReport(combo, r, cfg) {
       <div class="metric-bench">ideal: ${cfg.somaIdeal[0]}–${cfg.somaIdeal[1]}</div>
     </div>
     <div class="metric-cell">
-      <div class="metric-label">Pares / Ímpares</div>
+      <div class="metric-label">Núm. pares / ímpares</div>
       <div class="metric-value ${parOk ? 'metric-ok' : 'metric-warn'}">${r.pares}P · ${r.impares}I</div>
       <div class="metric-bench">ideal: ${cfg.parIdeal[0]}–${cfg.parIdeal[1]} pares</div>
     </div>
@@ -1802,6 +1891,11 @@ function renderReport(combo, r, cfg) {
       <div class="metric-label">Grupos cobertos</div>
       <div class="metric-value ${grupoOk ? 'metric-ok' : 'metric-warn'}">${r.gruposUsados}/${cfg.grupos}</div>
       <div class="metric-bench">${cfg.descFaixas.join(', ')}</div>
+    </div>
+    <div class="metric-cell">
+      <div class="metric-label">Maior sequência</div>
+      <div class="metric-value ${seqOk ? 'metric-ok' : 'metric-warn'}">${r.maiorSeq} ${r.maiorSeq === 1 ? 'dezena' : 'dezenas'}</div>
+      <div class="metric-bench">ideal: até ${cfg.consecMax + 1} seguidas</div>
     </div>
   `;
 
@@ -1823,31 +1917,45 @@ function renderReport(combo, r, cfg) {
   }).join('');
 
   // Análise detalhada
-  const parBadge = parOk ? 'badge-ok' : (Math.abs(r.pares - (cfg.parIdeal[0]+cfg.parIdeal[1])/2) <= 1 ? 'badge-warn' : 'badge-bad');
-  const somaBadge = somaOk ? 'badge-ok' : (r.soma < cfg.somaIdeal[0]*0.9 || r.soma > cfg.somaIdeal[1]*1.1 ? 'badge-bad' : 'badge-warn');
-  const freqBadge = freqOk ? 'badge-ok' : (r.freqPctMedio < 15 || r.freqPctMedio > 95 ? 'badge-bad' : 'badge-warn');
-  const consOk = r.consecutivos <= Math.ceil(cfg.qtd * 0.3);
+  const parBadge = r.detalhes.par === 'ideal' ? 'badge-ok' : (r.detalhes.par === 'ok' ? 'badge-warn' : 'badge-bad');
+  const somaBadge = r.detalhes.soma === 'ideal' ? 'badge-ok' : (r.detalhes.soma === 'ok' ? 'badge-warn' : 'badge-bad');
+  const freqBadge = (r.detalhes.freq === 'ideal' || r.detalhes.freq === 'ok') ? 'badge-ok' : (r.detalhes.freq === 'limite' ? 'badge-warn' : 'badge-bad');
+  const seqBadge = (r.detalhes.seq === 'ideal' || r.detalhes.seq === 'aceitavel') ? 'badge-ok' : (r.detalhes.seq === 'alto' ? 'badge-warn' : 'badge-bad');
+  const grupoBadge = (r.detalhes.grupos === 'ideal' || r.detalhes.grupos === 'bom') ? 'badge-ok' : (r.detalhes.grupos === 'limitado' ? 'badge-warn' : 'badge-bad');
+  const ampBadge = r.detalhes.amp === 'ideal' ? 'badge-ok' : (r.detalhes.amp === 'ok' ? 'badge-warn' : 'badge-bad');
+  const termBadge = r.detalhes.term === 'ok' ? 'badge-ok' : (r.detalhes.term === 'limite' ? 'badge-warn' : 'badge-bad');
+
+  const seqLabel = { ideal: 'Ideal', aceitavel: 'Aceitável', alto: 'Alto', critico: 'Sequência longa' }[r.detalhes.seq];
+  const grupoLabel = { ideal: 'Bem distribuído', bom: 'Bem distribuído', limitado: 'Pouco distribuído', concentrado: 'Concentrado' }[r.detalhes.grupos];
 
   document.getElementById('analysis-body').innerHTML = `
     <div class="analysis-row">
       <div class="ar-label">Distribuição par/ímpar</div>
-      <div class="ar-val">${r.pares} pares · ${r.impares} ímpares <span class="ar-badge ${parBadge}">${parOk ? 'Ideal' : (r.pares < cfg.parIdeal[0] ? 'Poucos pares' : 'Muitos pares')}</span></div>
+      <div class="ar-val">${r.pares} pares · ${r.impares} ímpares <span class="ar-badge ${parBadge}">${r.detalhes.par === 'ideal' ? 'Ideal' : (r.detalhes.par === 'ok' ? 'Aceitável' : (r.pares < cfg.parOk[0] ? 'Poucos pares' : 'Muitos pares'))}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Soma das dezenas</div>
-      <div class="ar-val">${r.soma} <span class="ar-badge ${somaBadge}">${somaOk ? 'Na faixa ideal' : (r.soma < cfg.somaIdeal[0] ? 'Soma baixa' : 'Soma alta')}</span></div>
+      <div class="ar-val">${r.soma} <span class="ar-badge ${somaBadge}">${r.detalhes.soma === 'ideal' ? 'Na faixa ideal' : (r.detalhes.soma === 'ok' ? 'Aceitável' : (r.soma < cfg.somaIdeal[0] ? 'Soma baixa' : 'Soma alta'))}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Frequência média</div>
-      <div class="ar-val">Percentil ${r.freqPctMedio} <span class="ar-badge ${freqBadge}">${r.freqPctMedio >= 30 && r.freqPctMedio <= 85 ? 'Equilibrada' : (r.freqPctMedio < 30 ? 'Dezenas frias' : 'Dezenas quentes')}</span></div>
+      <div class="ar-val">Percentil ${r.freqPctMedio} <span class="ar-badge ${freqBadge}">${(r.detalhes.freq === 'ideal' || r.detalhes.freq === 'ok') ? 'Equilibrada' : (r.freqPctMedio < 28 ? 'Dezenas frias' : 'Dezenas quentes')}</span></div>
     </div>
     <div class="analysis-row">
-      <div class="ar-label">Consecutivos</div>
-      <div class="ar-val">${r.consecutivos} pares consecutivos <span class="ar-badge ${consOk ? 'badge-ok' : 'badge-warn'}">${consOk ? 'Normal' : 'Muitos seguidos'}</span></div>
+      <div class="ar-label">Maior sequência</div>
+      <div class="ar-val">${r.maiorSeq} ${r.maiorSeq === 1 ? 'dezena' : 'dezenas'} seguidas${r.consecutivos > 0 ? ` (${r.consecutivos} ${r.consecutivos === 1 ? 'par' : 'pares'} no total)` : ''} <span class="ar-badge ${seqBadge}">${seqLabel}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Cobertura de faixas</div>
-      <div class="ar-val">${r.gruposUsados} de ${cfg.grupos} grupos (${cfg.descFaixas.slice(0,3).join(', ')}…) <span class="ar-badge ${grupoOk ? 'badge-ok' : 'badge-warn'}">${grupoOk ? 'Bem distribuído' : 'Concentrado'}</span></div>
+      <div class="ar-val">${r.gruposUsados} de ${cfg.grupos} grupos (${cfg.descFaixas.slice(0,3).join(', ')}…) <span class="ar-badge ${grupoBadge}">${grupoLabel}</span></div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Amplitude (maior − menor)</div>
+      <div class="ar-val">${r.amplitude} <span class="ar-badge ${ampBadge}">${r.detalhes.amp === 'ideal' ? 'Ideal' : (r.detalhes.amp === 'ok' ? 'Aceitável' : 'Muito estreita')}</span></div>
+    </div>
+    <div class="analysis-row">
+      <div class="ar-label">Terminações repetidas</div>
+      <div class="ar-val">até ${r.termMaxRepet} ${r.termMaxRepet === 1 ? 'dezena' : 'dezenas'} com mesmo final <span class="ar-badge ${termBadge}">${r.detalhes.term === 'ok' ? 'Normal' : (r.detalhes.term === 'limite' ? 'No limite' : 'Excesso')}</span></div>
     </div>
     <div class="analysis-row">
       <div class="ar-label">Base histórica</div>
