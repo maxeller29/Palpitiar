@@ -99,6 +99,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .table-wrap{border:1px solid var(--line);border-radius:2px;overflow:hidden;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
 thead th{padding:11px 14px;text-align:left;background:rgba(212,168,75,.06);color:var(--gold);font-size:9px;letter-spacing:.16em;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:nowrap}
+.th-sortable{cursor:pointer;user-select:none;transition:background .15s}
+.th-sortable:hover{background:rgba(212,168,75,.14)}
+.th-sortable.sort-active{background:rgba(212,168,75,.18);color:var(--gold)}
+.sort-icon{display:inline-block;font-size:9px;margin-left:3px;opacity:.55}
+.th-sortable.sort-active .sort-icon{opacity:1}
 tbody td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink-dim);vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:rgba(212,168,75,.03);color:var(--ink)}
@@ -327,7 +332,8 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-fa
         <tr>
           <th>#</th><th>Loteria</th><th>Concurso</th><th>Dezenas</th>
           <th>Estratégia</th><th>Gerado em</th><th>Status</th>
-          <th>Faixa</th><th>Acertos</th><th>Prêmio R$</th>
+          <th>Faixa</th><th>Acertos</th>
+          <th id="thPremio" class="th-sortable" title="Clique para ordenar por valor do prêmio">Prêmio R$ <span id="thPremioIcon" class="sort-icon">⇅</span></th>
         </tr>
       </thead>
       <tbody id="tbody"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
@@ -560,6 +566,7 @@ async function carregarResumo() {
 let serverPage = 0;
 let serverFilter = 'todas';
 let serverTotal = 0;
+let serverOrder = 'id.desc'; // padrão: mais recentes primeiro
 
 function buildFilterQuery(filter) {
   const parts = [];
@@ -579,7 +586,7 @@ async function carregarTabela() {
     const filterQ = buildFilterQuery(serverFilter);
     const from = serverPage * PAGE;
     const to = from + PAGE - 1;
-    const qs = [filterQ, 'order=id.desc'].filter(Boolean).join('&');
+    const qs = [filterQ, `order=${serverOrder}`].filter(Boolean).join('&');
     const url = `${SUPABASE_URL}/rest/v1/combinacoes?${qs}&select=*`;
 
     const res = await fetch(url, {
@@ -769,8 +776,49 @@ aguardar(() => {
       btn.classList.add('f-active');
       serverFilter = btn.dataset.f;
       serverPage = 0;
+      // Ao trocar de filtro manualmente, volta para a ordenação padrão
+      // (a ordenação por prêmio só faz sentido dentro de "Premiadas").
+      if (serverFilter !== 'premiada' && serverOrder.startsWith('valor_premio')) {
+        serverOrder = 'id.desc';
+        atualizarIconeOrdenacao();
+      }
       carregarTabela();
     });
+  });
+
+  // Ordenação por valor do prêmio (clique no cabeçalho da coluna)
+  function atualizarIconeOrdenacao() {
+    const th = document.getElementById('thPremio');
+    const icon = document.getElementById('thPremioIcon');
+    if (serverOrder.startsWith('valor_premio')) {
+      th.classList.add('sort-active');
+      icon.textContent = serverOrder.endsWith('.desc.nullslast') ? '▼' : '▲';
+    } else {
+      th.classList.remove('sort-active');
+      icon.textContent = '⇅';
+    }
+  }
+  document.getElementById('thPremio').addEventListener('click', () => {
+    // Primeiro clique: maior para menor (o caso de uso pedido).
+    // Clique seguinte na mesma coluna: inverte para menor para maior.
+    // Clique novamente: volta ao padrão (mais recentes primeiro).
+    if (serverOrder === 'valor_premio.desc.nullslast') {
+      serverOrder = 'valor_premio.asc.nullslast';
+    } else if (serverOrder === 'valor_premio.asc.nullslast') {
+      serverOrder = 'id.desc';
+    } else {
+      serverOrder = 'valor_premio.desc.nullslast';
+      // Ordenar por prêmio só é útil junto do filtro "Premiadas"
+      // (senão a maioria das linhas tem valor nulo). Ativa automaticamente.
+      if (serverFilter !== 'premiada') {
+        serverFilter = 'premiada';
+        document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('f-active'));
+        document.querySelector('.filter-btn[data-f="premiada"]').classList.add('f-active');
+      }
+    }
+    serverPage = 0;
+    atualizarIconeOrdenacao();
+    carregarTabela();
   });
 
   // Paginação
