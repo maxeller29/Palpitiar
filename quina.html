@@ -373,7 +373,7 @@
     .site-nav, .boot, .next-draw, .stats-strip, .caixa-banner,
     .strategy-section, .controls, .prob-panel, .bolao-section,
     .cost-bar, .report, .how-it-works, .faq, footer,
-    .save-toast, .cookie-banner, .analise-overlay,
+    .cookie-banner, .analise-overlay,
     .results-actions, .ad-slot { display: none !important; }
     .wrap { padding: 0 !important; max-width: 100% !important; }
     header { display: none !important; }
@@ -408,7 +408,7 @@
     .site-nav, .boot, .next-draw, .stats-strip, .caixa-banner,
     .strategy-section, .controls, .prob-panel, .bolao-section,
     .cost-bar, .report, .how-it-works, .faq, footer,
-    .save-toast, .cookie-banner, .analise-overlay,
+    .cookie-banner, .analise-overlay,
     .results-actions, .ad-slot { display: none !important; }
     .wrap { padding: 0 !important; max-width: 100% !important; }
     header { display: none !important; }
@@ -562,23 +562,6 @@
   @media (max-width: 720px) {
     .save-header { padding: 16px 18px; }
   }
-
-  /* ===== SAVE STATUS ===== */
-  .save-toast {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    margin-bottom: 24px;
-    border-radius: 2px;
-    font-family: var(--mono);
-    font-size: 12px;
-    animation: fadeIn 0.4s;
-  }
-  .save-toast.show { display: flex; }
-  .save-toast.ok  { background: rgba(76,175,125,0.12); border: 1px solid rgba(76,175,125,0.3); color: #4caf7d; }
-  .save-toast.err { background: rgba(196,69,45,0.10);  border: 1px solid rgba(196,69,45,0.3);  color: #c4452d; }
-  .save-toast.ing { background: rgba(240,236,224,0.05); border: 1px solid var(--line); color: var(--ink-dim); }
 
   /* ===== BANNER DE COOKIES LGPD ===== */
   .cookie-banner {
@@ -796,10 +779,6 @@
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Save toast: feedback automático ao gerar combinações -->
-  <div class="save-toast" id="saveToast"></div>
-
 
 
   <nav class="site-nav">
@@ -1743,48 +1722,20 @@ document.getElementById('resetBtn').addEventListener('click',()=>{
 </script>
 
   <script>
-/* ===== INTEGRAÇÃO SUPABASE — SALVAR AUTOMÁTICO ===== */
-  function aguardarDB(fn, t=30) {
-    if (window.LotoiaDB) { fn(); return; }
-    if (t<=0) return;
-    setTimeout(()=>aguardarDB(fn,t-1), 300);
-  }
-
-  let CARTOES_GERADOS=[], CONCURSO_ATUAL=null, LOTERIA_ATUAL='', DEZ_POR_CARTAO=6, ESTRATEGIA_ATUAL='equilibrada';
-
-
-
-  aguardarDB(() => {
-    });
-
-  
-  /* ===== INTEGRAÇÃO SUPABASE — SAVE AUTOMÁTICO ===== */
+/* ===== INTEGRAÇÃO SUPABASE — SALVAR AUTOMÁTICO (silencioso, sem feedback visual) ===== */
   function aguardarDB(fn, t=40) {
     if (window.LotoiaDB?.configurado()) { fn(); return; }
     if (t<=0) return;
     setTimeout(()=>aguardarDB(fn,t-1), 300);
   }
 
+  let CARTOES_GERADOS=[], CONCURSO_ATUAL=null, LOTERIA_ATUAL='', DEZ_POR_CARTAO=6, ESTRATEGIA_ATUAL='equilibrada';
+
   async function onCartõesGerados(cartoes, loteria, concurso, dezPorCartao, estrategia) {
-    const toast = document.getElementById('saveToast');
-    if (!toast) return;
-
     if (!window.LotoiaDB?.configurado()) return; // silencioso se não configurado
-
-    toast.className = 'save-toast show ing';
-    toast.textContent = 'Salvando ' + cartoes.length + ' combinação' + (cartoes.length!==1?'ões':'') + ' para o concurso ' + (concurso||'?') + '...';
-
-    const ok = await window.LotoiaDB.salvarCombinacoes(cartoes, loteria, concurso, dezPorCartao, estrategia);
-
-    if (ok) {
-      toast.className = 'save-toast show ok';
-      toast.textContent = '✔ ' + cartoes.length + ' combinação' + (cartoes.length!==1?'ões':'') + ' salva' + (cartoes.length!==1?'s':'') + ' para conferência após o concurso ' + (concurso||'?');
-      setTimeout(()=>toast.classList.remove('show'), 6000);
-    } else {
-      toast.className = 'save-toast show err';
-      toast.textContent = '✗ Não foi possível salvar. Verifique sua conexão.';
-      setTimeout(()=>toast.classList.remove('show'), 5000);
-    }
+    // Salva em segundo plano para alimentar a conferência automática.
+    // Nenhum feedback visual é exibido ao usuário (decisão de produto).
+    await window.LotoiaDB.salvarCombinacoes(cartoes, loteria, concurso, dezPorCartao, estrategia);
   }
 
 
