@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Design Visual — Palpitiar</title>
+<style>
+/* ── RESET & BASE ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --surface2: #1C1C1C;
+  --border: rgba(255,255,255,0.08);
+  --text: #F5F5F5;
+  --text-dim: rgba(245,245,245,0.55);
+  --text-faint: rgba(245,245,245,0.28);
+
+  /* Cores por tema */
+  --mega:   #00A651;  /* verde Mega-Sena Caixa */
+  --mega-bg: #071410;
+  --mega-glow: rgba(0,166,81,0.18);
+
+  --facil:  #7B2FBE;  /* roxo Lotofácil Caixa */
+  --facil-bg: #0D0714;
+  --facil-glow: rgba(123,47,190,0.18);
+
+  --quina:  #1A5FA8;  /* azul Quina Caixa */
+  --quina-bg: #070C14;
+  --quina-glow: rgba(26,95,168,0.18);
+
+  --analisa: #0F7A3A; /* verde escuro analisador */
+  --analisa-bg: #050F0A;
+  --analisa-glow: rgba(15,122,58,0.15);
+
+  --geral:  #D4A84B;  /* dourado marca Palpitiar */
+  --geral-bg: #0C0A07;
+  --geral-glow: rgba(212,168,75,0.15);
+
+  --font-sans: 'Inter', 'Helvetica Neue', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ── TIPOGRAFIA ──────────────────────────────────────── */
+h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+p  { color: var(--text-dim); line-height: 1.75; }
+code { font-family: var(--font-mono); font-size: 12px; background: rgba(255,255,255,0.07); padding: 2px 6px; border-radius: 4px; }
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+section:last-child { border-bottom: none; }
+
+/* ── CAPA ────────────────────────────────────────────── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: radial-gradient(ellipse 900px 600px at 60% 50%, rgba(212,168,75,0.06), transparent 60%);
+  border-bottom: 1px solid var(--border);
+}
+.cover-inner { padding: 80px 0; }
+.cover-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--geral);
+  margin-bottom: 24px;
+  padding: 4px 12px;
+  border: 1px solid rgba(212,168,75,0.3);
+  border-radius: 999px;
+}
+.cover-title { font-size: clamp(40px,5vw,68px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 20px; }
+.cover-title em { color: var(--geral); font-style: normal; }
+.cover-sub { font-size: 17px; color: var(--text-dim); max-width: 520px; margin-bottom: 48px; }
+.cover-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+.cover-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+/* ── PROBLEMA ────────────────────────────────────────── */
+.problem-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 32px; }
+.problem-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.problem-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #FF6B6B;
+  margin-bottom: 8px;
+}
+.problem-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.problem-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ── TEMAS ────────────────────────────────────────────── */
+.themes-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-top: 32px; }
+.theme-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: transform 0.2s;
+}
+.theme-card:hover { transform: translateY(-4px); }
+.theme-header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+.theme-body { background: var(--surface); padding: 16px; }
+.theme-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.theme-sub  { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; }
+.theme-swatch { display: flex; gap: 6px; margin-bottom: 10px; }
+.swatch { width: 28px; height: 28px; border-radius: 6px; position: relative; }
+.swatch::after { content: attr(data-hex); position: absolute; top: 34px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 8.5px; white-space: nowrap; color: var(--text-faint); }
+.theme-usage { font-size: 11px; color: var(--text-faint); font-family: var(--font-mono); border-top: 1px solid var(--border); padding-top: 10px; line-height: 1.5; }
+
+/* ── ANATOMIA ─────────────────────────────────────────── */
+.anatomy-wrap { display: grid; grid-template-columns: 340px 1fr; gap: 48px; align-items: start; margin-top: 32px; }
+.anatomy-card {
+  background: #111;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  aspect-ratio: 4/5;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.anat-zone {
+  padding: 18px 22px;
+  position: relative;
+  cursor: default;
+  transition: background 0.15s;
+}
+.anat-zone:hover { background: rgba(255,255,255,0.04); }
+.anat-zone .zone-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.anat-zone .zone-content { font-size: 13px; color: var(--text-dim); }
+.anat-divider { height: 1px; background: rgba(255,255,255,0.07); }
+.anatomy-legend { }
+.legend-item { display: flex; gap: 16px; margin-bottom: 28px; align-items: flex-start; }
+.legend-num {
+  width: 28px; height: 28px; min-width: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: rgba(212,168,75,0.15);
+  color: var(--geral);
+}
+.legend-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.legend-desc  { font-size: 13px; color: var(--text-dim); }
+
+/* ── LAYOUTS ──────────────────────────────────────────── */
+.layouts-intro { color: var(--text-dim); max-width: 640px; margin-top: 8px; }
+.layouts-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; margin-top: 32px; }
+.layout-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.layout-preview {
+  aspect-ratio: 4/5;
+  background: #0F0F0F;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 8px;
+  position: relative;
+}
+.layout-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--geral);
+  margin-bottom: 4px;
+}
+.layout-info { padding: 14px; }
+.layout-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.layout-desc { font-size: 11px; color: var(--text-dim); }
+
+/* Blocos de layout simulados */
+.blk { border-radius: 4px; }
+.blk-badge { height: 10px; width: 60%; background: rgba(212,168,75,0.35); border-radius: 999px; }
+.blk-title-lg { height: 22px; width: 90%; background: rgba(255,255,255,0.55); border-radius: 3px; }
+.blk-title-lg.gold { background: rgba(212,168,75,0.65); }
+.blk-title-md { height: 14px; width: 75%; background: rgba(255,255,255,0.4); border-radius: 3px; }
+.blk-number { height: 44px; width: 55%; background: rgba(212,168,75,0.5); border-radius: 6px; align-self: center; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: rgba(255,255,255,0.9); }
+.blk-text { height: 8px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+.blk-stat-row { display: flex; gap: 6px; }
+.blk-stat { flex: 1; aspect-ratio: 1; border-radius: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; }
+.blk-list-row { display: flex; gap: 6px; align-items: center; }
+.blk-dot { width: 8px; height: 8px; min-width: 8px; border-radius: 50%; background: var(--geral); }
+.blk-line { height: 6px; flex: 1; background: rgba(255,255,255,0.22); border-radius: 2px; }
+.blk-cta { border-radius: 8px; height: 20px; background: var(--geral); opacity: 0.9; }
+.blk-visual { flex: 1; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; }
+.blk-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; }
+.blk-half { border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 4px; padding: 8px; }
+
+/* ── MASCOTE ──────────────────────────────────────────── */
+.mascote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+.mascote-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.mascote-header {
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot-green { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; }
+.dot-red   { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; }
+.mascote-body { padding: 0 20px 20px; }
+.mascote-rule { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-dim); }
+.mascote-rule:last-child { border-bottom: none; }
+.mascote-rule strong { color: var(--text); font-weight: 600; min-width: 120px; }
+
+/* ── SISTEMA DE CORES ─────────────────────────────────── */
+.color-section { margin-top: 32px; }
+.color-row { display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start; }
+.color-meta { }
+.color-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.color-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+.color-swatches { display: flex; gap: 8px; }
+.cswatch {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  min-width: 110px;
+}
+.cswatch .hex { font-weight: 700; display: block; }
+.cswatch .role { font-size: 10px; opacity: 0.65; }
+
+/* ── REGRAS TIPOGRAFIA ────────────────────────────────── */
+.type-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+.type-table th { padding: 10px 16px; text-align: left; background: rgba(255,255,255,0.04); border: 1px solid var(--border); font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+.type-table td { padding: 12px 16px; border: 1px solid var(--border); font-size: 13px; color: var(--text-dim); }
+.type-table tr:hover td { background: rgba(255,255,255,0.02); }
+.type-table .sample-hero { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+.type-table .sample-title { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.type-table .sample-sub { font-size: 13px; color: var(--text-dim); }
+.type-table .sample-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--geral); }
+.type-table .sample-data { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text); }
+.type-table .sample-foot { font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; }
+
+/* ── DO'S & DON'TS ────────────────────────────────────── */
+.dos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+.dos-card, .donts-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.dos-header   { padding: 14px 20px; background: rgba(34,197,94,0.08); color: #22C55E; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.donts-header { padding: 14px 20px; background: rgba(239,68,68,0.08); color: #EF4444; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.dos-list, .donts-list { padding: 16px 20px; list-style: none; }
+.dos-list li, .donts-list li { padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-dim); display: flex; gap: 8px; }
+.dos-list li:last-child, .donts-list li:last-child { border-bottom: none; }
+.dos-list li::before   { content: '✓'; color: #22C55E; font-weight: 700; min-width: 14px; }
+.donts-list li::before { content: '✕'; color: #EF4444; font-weight: 700; min-width: 14px; }
+
+/* ── CHECKLIST ────────────────────────────────────────── */
+.checklist { margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px;
+}
+.check-icon { width: 22px; height: 22px; min-width: 22px; border-radius: 6px; background: rgba(212,168,75,0.15); border: 1px solid rgba(212,168,75,0.3); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--geral); }
+.check-text { font-size: 13px; color: var(--text-dim); }
+.check-text strong { color: var(--text); display: block; margin-bottom: 2px; font-size: 13px; }
+
+/* ── SEÇÃO HEADER ─────────────────────────────────────── */
+.section-header { margin-bottom: 40px; }
+.section-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--geral);
+  margin-bottom: 10px;
+}
+.section-title { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 10px; }
+.section-desc  { font-size: 15px; color: var(--text-dim); max-width: 580px; }
+
+/* ── NAV ──────────────────────────────────────────────── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,10,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 32px;
+  display: flex; align-items: center; gap: 4px; height: 52px;
+}
+.nav-logo { font-size: 14px; font-weight: 700; color: var(--geral); margin-right: 20px; }
+.nav-link {
+  font-size: 13px; color: var(--text-dim);
+  text-decoration: none; padding: 6px 12px; border-radius: 8px;
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+/* ── CARD PREVIEW INTERATIVO ──────────────────────────── */
+.preview-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn {
+  font-size: 12px; font-family: var(--font-mono);
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim); cursor: pointer;
+  transition: all 0.15s; letter-spacing: 0.05em;
+}
+.tab-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.tab-btn.active { background: rgba(212,168,75,0.12); border-color: rgba(212,168,75,0.4); color: var(--geral); }
+.preview-area { display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start; }
+.preview-card-wrap { position: relative; }
+.preview-card {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  aspect-ratio: 4/5;
+  display: none;
+}
+.preview-card.visible { display: flex; flex-direction: column; }
+.preview-specs { }
+.spec-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.spec-row:last-child { border-bottom: none; }
+.spec-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); }
+.spec-value { font-size: 13px; color: var(--text); font-family: var(--font-mono); }
+
+/* ── MEGA CARD PREVIEW ────────────────────────────────── */
+.pc-mega {
+  background: linear-gradient(170deg, #071410 0%, #0D1F17 60%, #071410 100%);
+  position: relative;
+  overflow: hidden;
+}
+.pc-mega::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,166,81,0.2), transparent 70%);
+  border-radius: 50%;
+}
+.pc-facil {
+  background: linear-gradient(170deg, #0D0714 0%, #160A24 60%, #0D0714 100%);
+  position: relative; overflow: hidden;
+}
+.pc-facil::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(123,47,190,0.2), transparent 70%);
+  border-radius: 50%;
+}
+.pc-quina {
+  background: linear-gradient(170deg, #070C14 0%, #0D1525 60%, #070C14 100%);
+  position: relative; overflow: hidden;
+}
+.pc-quina::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(26,95,168,0.2), transparent 70%);
+  border-radius: 50%;
+}
+.pc-analisa {
+  background: linear-gradient(170deg, #050F0A 0%, #091A0F 60%, #050F0A 100%);
+  position: relative; overflow: hidden;
+}
+.pc-analisa::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(15,122,58,0.15), transparent 70%);
+  border-radius: 50%;
+}
+.pc-geral {
+  background: linear-gradient(170deg, #0C0A07 0%, #181206 60%, #0C0A07 100%);
+  position: relative; overflow: hidden;
+}
+.pc-geral::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212,168,75,0.12), transparent 70%);
+  border-radius: 50%;
+}
+
+/* Conteúdo interno dos cards preview */
+.pc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pc-body { flex: 1; display: flex; flex-direction: column; padding: 18px; position: relative; }
+.pc-title-main { font-size: 20px; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; color: #fff; margin-bottom: 6px; }
+.pc-title-accent { font-size: 20px; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 14px; }
+.pc-desc { font-size: 9px; color: rgba(255,255,255,0.55); line-height: 1.55; margin-bottom: 16px; }
+.pc-number { font-size: 52px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+.pc-number-unit { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.pc-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 8px; font-family: var(--font-mono);
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.08em;
+}
+.pc-accent-bar { height: 3px; width: 100%; }
+.pc-balls-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.pc-ball {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 700;
+  border: 1.5px solid;
+}
+.pc-items { display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.pc-item { display: flex; gap: 7px; align-items: center; font-size: 9px; color: rgba(255,255,255,0.65); }
+.pc-item-dot { width: 7px; height: 7px; border-radius: 50%; min-width: 7px; }
+.pc-cta {
+  padding: 9px 16px; border-radius: 8px;
+  font-size: 9px; font-weight: 700; text-align: center;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-top: auto;
+}
+.pc-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 12px; }
+.pc-stat-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 10px 8px; text-align: center;
+}
+.pc-stat-num { font-size: 19px; font-weight: 800; letter-spacing: -0.03em; }
+.pc-stat-label { font-size: 7.5px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+/* ── RESPONSIVO ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .themes-grid { grid-template-columns: repeat(3,1fr); }
+  .layouts-grid { grid-template-columns: repeat(3,1fr); }
+  .anatomy-wrap { grid-template-columns: 1fr; }
+  .preview-area { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .themes-grid { grid-template-columns: 1fr 1fr; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .dos-grid { grid-template-columns: 1fr; }
+  .checklist { grid-template-columns: 1fr; }
+  .layouts-grid { grid-template-columns: 1fr 1fr; }
+  .mascote-grid { grid-template-columns: 1fr; }
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="nav-logo">Palpitiar</span>
+    <a href="#problemas" class="nav-link">Problemas</a>
+    <a href="#temas" class="nav-link">Temas</a>
+    <a href="#anatomia" class="nav-link">Anatomia</a>
+    <a href="#layouts" class="nav-link">Layouts</a>
+    <a href="#preview" class="nav-link">Preview</a>
+    <a href="#mascote" class="nav-link">Mascote</a>
+    <a href="#regras" class="nav-link">Regras</a>
+  </div>
+</nav>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="container">
+    <div class="cover-inner">
+      <div class="cover-label">Versão 2.0 · Junho 2026</div>
+      <h1 class="cover-title">Guia de Design<br><em>Visual</em></h1>
+      <p class="cover-sub">Sistema de identidade visual para os cards e publicações nas redes sociais do Palpitiar — padrão definitivo aprovado.</p>
+      <div class="cover-tags">
+        <span class="cover-tag" style="color:#00A651;border-color:rgba(0,166,81,0.3)">Mega-Sena · Verde</span>
+        <span class="cover-tag" style="color:#7B2FBE;border-color:rgba(123,47,190,0.3)">Lotofácil · Roxo</span>
+        <span class="cover-tag" style="color:#1A5FA8;border-color:rgba(26,95,168,0.3)">Quina · Azul</span>
+        <span class="cover-tag" style="color:#0F7A3A;border-color:rgba(15,122,58,0.3)">Analisador · Verde Escuro</span>
+        <span class="cover-tag" style="color:#D4A84B;border-color:rgba(212,168,75,0.3)">Geral · Dourado</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1. DIAGNÓSTICO -->
+<section id="problemas">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">01 · Diagnóstico</span>
+      <h2 class="section-title">Problemas dos cards atuais</h2>
+      <p class="section-desc">Análise crítica do que existe hoje para entender o que precisa mudar no novo padrão.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-label">Crítico</div>
+        <div class="problem-title">Inconsistência de identidade</div>
+        <div class="problem-desc">Cada card parece vir de uma marca diferente. Fundo escuro em uns, mistura em outros, fontes variando sem critério.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-label">Crítico</div>
+        <div class="problem-title">Fotos stock desconexas</div>
+        <div class="problem-desc">Imagens de ciclistas em frente ao Capitólio dos EUA num card sobre bolão de Quina. Rompe o universo visual da marca.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-label">Crítico</div>
+        <div class="problem-title">Ausência de sistema de cores</div>
+        <div class="problem-desc">Não há hierarquia clara de qual cor pertence a qual loteria. Temas misturados, acento azul em posts de Mega-Sena etc.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-label">Moderado</div>
+        <div class="problem-title">Layouts sem padrão</div>
+        <div class="problem-desc">Cards panorâmicos, quadrados e verticais convivem sem critério de quando usar cada um, criando feeds bagunçados.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-label">Moderado</div>
+        <div class="problem-title">Logo sem consistência</div>
+        <div class="problem-desc">"Palpitiar.com.br" aparece em alguns cards mas não em todos, e com tamanhos e posições diferentes a cada vez.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-label">Moderado</div>
+        <div class="problem-title">Ícones genéricos</div>
+        <div class="problem-desc">Ícones de lista "1/2=" e selos de lacre vermelho/verde parecem de templates de terceiros, sem identidade do Palpitiar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. SISTEMA DE TEMAS -->
+<section id="temas">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">02 · Sistema de Temas</span>
+      <h2 class="section-title">5 temas, 5 identidades</h2>
+      <p class="section-desc">Cada tema tem sua paleta definida pelas cores oficiais das loterias da Caixa. Fundo sempre escuro — a cor do tema aparece como acento, nunca como fundo dominante.</p>
+    </div>
+    <div class="themes-grid">
+
+      <!-- MEGA -->
+      <div class="theme-card">
+        <div class="theme-header" style="background: linear-gradient(135deg,#071410,#0D1F17); color: #00A651;">MEGA</div>
+        <div class="theme-body">
+          <div class="theme-name">Mega-Sena</div>
+          <div class="theme-sub">Verde Caixa oficial</div>
+          <div class="theme-swatch" style="margin-bottom: 32px;">
+            <div class="swatch" style="background:#071410" data-hex="#071410"></div>
+            <div class="swatch" style="background:#00A651" data-hex="#00A651"></div>
+            <div class="swatch" style="background:#00CC63" data-hex="#00CC63"></div>
+            <div class="swatch" style="background:#F5F5F5" data-hex="#F5F5F5"></div>
+          </div>
+          <div class="theme-usage">Posts de geração<br>Dias de sorteio<br>Acumulação<br>Resultados</div>
+        </div>
+      </div>
+
+      <!-- LOTOFÁCIL -->
+      <div class="theme-card">
+        <div class="theme-header" style="background: linear-gradient(135deg,#0D0714,#160A24); color: #A855F7;">FÁCIL</div>
+        <div class="theme-body">
+          <div class="theme-name">Lotofácil</div>
+          <div class="theme-sub">Roxo Caixa oficial</div>
+          <div class="theme-swatch" style="margin-bottom: 32px;">
+            <div class="swatch" style="background:#0D0714" data-hex="#0D0714"></div>
+            <div class="swatch" style="background:#7B2FBE" data-hex="#7B2FBE"></div>
+            <div class="swatch" style="background:#A855F7" data-hex="#A855F7"></div>
+            <div class="swatch" style="background:#F5F5F5" data-hex="#F5F5F5"></div>
+          </div>
+          <div class="theme-usage">Posts de geração<br>Dias de sorteio<br>Acumulação<br>Resultados</div>
+        </div>
+      </div>
+
+      <!-- QUINA -->
+      <div class="theme-card">
+        <div class="theme-header" style="background: linear-gradient(135deg,#070C14,#0D1525); color: #3B82F6;">QUINA</div>
+        <div class="theme-body">
+          <div class="theme-name">Quina</div>
+          <div class="theme-sub">Azul Caixa oficial</div>
+          <div class="theme-swatch" style="margin-bottom: 32px;">
+            <div class="swatch" style="background:#070C14" data-hex="#070C14"></div>
+            <div class="swatch" style="background:#1A5FA8" data-hex="#1A5FA8"></div>
+            <div class="swatch" style="background:#3B82F6" data-hex="#3B82F6"></div>
+            <div class="swatch" style="background:#F5F5F5" data-hex="#F5F5F5"></div>
+          </div>
+          <div class="theme-usage">Posts de geração<br>Dias de sorteio<br>Acumulação<br>Resultados</div>
+        </div>
+      </div>
+
+      <!-- ANALISADOR -->
+      <div class="theme-card">
+        <div class="theme-header" style="background: linear-gradient(135deg,#050F0A,#091A0F); color: #22C55E;">ANALISA</div>
+        <div class="theme-body">
+          <div class="theme-name">Analisador</div>
+          <div class="theme-sub">Verde escuro exclusivo</div>
+          <div class="theme-swatch" style="margin-bottom: 32px;">
+            <div class="swatch" style="background:#050F0A" data-hex="#050F0A"></div>
+            <div class="swatch" style="background:#0F7A3A" data-hex="#0F7A3A"></div>
+            <div class="swatch" style="background:#22C55E" data-hex="#22C55E"></div>
+            <div class="swatch" style="background:#F5F5F5" data-hex="#F5F5F5"></div>
+          </div>
+          <div class="theme-usage">Divulgação do analisador<br>Classificação Forte/Média/Fraca<br>Tutoriais da ferramenta</div>
+        </div>
+      </div>
+
+      <!-- GERAL -->
+      <div class="theme-card">
+        <div class="theme-header" style="background: linear-gradient(135deg,#0C0A07,#181206); color: #D4A84B;">GERAL</div>
+        <div class="theme-body">
+          <div class="theme-name">Geral / Palpitiar</div>
+          <div class="theme-sub">Dourado da marca</div>
+          <div class="theme-swatch" style="margin-bottom: 32px;">
+            <div class="swatch" style="background:#0C0A07" data-hex="#0C0A07"></div>
+            <div class="swatch" style="background:#D4A84B" data-hex="#D4A84B"></div>
+            <div class="swatch" style="background:#F0C868" data-hex="#F0C868"></div>
+            <div class="swatch" style="background:#F5F5F5" data-hex="#F5F5F5"></div>
+          </div>
+          <div class="theme-usage">Educativo geral<br>Sobre o Palpitiar<br>Dicas / Estratégia<br>CTA / Apresentação</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Nota sobre gradientes de fundo -->
+    <div style="margin-top: 28px; padding: 20px 24px; background: rgba(212,168,75,0.06); border: 1px solid rgba(212,168,75,0.2); border-radius: 12px;">
+      <p style="margin: 0; font-size: 13px; color: rgba(245,245,245,0.75);">
+        <strong style="color: #D4A84B;">Regra fundamental dos fundos:</strong> O fundo é sempre escuro/preto. A cor do tema (verde, roxo, azul) aparece apenas em: barra de acento, números de destaque, balls/bolas, badge de categoria, CTAs e bordas de elementos. O glow radial sutil no canto superior direito reforça a cor do tema sem dominar o fundo.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. ANATOMIA DO CARD -->
+<section id="anatomia">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">03 · Anatomia</span>
+      <h2 class="section-title">Estrutura do card</h2>
+      <p class="section-desc">Todo card do Palpitiar é composto por 4 zonas fixas. O conteúdo varia, mas a estrutura não.</p>
+    </div>
+    <div class="anatomy-wrap">
+      <!-- Card simulado -->
+      <div class="anatomy-card" style="background: linear-gradient(170deg,#0D1F17,#071410);">
+        <!-- Zona 1: Acento superior -->
+        <div style="height: 4px; background: #00A651;"></div>
+        <!-- Zona 2: Identificador -->
+        <div class="anat-zone" style="border-bottom: 1px dashed rgba(0,166,81,0.2);">
+          <div class="zone-label" style="color: #00A651;">① Identificador</div>
+          <div style="display:inline-flex; align-items:center; gap:5px; background: rgba(0,166,81,0.12); border: 1px solid rgba(0,166,81,0.3); padding: 4px 10px; border-radius: 999px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#00A651;"></div>
+            <span style="font-size:9px;font-family:var(--font-mono);letter-spacing:0.15em;color:#00A651;">MEGA-SENA</span>
+          </div>
+        </div>
+        <!-- Zona 3: Corpo -->
+        <div class="anat-zone" style="flex:1;">
+          <div class="zone-label" style="color:rgba(255,255,255,0.4);">② Corpo principal</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:6px;">Dezenas mais<br>sorteadas</div>
+          <div style="font-size:20px;font-weight:800;color:#00A651;line-height:1.15;margin-bottom:14px;">na série histórica</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="width:32px;height:32px;border-radius:50%;border:2px solid #00A651;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#00A651;">04</div>
+            <div style="width:32px;height:32px;border-radius:50%;border:2px solid #00A651;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#00A651;">10</div>
+            <div style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);">23</div>
+            <div style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);">51</div>
+          </div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);line-height:1.55;">Baseado na série histórica completa. Probabilidade igual para todos os números.</div>
+          <!-- Zona 4: Mascote (opcional) -->
+          <div style="margin-top:12px; padding: 8px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px;">
+            <div class="zone-label" style="color:rgba(255,255,255,0.3);">③ Mascote (opcional)</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.3);">Coruja · máx. 25% largura · canto</div>
+          </div>
+        </div>
+        <!-- Zona 4: Rodapé -->
+        <div class="anat-zone" style="background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.07);">
+          <div class="zone-label" style="color:rgba(255,255,255,0.3);">④ Rodapé fixo</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;font-family:var(--font-mono);color:rgba(255,255,255,0.3);letter-spacing:0.05em;">Palpitiar.com.br</span>
+            <span style="font-size:8px;color:rgba(255,255,255,0.2);">+18 · jogo responsável</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="anatomy-legend">
+        <div class="legend-item">
+          <div class="legend-num">①</div>
+          <div>
+            <div class="legend-title">Barra de acento + Badge de categoria</div>
+            <div class="legend-desc">Faixa de 3–4px na cor do tema no topo. Abaixo, badge com pill (rounded) exibindo o nome da loteria ou categoria. Cor do tema como fundo suave + borda + ícone de bolinha. Nunca use emoji no badge.</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-num">②</div>
+          <div>
+            <div class="legend-title">Corpo principal</div>
+            <div class="legend-desc">Varia conforme o tipo de layout (Hero, Stats, Lista, Split, CTA). Ocupa 60–70% da altura do card. Título em branco + linha de destaque na cor do tema. Corpo com dados, bolas, gráficos ou itens.</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-num">③</div>
+          <div>
+            <div class="legend-title">Mascote (opcional, por regra)</div>
+            <div class="legend-desc">A coruja aparece em no máximo 1 card por carrossel, sempre em canto inferior ou lateral, nunca centralizada, nunca cobrindo texto, máximo 25% da largura. Detalhes na seção Mascote.</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-num">④</div>
+          <div>
+            <div class="legend-title">Rodapé fixo</div>
+            <div class="legend-desc">Presente em TODOS os cards, sem exceção. Fundo levemente mais escuro (rgba negro). Esquerda: "Palpitiar.com.br" em mono discreto. Direita: "+18 · jogo responsável" em texto mínimo. Nunca coloque informações importantes aqui.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. LAYOUTS -->
+<section id="layouts">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">04 · Layouts</span>
+      <h2 class="section-title">5 templates de layout</h2>
+      <p class="section-desc">Cada tipo de conteúdo tem um template. Usar sempre o template correto garante que o feed mantenha variedade sem perder coerência.</p>
+    </div>
+    <div class="layouts-grid">
+
+      <!-- HERO -->
+      <div class="layout-card">
+        <div class="layout-preview">
+          <div class="layout-label">Hero</div>
+          <!-- Badge -->
+          <div style="height:9px;width:50%;background:rgba(212,168,75,0.3);border-radius:999px;"></div>
+          <!-- Espaço -->
+          <div style="flex:0.5"></div>
+          <!-- Título grande -->
+          <div style="height:20px;width:90%;background:rgba(255,255,255,0.55);border-radius:3px;margin-bottom:6px;"></div>
+          <div style="height:20px;width:75%;background:rgba(212,168,75,0.55);border-radius:3px;margin-bottom:12px;"></div>
+          <!-- Subtítulo -->
+          <div style="height:7px;width:80%;background:rgba(255,255,255,0.2);border-radius:2px;margin-bottom:4px;"></div>
+          <div style="height:7px;width:65%;background:rgba(255,255,255,0.15);border-radius:2px;"></div>
+          <!-- Espaço -->
+          <div style="flex:1"></div>
+        </div>
+        <div class="layout-info">
+          <div class="layout-name">HERO — Capa</div>
+          <div class="layout-desc">Texto centralizado ou esq. Títulos grandes. Uso: 1º card do carrossel, apresentação de sorteio especial, acumulação.</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="layout-card">
+        <div class="layout-preview">
+          <div class="layout-label">Stats</div>
+          <div style="height:9px;width:55%;background:rgba(212,168,75,0.3);border-radius:999px;margin-bottom:8px;"></div>
+          <div style="height:14px;width:80%;background:rgba(255,255,255,0.45);border-radius:3px;margin-bottom:16px;"></div>
+          <div style="flex:0.3"></div>
+          <!-- Número grande -->
+          <div style="height:44px;width:55%;background:rgba(212,168,75,0.45);border-radius:8px;align-self:center;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:rgba(255,255,255,0.9);margin-bottom:6px;">250</div>
+          <div style="height:7px;width:40%;background:rgba(255,255,255,0.25);border-radius:2px;align-self:center;margin-bottom:16px;"></div>
+          <!-- Grid 2x2 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;">
+            <div style="border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);"></div>
+            <div style="border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);"></div>
+            <div style="border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);"></div>
+            <div style="border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);"></div>
+          </div>
+        </div>
+        <div class="layout-info">
+          <div class="layout-name">STATS — Dados</div>
+          <div class="layout-desc">Número grande em destaque + grid de stats secundários. Uso: prêmio acumulado, dezenas mais sorteadas, contagem regressiva.</div>
+        </div>
+      </div>
+
+      <!-- LISTA -->
+      <div class="layout-card">
+        <div class="layout-preview">
+          <div class="layout-label">Lista</div>
+          <div style="height:9px;width:55%;background:rgba(212,168,75,0.3);border-radius:999px;margin-bottom:8px;"></div>
+          <div style="height:16px;width:85%;background:rgba(255,255,255,0.45);border-radius:3px;margin-bottom:4px;"></div>
+          <div style="height:16px;width:60%;background:rgba(212,168,75,0.45);border-radius:3px;margin-bottom:16px;"></div>
+          <!-- Itens de lista -->
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:8px;height:8px;border-radius:50%;min-width:8px;background:rgba(212,168,75,0.6);"></div>
+              <div style="height:7px;flex:1;background:rgba(255,255,255,0.25);border-radius:2px;"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:8px;height:8px;border-radius:50%;min-width:8px;background:rgba(212,168,75,0.6);"></div>
+              <div style="height:7px;flex:1;background:rgba(255,255,255,0.25);border-radius:2px;"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:8px;height:8px;border-radius:50%;min-width:8px;background:rgba(212,168,75,0.6);"></div>
+              <div style="height:7px;flex:0.8;background:rgba(255,255,255,0.25);border-radius:2px;"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:8px;height:8px;border-radius:50%;min-width:8px;background:rgba(212,168,75,0.6);"></div>
+              <div style="height:7px;flex:0.9;background:rgba(255,255,255,0.25);border-radius:2px;"></div>
+            </div>
+          </div>
+          <div style="height:9px;width:100%;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:8px;"></div>
+        </div>
+        <div class="layout-info">
+          <div class="layout-name">LISTA — Itens</div>
+          <div class="layout-desc">Título + itens com marcador (bolinha colorida). Uso: checklist, regras da loteria, dicas, passo-a-passo.</div>
+        </div>
+      </div>
+
+      <!-- SPLIT -->
+      <div class="layout-card">
+        <div class="layout-preview">
+          <div class="layout-label">Split</div>
+          <div style="height:9px;width:55%;background:rgba(212,168,75,0.3);border-radius:999px;margin-bottom:8px;"></div>
+          <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <!-- Esquerda: texto -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="height:12px;background:rgba(255,255,255,0.4);border-radius:3px;"></div>
+              <div style="height:12px;background:rgba(212,168,75,0.5);border-radius:3px;"></div>
+              <div style="flex:1;"></div>
+              <div style="height:7px;background:rgba(255,255,255,0.18);border-radius:2px;"></div>
+              <div style="height:7px;background:rgba(255,255,255,0.13);border-radius:2px;width:80%;"></div>
+              <div style="flex:1;"></div>
+              <div style="height:14px;background:rgba(212,168,75,0.4);border-radius:6px;"></div>
+            </div>
+            <!-- Direita: visual -->
+            <div style="border-radius:10px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(255,255,255,0.1);">○</div>
+          </div>
+        </div>
+        <div class="layout-info">
+          <div class="layout-name">SPLIT — Dividido</div>
+          <div class="layout-desc">50/50: texto à esq, visual à dir. Uso: resultado + bolas sorteadas, analisador + métricas, comparação Fraca/Boa.</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="layout-card">
+        <div class="layout-preview">
+          <div class="layout-label">CTA</div>
+          <div style="flex:0.5"></div>
+          <!-- Ícone central -->
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(212,168,75,0.15);border:1px solid rgba(212,168,75,0.3);align-self:center;margin-bottom:12px;"></div>
+          <!-- Título -->
+          <div style="height:18px;width:80%;background:rgba(255,255,255,0.45);border-radius:3px;align-self:center;margin-bottom:6px;"></div>
+          <div style="height:10px;width:65%;background:rgba(212,168,75,0.4);border-radius:3px;align-self:center;margin-bottom:6px;"></div>
+          <!-- Subtítulo -->
+          <div style="height:6px;width:75%;background:rgba(255,255,255,0.15);border-radius:2px;align-self:center;margin-bottom:4px;"></div>
+          <div style="height:6px;width:60%;background:rgba(255,255,255,0.1);border-radius:2px;align-self:center;"></div>
+          <div style="flex:1"></div>
+          <!-- Botão -->
+          <div style="height:20px;background:rgba(212,168,75,0.7);border-radius:8px;width:85%;align-self:center;margin-bottom:8px;"></div>
+          <div style="height:6px;width:50%;background:rgba(255,255,255,0.12);border-radius:2px;align-self:center;"></div>
+        </div>
+        <div class="layout-info">
+          <div class="layout-name">CTA — Chamada</div>
+          <div class="layout-desc">Centralizado. Título + texto + botão grande. Uso: último card do carrossel, divulgação do site, convite à ação.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 5. PREVIEW INTERATIVO -->
+<section id="preview">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">05 · Preview</span>
+      <h2 class="section-title">Cards simulados por tema</h2>
+      <p class="section-desc">Visualização do padrão aplicado em cada tema. Selecione para ver.</p>
+    </div>
+
+    <div class="preview-tabs">
+      <button class="tab-btn active" onclick="showTheme('mega')">Mega-Sena</button>
+      <button class="tab-btn" onclick="showTheme('facil')">Lotofácil</button>
+      <button class="tab-btn" onclick="showTheme('quina')">Quina</button>
+      <button class="tab-btn" onclick="showTheme('analisa')">Analisador</button>
+      <button class="tab-btn" onclick="showTheme('geral')">Geral</button>
+    </div>
+
+    <div class="preview-area">
+      <div class="preview-card-wrap">
+
+        <!-- MEGA -->
+        <div class="preview-card pc-mega visible" id="card-mega">
+          <div style="height:4px;background:#00A651;"></div>
+          <div class="pc-body">
+            <div class="pc-badge" style="background:rgba(0,166,81,0.12);border:1px solid rgba(0,166,81,0.35);color:#00A651;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#00A651;"></div>
+              MEGA-SENA
+            </div>
+            <div class="pc-title-main">Próximo sorteio</div>
+            <div class="pc-title-accent" style="color:#00A651;">R$ 180 milhões</div>
+            <div class="pc-balls-row">
+              <div class="pc-ball" style="border-color:#00A651;color:#00A651;">04</div>
+              <div class="pc-ball" style="border-color:#00A651;color:#00A651;">10</div>
+              <div class="pc-ball" style="border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.5);">23</div>
+              <div class="pc-ball" style="border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.5);">37</div>
+              <div class="pc-ball" style="border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.5);">45</div>
+              <div class="pc-ball" style="border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.5);">59</div>
+            </div>
+            <div class="pc-stat-grid">
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:#00A651;">Sáb</div>
+                <div class="pc-stat-label">dia do sorteio</div>
+              </div>
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:#00A651;">20h</div>
+                <div class="pc-stat-label">horário</div>
+              </div>
+            </div>
+            <div class="pc-desc">Gere sua combinação com embasamento estatístico. Série histórica completa analisada.</div>
+            <div class="pc-cta" style="background:rgba(0,166,81,0.18);border:1px solid rgba(0,166,81,0.4);color:#00A651;margin-top:auto;">GERAR COMBINAÇÃO GRÁTIS</div>
+          </div>
+          <div class="pc-footer">
+            <span>Palpitiar.com.br</span>
+            <span>+18 · jogo responsável</span>
+          </div>
+        </div>
+
+        <!-- LOTOFÁCIL -->
+        <div class="preview-card pc-facil" id="card-facil">
+          <div style="height:4px;background:#7B2FBE;"></div>
+          <div class="pc-body">
+            <div class="pc-badge" style="background:rgba(123,47,190,0.12);border:1px solid rgba(123,47,190,0.35);color:#A855F7;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#A855F7;"></div>
+              LOTOFÁCIL
+            </div>
+            <div class="pc-title-main">Dezenas mais</div>
+            <div class="pc-title-accent" style="color:#A855F7;">sorteadas</div>
+            <div class="pc-stat-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px;">
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:#A855F7;">10</div>
+                <div class="pc-stat-label">6x · quente</div>
+              </div>
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:#A855F7;">23</div>
+                <div class="pc-stat-label">5x · quente</div>
+              </div>
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:rgba(255,255,255,0.6);">07</div>
+                <div class="pc-stat-label">2x · fria</div>
+              </div>
+              <div class="pc-stat-item">
+                <div class="pc-stat-num" style="color:rgba(255,255,255,0.6);">25</div>
+                <div class="pc-stat-label">1x · fria</div>
+              </div>
+            </div>
+            <div class="pc-desc">Análise da série histórica completa. Misture dezenas quentes e frias para equilíbrio estatístico.</div>
+            <div class="pc-cta" style="background:rgba(123,47,190,0.18);border:1px solid rgba(123,47,190,0.4);color:#A855F7;margin-top:auto;">VER ANÁLISE COMPLETA</div>
+          </div>
+          <div class="pc-footer">
+            <span>Palpitiar.com.br</span>
+            <span>+18 · jogo responsável</span>
+          </div>
+        </div>
+
+        <!-- QUINA -->
+        <div class="preview-card pc-quina" id="card-quina">
+          <div style="height:4px;background:#1A5FA8;"></div>
+          <div class="pc-body">
+            <div class="pc-badge" style="background:rgba(26,95,168,0.12);border:1px solid rgba(26,95,168,0.4);color:#3B82F6;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#3B82F6;"></div>
+              QUINA
+            </div>
+            <div class="pc-title-main">Concurso</div>
+            <div class="pc-title-accent" style="color:#3B82F6;">especial São João</div>
+            <div class="pc-number" style="color:#3B82F6;">250</div>
+            <div class="pc-number-unit">milhões de reais · não acumula</div>
+            <div style="height:1px;background:rgba(59,130,246,0.2);margin:12px 0;"></div>
+            <div class="pc-desc">Este prêmio não acumula. Se ninguém acertar 5 dezenas, o valor vai para quem acertar 4. A maior chance do ano.</div>
+            <div class="pc-cta" style="background:#1A5FA8;color:#fff;margin-top:auto;">GERAR MINHA QUINA AGORA</div>
+          </div>
+          <div class="pc-footer">
+            <span>Palpitiar.com.br</span>
+            <span>+18 · jogo responsável</span>
+          </div>
+        </div>
+
+        <!-- ANALISA -->
+        <div class="preview-card pc-analisa" id="card-analisa">
+          <div style="height:4px;background:#0F7A3A;"></div>
+          <div class="pc-body">
+            <div class="pc-badge" style="background:rgba(15,122,58,0.12);border:1px solid rgba(15,122,58,0.4);color:#22C55E;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#22C55E;"></div>
+              ANALISADOR
+            </div>
+            <div class="pc-title-main">Sua combinação</div>
+            <div class="pc-title-accent" style="color:#22C55E;">foi classificada</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:8px 12px;">
+                <span style="font-size:10px;color:rgba(255,255,255,0.65);">Soma térmica</span>
+                <span style="font-size:11px;font-weight:700;color:#22C55E;">✓ Ideal</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:8px 12px;">
+                <span style="font-size:10px;color:rgba(255,255,255,0.65);">Pares/Ímpares</span>
+                <span style="font-size:11px;font-weight:700;color:#22C55E;">✓ 3/3</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 12px;">
+                <span style="font-size:10px;color:rgba(255,255,255,0.65);">Distribuição</span>
+                <span style="font-size:11px;font-weight:700;color:#EF4444;">✕ Desequil.</span>
+              </div>
+            </div>
+            <div style="text-align:center;padding:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+              <div style="font-size:11px;font-weight:800;color:#EF4444;letter-spacing:0.1em;">COMBINAÇÃO FRACA</div>
+            </div>
+          </div>
+          <div class="pc-footer">
+            <span>Palpitiar.com.br</span>
+            <span>+18 · jogo responsável</span>
+          </div>
+        </div>
+
+        <!-- GERAL -->
+        <div class="preview-card pc-geral" id="card-geral">
+          <div style="height:4px;background:#D4A84B;"></div>
+          <div class="pc-body">
+            <div class="pc-badge" style="background:rgba(212,168,75,0.12);border:1px solid rgba(212,168,75,0.35);color:#D4A84B;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#D4A84B;"></div>
+              ESTRATÉGIA
+            </div>
+            <div class="pc-title-main">Não jogue no</div>
+            <div class="pc-title-accent" style="color:#D4A84B;">achismo.</div>
+            <div class="pc-items">
+              <div class="pc-item">
+                <div class="pc-item-dot" style="background:#D4A84B;"></div>
+                Verifique a proporção Pares e Ímpares
+              </div>
+              <div class="pc-item">
+                <div class="pc-item-dot" style="background:#D4A84B;"></div>
+                Evite somas muito baixas ou muito altas
+              </div>
+              <div class="pc-item">
+                <div class="pc-item-dot" style="background:#D4A84B;"></div>
+                Misture dezenas quentes com frias
+              </div>
+              <div class="pc-item">
+                <div class="pc-item-dot" style="background:#D4A84B;"></div>
+                Valide com o Analisador do Palpitiar
+              </div>
+            </div>
+            <div style="height:1px;background:rgba(212,168,75,0.15);margin:12px 0;"></div>
+            <div class="pc-cta" style="background:#D4A84B;color:#0C0A07;margin-top:0;font-weight:800;">Palpitiar.com.br</div>
+          </div>
+          <div class="pc-footer">
+            <span>Palpitiar.com.br</span>
+            <span>+18 · jogo responsável</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Specs dinâmicas -->
+      <div class="preview-specs" id="specs-mega">
+        <h3 style="margin-bottom: 20px;">Mega-Sena · Especificações</h3>
+        <div class="spec-row"><span class="spec-label">Fundo base</span><span class="spec-value">#071410</span></div>
+        <div class="spec-row"><span class="spec-label">Fundo alt</span><span class="spec-value">#0D1F17</span></div>
+        <div class="spec-row"><span class="spec-label">Acento principal</span><span class="spec-value" style="color:#00A651;">#00A651</span></div>
+        <div class="spec-row"><span class="spec-label">Acento claro</span><span class="spec-value" style="color:#00CC63;">#00CC63</span></div>
+        <div class="spec-row"><span class="spec-label">Texto principal</span><span class="spec-value">#F5F5F5</span></div>
+        <div class="spec-row"><span class="spec-label">Barra de acento</span><span class="spec-value">4px · #00A651</span></div>
+        <div class="spec-row"><span class="spec-label">Badge</span><span class="spec-value">rgba(0,166,81,0.12) + borda</span></div>
+        <div class="spec-row"><span class="spec-label">Glow radial</span><span class="spec-value">rgba(0,166,81,0.18) · canto sup dir</span></div>
+        <div class="spec-row"><span class="spec-label">CTA primário</span><span class="spec-value">fundo #00A651 · texto #fff</span></div>
+        <div class="spec-row"><span class="spec-label">CTA secundário</span><span class="spec-value">borda #00A651 · texto #00A651</span></div>
+        <div class="spec-row"><span class="spec-label">Bolas de loteria</span><span class="spec-value">borda #00A651 · texto #00A651</span></div>
+        <div style="margin-top:20px;padding:14px;background:rgba(0,166,81,0.06);border:1px solid rgba(0,166,81,0.2);border-radius:10px;">
+          <p style="font-size:12px;color:rgba(245,245,245,0.6);line-height:1.65;">Usar em: posts de sorteio (terça, quinta, sábado), acumulação, divulgação de combinações, resultados, análises históricas específicas da Mega-Sena.</p>
+        </div>
+      </div>
+      <div class="preview-specs" id="specs-facil" style="display:none">
+        <h3 style="margin-bottom: 20px;">Lotofácil · Especificações</h3>
+        <div class="spec-row"><span class="spec-label">Fundo base</span><span class="spec-value">#0D0714</span></div>
+        <div class="spec-row"><span class="spec-label">Fundo alt</span><span class="spec-value">#160A24</span></div>
+        <div class="spec-row"><span class="spec-label">Acento principal</span><span class="spec-value" style="color:#7B2FBE;">#7B2FBE</span></div>
+        <div class="spec-row"><span class="spec-label">Acento claro</span><span class="spec-value" style="color:#A855F7;">#A855F7</span></div>
+        <div class="spec-row"><span class="spec-label">Texto principal</span><span class="spec-value">#F5F5F5</span></div>
+        <div class="spec-row"><span class="spec-label">Barra de acento</span><span class="spec-value">4px · #7B2FBE</span></div>
+        <div class="spec-row"><span class="spec-label">Badge</span><span class="spec-value">rgba(123,47,190,0.12) + borda</span></div>
+        <div class="spec-row"><span class="spec-label">Glow radial</span><span class="spec-value">rgba(123,47,190,0.18) · canto sup dir</span></div>
+        <div class="spec-row"><span class="spec-label">CTA primário</span><span class="spec-value">fundo #7B2FBE · texto #fff</span></div>
+        <div style="margin-top:20px;padding:14px;background:rgba(123,47,190,0.06);border:1px solid rgba(123,47,190,0.2);border-radius:10px;">
+          <p style="font-size:12px;color:rgba(245,245,245,0.6);line-height:1.65;">Usar em: posts de sorteio (diário!), dezenas mais sorteadas, análise estatística, frequência de números. Lotofácil tem o maior volume de sorteios.</p>
+        </div>
+      </div>
+      <div class="preview-specs" id="specs-quina" style="display:none">
+        <h3 style="margin-bottom: 20px;">Quina · Especificações</h3>
+        <div class="spec-row"><span class="spec-label">Fundo base</span><span class="spec-value">#070C14</span></div>
+        <div class="spec-row"><span class="spec-label">Fundo alt</span><span class="spec-value">#0D1525</span></div>
+        <div class="spec-row"><span class="spec-label">Acento principal</span><span class="spec-value" style="color:#1A5FA8;">#1A5FA8</span></div>
+        <div class="spec-row"><span class="spec-label">Acento claro</span><span class="spec-value" style="color:#3B82F6;">#3B82F6</span></div>
+        <div class="spec-row"><span class="spec-label">Texto principal</span><span class="spec-value">#F5F5F5</span></div>
+        <div class="spec-row"><span class="spec-label">Barra de acento</span><span class="spec-value">4px · #1A5FA8</span></div>
+        <div class="spec-row"><span class="spec-label">Badge</span><span class="spec-value">rgba(26,95,168,0.12) + borda</span></div>
+        <div class="spec-row"><span class="spec-label">Glow radial</span><span class="spec-value">rgba(26,95,168,0.18) · canto sup dir</span></div>
+        <div class="spec-row"><span class="spec-label">CTA primário</span><span class="spec-value">fundo #1A5FA8 · texto #fff</span></div>
+        <div style="margin-top:20px;padding:14px;background:rgba(26,95,168,0.06);border:1px solid rgba(26,95,168,0.2);border-radius:10px;">
+          <p style="font-size:12px;color:rgba(245,245,245,0.6);line-height:1.65;">Usar em: posts de sorteio da Quina, Quina São João (mantém azul, acrescenta badge especial âmbar), resultados e análises. São João pode adicionar elementos de festa junina como acento secundário.</p>
+        </div>
+      </div>
+      <div class="preview-specs" id="specs-analisa" style="display:none">
+        <h3 style="margin-bottom: 20px;">Analisador · Especificações</h3>
+        <div class="spec-row"><span class="spec-label">Fundo base</span><span class="spec-value">#050F0A</span></div>
+        <div class="spec-row"><span class="spec-label">Fundo alt</span><span class="spec-value">#091A0F</span></div>
+        <div class="spec-row"><span class="spec-label">Acento principal</span><span class="spec-value" style="color:#0F7A3A;">#0F7A3A</span></div>
+        <div class="spec-row"><span class="spec-label">Acento claro</span><span class="spec-value" style="color:#22C55E;">#22C55E</span></div>
+        <div class="spec-row"><span class="spec-label">Texto principal</span><span class="spec-value">#F5F5F5</span></div>
+        <div class="spec-row"><span class="spec-label">Boa (verde)</span><span class="spec-value" style="color:#22C55E;">#22C55E</span></div>
+        <div class="spec-row"><span class="spec-label">Média (âmbar)</span><span class="spec-value" style="color:#F59E0B;">#F59E0B</span></div>
+        <div class="spec-row"><span class="spec-label">Fraca (vermelho)</span><span class="spec-value" style="color:#EF4444;">#EF4444</span></div>
+        <div style="margin-top:20px;padding:14px;background:rgba(15,122,58,0.06);border:1px solid rgba(15,122,58,0.2);border-radius:10px;">
+          <p style="font-size:12px;color:rgba(245,245,245,0.6);line-height:1.65;">Usar exclusivamente para: divulgação do analisador, exemplos de classificação Forte/Média/Fraca, tutoriais de uso da ferramenta. Diferente do Mega-Sena (verde vibrante), o analisador usa verde escuro/profundo.</p>
+        </div>
+      </div>
+      <div class="preview-specs" id="specs-geral" style="display:none">
+        <h3 style="margin-bottom: 20px;">Geral · Especificações</h3>
+        <div class="spec-row"><span class="spec-label">Fundo base</span><span class="spec-value">#0C0A07</span></div>
+        <div class="spec-row"><span class="spec-label">Fundo alt</span><span class="spec-value">#181206</span></div>
+        <div class="spec-row"><span class="spec-label">Acento principal</span><span class="spec-value" style="color:#D4A84B;">#D4A84B</span></div>
+        <div class="spec-row"><span class="spec-label">Acento claro</span><span class="spec-value" style="color:#F0C868;">#F0C868</span></div>
+        <div class="spec-row"><span class="spec-label">Texto principal</span><span class="spec-value">#F5F5F5</span></div>
+        <div class="spec-row"><span class="spec-label">Barra de acento</span><span class="spec-value">4px · #D4A84B</span></div>
+        <div class="spec-row"><span class="spec-label">Badge</span><span class="spec-value">rgba(212,168,75,0.12) + borda</span></div>
+        <div class="spec-row"><span class="spec-label">CTA</span><span class="spec-value">fundo #D4A84B · texto #0C0A07 bold</span></div>
+        <div style="margin-top:20px;padding:14px;background:rgba(212,168,75,0.05);border:1px solid rgba(212,168,75,0.2);border-radius:10px;">
+          <p style="font-size:12px;color:rgba(245,245,245,0.6);line-height:1.65;">Usar em: dicas educativas gerais, o que o Palpitiar oferece, estratégia de bolão, posts de apresentação da marca, carrosséis mistos (várias loterias), efemérides, promoções do site.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. TIPOGRAFIA -->
+<section>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">06 · Tipografia</span>
+      <h2 class="section-title">Hierarquia de texto</h2>
+      <p class="section-desc">Dois pares de fontes. Sans-serif para presença visual, monospace para dados e identidade técnica.</p>
+    </div>
+    <table class="type-table">
+      <thead>
+        <tr>
+          <th>Nível</th>
+          <th>Exemplo</th>
+          <th>Fonte / Peso</th>
+          <th>Tamanho (no SVG 1080px)</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Hero</strong></td>
+          <td><span class="sample-hero">R$ 250M</span></td>
+          <td>Inter Black 900</td>
+          <td>72–96px</td>
+          <td>Número principal, prêmio em destaque</td>
+        </tr>
+        <tr>
+          <td><strong>Título</strong></td>
+          <td><span class="sample-title">Dezenas mais sorteadas</span></td>
+          <td>Inter ExtraBold 800</td>
+          <td>48–64px</td>
+          <td>Título do card, chamada principal</td>
+        </tr>
+        <tr>
+          <td><strong>Badge</strong></td>
+          <td><span class="sample-badge">MEGA-SENA</span></td>
+          <td>Inter/Mono SemiBold + tracking</td>
+          <td>20–24px</td>
+          <td>Identificador de loteria/categoria</td>
+        </tr>
+        <tr>
+          <td><strong>Corpo</strong></td>
+          <td><span class="sample-sub">Baseado na série histórica completa. Probabilidade igual para todos os números.</span></td>
+          <td>Inter Regular 400</td>
+          <td>28–32px</td>
+          <td>Texto explicativo, subtítulo</td>
+        </tr>
+        <tr>
+          <td><strong>Dado</strong></td>
+          <td><span class="sample-data">23</span></td>
+          <td>JetBrains Mono Bold 700</td>
+          <td>36–48px</td>
+          <td>Números em bolas, stats, datas</td>
+        </tr>
+        <tr>
+          <td><strong>Rodapé</strong></td>
+          <td><span class="sample-foot">Palpitiar.com.br · +18</span></td>
+          <td>JetBrains Mono Regular</td>
+          <td>18–20px</td>
+          <td>Assinatura e aviso legal</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+      <p style="font-size:13px;color:var(--text-dim);margin:0;"><strong style="color:var(--text);">Fallback para SVG:</strong> Use <code>font-family="'Inter', 'Helvetica Neue', sans-serif"</code> e <code>font-family="'JetBrains Mono', 'Courier New', monospace"</code>. Em Python/Pillow, use <code>DejaVuSans-Bold.ttf</code> e <code>DejaVuSansMono.ttf</code> como fallback universal.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. MASCOTE -->
+<section id="mascote">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">07 · Mascote</span>
+      <h2 class="section-title">A coruja com equilíbrio</h2>
+      <p class="section-desc">O mascote reforça a identidade sem competir com o conteúdo. Regras simples garantem uso coerente e profissional.</p>
+    </div>
+    <div class="mascote-grid">
+      <div class="mascote-card">
+        <div class="mascote-header" style="background:rgba(34,197,94,0.06);">
+          <div class="dot-green"></div>
+          <span style="color:#22C55E;">Quando usar</span>
+        </div>
+        <div class="mascote-body">
+          <div class="mascote-rule"><strong>Carrossel</strong> Máximo 1 card com mascote por carrossel</div>
+          <div class="mascote-rule"><strong>Cards solo</strong> Opcional em cards de apresentação e educativos</div>
+          <div class="mascote-rule"><strong>Position</strong> Sempre em canto (inf. direito preferencial)</div>
+          <div class="mascote-rule"><strong>Tamanho</strong> 20–25% da largura do card, nunca maior</div>
+          <div class="mascote-rule"><strong>Integração</strong> Fundo transparente com blend, sem caixa de fundo</div>
+          <div class="mascote-rule"><strong>Orientação</strong> Olhando para o conteúdo, nunca de costas</div>
+        </div>
+      </div>
+      <div class="mascote-card">
+        <div class="mascote-header" style="background:rgba(239,68,68,0.06);">
+          <div class="dot-red"></div>
+          <span style="color:#EF4444;">Quando NÃO usar</span>
+        </div>
+        <div class="mascote-body">
+          <div class="mascote-rule"><strong>Card CTA</strong> Nunca no último card (foco no botão)</div>
+          <div class="mascote-rule"><strong>Centralizado</strong> Nunca no centro do card, nunca protagonista</div>
+          <div class="mascote-rule"><strong>Sobre texto</strong> Nunca cobrindo texto ou dados importantes</div>
+          <div class="mascote-rule"><strong>Stats</strong> Nunca em cards com grid de dados (atrapalha leitura)</div>
+          <div class="mascote-rule"><strong>Dois mascotes</strong> Nunca dois mascotes no mesmo card</div>
+          <div class="mascote-rule"><strong>Caixa de fundo</strong> Nunca com retângulo/caixa de fundo visível</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. DO'S & DON'TS -->
+<section id="regras">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">08 · Regras</span>
+      <h2 class="section-title">Do's &amp; Don'ts</h2>
+      <p class="section-desc">Regras definitivas para qualquer card do Palpitiar, independente do tema ou layout.</p>
+    </div>
+    <div class="dos-grid">
+      <div class="dos-card">
+        <div class="dos-header">✓ Fazer sempre</div>
+        <ul class="dos-list">
+          <li>Fundo sempre escuro (próximo ao preto) em 100% dos cards</li>
+          <li>Barra de acento colorida (4px) no topo de todos os cards</li>
+          <li>Badge de categoria/loteria no início do corpo</li>
+          <li>"Palpitiar.com.br" + "+18 · jogo responsável" no rodapé de todos</li>
+          <li>Cor do tema apenas em elementos de destaque (badge, número, CTA, bolas)</li>
+          <li>Fonte Inter para texto, JetBrains Mono para dados e rodapé</li>
+          <li>Título em 2 linhas: linha 1 branca, linha 2 na cor do tema</li>
+          <li>Cards de carrossel com mesma proporção (nunca misturar 4:5 e 1:1)</li>
+          <li>Glow radial sutil no canto superior direito, na cor do tema</li>
+          <li>Respeitar área segura em stories: 250px topo, 320px base</li>
+        </ul>
+      </div>
+      <div class="donts-card">
+        <div class="donts-header">✕ Nunca fazer</div>
+        <ul class="donts-list">
+          <li>Fotos stock de banco de imagens sem relação com loterias/IA</li>
+          <li>Fundo claro ou branco em qualquer card</li>
+          <li>Misturar cores de diferentes temas num mesmo card</li>
+          <li>Emojis no badge de categoria ou título principal</li>
+          <li>Selos de lacre (cera) ou elementos de templates genéricos</li>
+          <li>Texto menor que 28px no viewBox 1080px (ilegível em miniatura)</li>
+          <li>Linhas ou retângulos full-width que cortam as bordas arredondadas</li>
+          <li>Afirmar prêmios garantidos, "método infalível" ou "sistema que ganha"</li>
+          <li>Quantidade específica de concursos analisados (use "série histórica completa")</li>
+          <li>Cards sem o domínio "Palpitiar.com.br" visível</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Checklist de entrega -->
+    <h3 style="margin-top:40px;margin-bottom:8px;">Checklist de entrega</h3>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">Antes de postar qualquer card, verificar:</p>
+    <div class="checklist">
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>viewBox correto</strong> 4:5 para feed Instagram, 9:16 para stories, 1:1 para carrossel Facebook</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Tema correto</strong> Cor do tema bate com a loteria ou categoria do conteúdo</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Barra de acento</strong> Faixa colorida de 4px presente no topo do card</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Badge de categoria</strong> Identificador da loteria/tema visível</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Rodapé presente</strong> "Palpitiar.com.br" e "+18" em todos os cards sem exceção</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Texto legível</strong> Títulos legíveis em miniatura no feed (mín. 48px no viewBox 1080)</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Sem promessa de ganho</strong> Linguagem de análise estatística, nunca de previsão</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text"><strong>Mascote com regra</strong> Máx. 1 por carrossel, no canto, sem caixa de fundo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RODAPÉ -->
+<footer style="padding:40px 0;text-align:center;border-top:1px solid var(--border);">
+  <div class="container">
+    <p style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:0.1em;">PALPITIAR · GUIA DE DESIGN VISUAL · VERSÃO 2.0 · JUNHO 2026</p>
+  </div>
+</footer>
+
+<script>
+function showTheme(theme) {
+  // Esconde todos os cards
+  document.querySelectorAll('.preview-card').forEach(c => c.style.display = 'none');
+  document.querySelectorAll('[id^="specs-"]').forEach(s => s.style.display = 'none');
+  // Atualiza botões
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  // Mostra card e specs
+  const card = document.getElementById('card-' + theme);
+  const specs = document.getElementById('specs-' + theme);
+  if (card) card.style.display = 'flex';
+  if (specs) specs.style.display = 'block';
+  // Ativa botão
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

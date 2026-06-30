@@ -184,7 +184,7 @@ function calcResultado(g1, g2) {
       if (ex.length > 0) { timeCache[nome] = ex[0].id; return ex[0].id; }
       const novo = await sb('POST', 'times_mapeamento', {
         nome_caixa: nome, nome_popular: nome, pais: 'Internacional',
-        nivel_nacional: 'media', fonte_dados: 'automatico', ativo: true,
+        nivel_nacional: 'media', fonte_dados: 'manual', ativo: true,
       });
       timeCache[nome] = novo[0].id;
       return novo[0].id;
