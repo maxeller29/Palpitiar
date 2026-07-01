@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — Tutorial Completo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0D1117;
+    --surface:   #161B22;
+    --surface2:  #1C2128;
+    --border:    #30363D;
+    --blue:      #1F6FEB;
+    --blue-light:#58A6FF;
+    --green:     #3FB950;
+    --orange:    #F0883E;
+    --red:       #F85149;
+    --purple:    #BC8CFF;
+    --text:      #E6EDF3;
+    --text-muted:#7D8590;
+    --text-dim:  #484F58;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== TITLEBAR ===== */
+  .titlebar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 38px;
+    background: #010409;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    z-index: 100;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .titlebar-dots { display: flex; gap: 6px; margin-right: 12px; }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .dot-red { background: #FF5F57; }
+  .dot-yellow { background: #FEBC2E; }
+  .dot-green { background: #28C840; }
+
+  .titlebar-tabs { display: flex; gap: 0; flex: 1; }
+  .tab {
+    padding: 0 16px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  .tab.active {
+    background: var(--bg);
+    color: var(--text);
+    border-bottom: 2px solid var(--blue);
+  }
+  .tab-icon { font-size: 13px; }
+
+  .titlebar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 11px;
+  }
+
+  .badge {
+    background: var(--blue);
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    position: fixed;
+    top: 38px;
+    left: 0;
+    width: 260px;
+    height: calc(100vh - 38px);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 12px 16px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .explorer-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .nav-list { padding: 4px 0; list-style: none; }
+
+  .nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 16px 5px 24px;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-item a:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+
+  .nav-item a.active {
+    background: rgba(31,111,235,0.1);
+    color: var(--blue-light);
+    border-left-color: var(--blue);
+  }
+
+  .nav-icon { font-size: 12px; min-width: 16px; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    margin-left: 260px;
+    margin-top: 38px;
+    flex: 1;
+    min-height: calc(100vh - 38px);
+    max-width: 900px;
+    padding: 48px 56px 80px;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    margin-bottom: 64px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .hero-eyebrow::before { content: '$ '; color: var(--text-dim); }
+
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .hero h1 span { color: var(--blue-light); }
+
+  .hero-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ===== SEÇÕES ===== */
+  .section {
+    margin-bottom: 72px;
+    scroll-margin-top: 60px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 24px;
+  }
+
+  .section h2 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .section-divider {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 8px;
+    align-self: center;
+  }
+
+  .section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 32px 0 12px;
+    font-family: var(--mono);
+  }
+
+  p { margin-bottom: 16px; color: var(--text-muted); }
+
+  strong { color: var(--text); font-weight: 600; }
+
+  /* ===== CODE ===== */
+  .code-block {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .code-lang {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { border-color: var(--blue-light); color: var(--blue-light); }
+
+  pre {
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  pre .cmd { color: var(--blue-light); }
+  pre .comment { color: var(--text-dim); }
+  pre .string { color: var(--green); }
+  pre .key { color: var(--orange); }
+  pre .good { color: var(--green); }
+  pre .bad { color: var(--red); }
+  pre .prompt { color: var(--purple); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: rgba(88,166,255,0.1);
+    color: var(--blue-light);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(88,166,255,0.2);
+  }
+
+  /* ===== TABELA ===== */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 2px solid var(--blue);
+  }
+
+  th {
+    padding: 10px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  td.mono { font-family: var(--mono); font-size: 12px; color: var(--blue-light); }
+  td.yes { color: var(--green); font-weight: 600; }
+  td.no { color: var(--red); }
+  td.hl { color: var(--text); font-weight: 500; }
+
+  /* ===== CALLOUTS ===== */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout-tip {
+    background: rgba(63,185,80,0.08);
+    border: 1px solid rgba(63,185,80,0.25);
+    color: #7EE787;
+  }
+
+  .callout-warn {
+    background: rgba(240,136,62,0.08);
+    border: 1px solid rgba(240,136,62,0.25);
+    color: #FFA657;
+  }
+
+  .callout-info {
+    background: rgba(31,111,235,0.08);
+    border: 1px solid rgba(31,111,235,0.3);
+    color: var(--blue-light);
+  }
+
+  /* ===== LISTA ===== */
+  ul.styled, ol.styled {
+    padding-left: 0;
+    list-style: none;
+    margin: 16px 0;
+  }
+
+  ul.styled li, ol.styled li {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  ul.styled li::before {
+    content: '▸';
+    color: var(--blue);
+    font-size: 11px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  ol.styled { counter-reset: li; }
+  ol.styled li::before {
+    counter-increment: li;
+    content: counter(li, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ===== CARDS GRID ===== */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--blue); }
+
+  .card-icon { font-size: 20px; margin-bottom: 10px; }
+
+  .card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ===== TERMINAL MOCK ===== */
+  .terminal {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #0D1117;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .terminal-bar span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .t-prompt { color: var(--green); }
+  .t-path { color: var(--blue-light); }
+  .t-cmd { color: var(--text); }
+  .t-out { color: var(--text-muted); }
+  .t-claude { color: var(--orange); }
+  .t-info { color: var(--purple); }
+  .t-success { color: var(--green); }
+  .t-dim { color: var(--text-dim); }
+
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px 60px; }
+    .hero h1 { font-size: 32px; }
+    .cards { grid-template-columns: 1fr; }
+    .titlebar-tabs .tab:not(.active) { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div class="titlebar">
+  <div class="titlebar-dots">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+  </div>
+  <div class="titlebar-tabs">
+    <div class="tab active">
+      <span class="tab-icon">📄</span>
+      claude-code-tutorial.html
+    </div>
+    <div class="tab">
+      <span class="tab-icon">⚙️</span>
+      CLAUDE.md
+    </div>
+  </div>
+  <div class="titlebar-right">
+    <span>Sonnet 4.6</span>
+    <span class="badge">Claude Pro</span>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-header">Explorer</div>
+  <div class="explorer-label">📁 claude-code-tutorial</div>
+  <ul class="nav-list" id="nav-list">
+    <li class="nav-item"><a href="#s1" class="active"><span class="nav-icon">📘</span>01 — O que é</a></li>
+    <li class="nav-item"><a href="#s2"><span class="nav-icon">⚙️</span>02 — Instalação</a></li>
+    <li class="nav-item"><a href="#s3"><span class="nav-icon">🚀</span>03 — Primeiros passos</a></li>
+    <li class="nav-item"><a href="#s4"><span class="nav-icon">🖥️</span>04 — Interface</a></li>
+    <li class="nav-item"><a href="#s5"><span class="nav-icon">⌨️</span>05 — Comandos</a></li>
+    <li class="nav-item"><a href="#s6"><span class="nav-icon">🔄</span>06 — Fluxo de trabalho</a></li>
+    <li class="nav-item"><a href="#s7"><span class="nav-icon">⚡</span>07 — Paralelo</a></li>
+    <li class="nav-item"><a href="#s8"><span class="nav-icon">🌐</span>08 — Chrome</a></li>
+    <li class="nav-item"><a href="#s9"><span class="nav-icon">🧠</span>09 — CLAUDE.md</a></li>
+    <li class="nav-item"><a href="#s10"><span class="nav-icon">✅</span>10 — Boas práticas</a></li>
+    <li class="nav-item"><a href="#s11"><span class="nav-icon">⚠️</span>11 — Limitações</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <span class="status-dot"></span>claude v2.1.196 · IA-MAX
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">claude --help &amp;&amp; echo "Tutorial completo"</div>
+    <h1>Claude<span>Code</span></h1>
+    <div class="hero-subtitle">Tutorial completo via Terminal do VS Code</div>
+    <div class="hero-meta">
+      <span>📁 IA-MAX/Projetos/Loterias</span>
+      <span>🤖 Sonnet 4.6</span>
+      <span>⚡ high · /effort</span>
+      <span>👤 maxeller@gmail.com</span>
+    </div>
+  </div>
+
+  <!-- S1 -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>O que é o Claude Code</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>O Claude Code é a versão do Claude projetada para rodar diretamente no terminal, com acesso completo ao sistema de arquivos, execução de comandos e integração com ferramentas de desenvolvimento. Diferente do <strong>claude.ai</strong>, ele não apenas conversa — ele <strong>age</strong>.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Funcionalidade</th>
+            <th>claude.ai (Web)</th>
+            <th>Claude Code (Terminal)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Lê seus arquivos</td><td class="no">✗ Precisa colar</td><td class="yes">✓ Acesso direto</td></tr>
+          <tr><td>Edita código</td><td class="no">✗ Só sugere</td><td class="yes">✓ Salva no disco</td></tr>
+          <tr><td>Executa comandos</td><td class="no">✗ Não</td><td class="yes">✓ npm, python, git...</td></tr>
+          <tr><td>Memória do projeto</td><td class="no">✗ Limitada</td><td class="yes">✓ CLAUDE.md persistente</td></tr>
+          <tr><td>Artefatos visuais</td><td class="yes">✓ Cards, SVG, HTML</td><td class="no">✗ Não</td></tr>
+          <tr><td>Custo adicional</td><td>Incluso no Pro</td><td>Incluso no Pro</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h4>Acesso direto ao código</h4>
+        <p>Lê todos os arquivos do projeto sem copiar/colar. Entende imports, dependências e estrutura de pastas.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h4>Executa e corrige</h4>
+        <p>Roda scripts, vê o output e corrige erros em loop — até funcionar.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h4>Contexto persistente</h4>
+        <p>Com CLAUDE.md, ele lembra como seu projeto funciona entre sessões.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💰</div>
+        <h4>Incluso no Pro</h4>
+        <p>Sem custo extra de API. Usa o mesmo plano Claude Pro que você já paga.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Instalação e Configuração</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Pré-requisitos</h3>
+    <ul class="styled">
+      <li>Node.js v18 ou superior instalado</li>
+      <li>VS Code instalado com terminal integrado</li>
+      <li>Conta Claude Pro (maxeller@gmail.com)</li>
+    </ul>
+
+    <h3>Instalar o Claude Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+      <pre><span class="cmd">npm install -g @anthropic-ai/claude-code</span></pre>
+    </div>
+
+    <h3>Autenticação</h3>
+    <p>Na primeira execução, o Claude Code abre o browser automaticamente para login com sua conta Anthropic. Após isso, fica autenticado permanentemente.</p>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+      <pre><span class="cmd">claude</span>
+<span class="comment"># Abre o browser para login na primeira vez</span></pre>
+    </div>
+
+    <h3>Abrindo no VS Code</h3>
+    <ol class="styled">
+      <li>Abra a pasta do projeto no VS Code (File › Open Folder)</li>
+      <li>Abra o terminal integrado: <code>Ctrl+`</code></li>
+      <li>Navegue para a pasta do projeto se necessário</li>
+      <li>Digite <code>claude</code> e pressione Enter</li>
+    </ol>
+  </section>
+
+  <!-- S3 -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Primeiros Passos</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Tela inicial</h3>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <span>Terminal — claude</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-claude">┌─ Claude Code v2.1.196 ────────────────────────────────────┐</span></div>
+        <div><span class="t-claude">│</span></div>
+        <div><span class="t-claude">│   </span><span class="t-cmd">Welcome back Max!</span></div>
+        <div><span class="t-claude">│</span></div>
+        <div><span class="t-claude">│   </span><span class="t-out">Sonnet 4.6 · Claude Pro · maxeller@gmail.com</span></div>
+        <div><span class="t-claude">│   </span><span class="t-path">~/Documents/IA-MAX/Projetos/Loterias</span></div>
+        <div><span class="t-claude">│</span></div>
+        <div><span class="t-claude">└───────────────────────────────────────────────────────────┘</span></div>
+        <br>
+        <div><span class="t-dim">● high · /effort</span></div>
+        <br>
+        <div><span class="t-prompt">›</span> <span class="t-dim">Try "fix typecheck errors"</span></div>
+      </div>
+    </div>
+
+    <h3>Primeiro comando recomendado</h3>
+    <p>Logo após iniciar em um projeto novo, execute <code>/init</code>. O Claude vai analisar todos os arquivos e criar um <code>CLAUDE.md</code> com a memória do projeto.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">claude</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+      <pre><span class="prompt">›</span> <span class="cmd">/init</span></pre>
+    </div>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <span>Execute <code>/init</code> uma vez por projeto. Nas próximas sessões, o Claude já conhece a estrutura, convenções e comandos do projeto.</span>
+    </div>
+  </section>
+
+  <!-- S4 -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Interface e Navegação</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Como interagir</h3>
+    <p>O prompt fica no rodapé da tela. Digite em linguagem natural — português funciona perfeitamente:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">exemplos</span></div>
+      <pre><span class="prompt">›</span> <span class="string">analise a estrutura deste projeto</span>
+<span class="prompt">›</span> <span class="string">crie um script Python que lê o arquivo historico.json</span>
+<span class="prompt">›</span> <span class="string">corrija os erros de TypeScript no arquivo gerador.js</span>
+<span class="prompt">›</span> <span class="string">faça commit das mudanças com a mensagem "fix: ajuste no gerador"</span></pre>
+    </div>
+
+    <h3>Confirmações de segurança</h3>
+    <p>Antes de editar arquivos ou executar comandos, o Claude Code sempre pede confirmação:</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <span>Terminal — confirmação</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-info">• Write(gerador.js)</span></div>
+        <br>
+        <div><span class="t-out">Do you want to overwrite gerador.js?</span></div>
+        <div><span class="t-claude">›</span> <span class="t-success">1. Yes</span></div>
+        <div><span class="t-dim">  2. Yes, allow all edits during this session (Shift+Tab)</span></div>
+        <div><span class="t-dim">  3. No</span></div>
+      </div>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <span>Ao usar a opção 2 (allow all edits), o Claude editará arquivos sem perguntar pelo resto da sessão. Use somente quando confiar na tarefa em andamento.</span>
+    </div>
+  </section>
+
+  <!-- S5 -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Comandos Essenciais</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Comandos de sistema (começam com /)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Comando</th><th>O que faz</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">/init</td><td>Analisa o projeto e cria/atualiza o CLAUDE.md</td></tr>
+          <tr><td class="mono">/help</td><td>Lista todos os comandos disponíveis</td></tr>
+          <tr><td class="mono">/clear</td><td>Limpa o contexto da conversa (não apaga arquivos)</td></tr>
+          <tr><td class="mono">/cost</td><td>Exibe o consumo de tokens da sessão atual</td></tr>
+          <tr><td class="mono">/chrome</td><td>Liga/desliga integração com o Chrome</td></tr>
+          <tr><td class="mono">/effort</td><td>Ajusta o nível de esforço: low, medium, high</td></tr>
+          <tr><td class="mono">/passes</td><td>Programa de indicação para ganhar créditos</td></tr>
+          <tr><td class="mono">/release-notes</td><td>Novidades da versão atual</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Atalhos de teclado</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Atalho</th><th>O que faz</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">Enter</td><td>Envia o comando / confirma a opção selecionada</td></tr>
+          <tr><td class="mono">Ctrl+C</td><td>Cancela a ação em andamento imediatamente</td></tr>
+          <tr><td class="mono">Shift+Tab</td><td>Aprova todas as edições da sessão (sem confirmar)</td></tr>
+          <tr><td class="mono">↑ / ↓</td><td>Navega pelo histórico de comandos anteriores</td></tr>
+          <tr><td class="mono">Esc</td><td>Cancela / mantém configuração nas telas de opt-in</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- S6 -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Fluxo de Trabalho</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Exemplos práticos — Projeto Loterias</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">claude · Loterias</span></div>
+      <pre><span class="prompt">›</span> <span class="string">analise os arquivos deste projeto e explique a arquitetura</span>
+
+<span class="prompt">›</span> <span class="string">o script atualizar-historico.js está quebrando — corrija</span>
+
+<span class="prompt">›</span> <span class="string">crie um novo artigo HTML sobre estratégias da Lotofácil</span>
+  <span class="string">seguindo o padrão dos artigos existentes na pasta /artigos</span>
+
+<span class="prompt">›</span> <span class="string">rode npm run gerar-artigos e me diga se teve algum erro</span>
+
+<span class="prompt">›</span> <span class="string">faça commit de todos os arquivos alterados hoje</span></pre>
+    </div>
+
+    <h3>Exemplos práticos — Automações MPF</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">claude · MPF</span></div>
+      <pre><span class="prompt">›</span> <span class="string">leia o arquivo faturas.xlsx e extraia todos os números</span>
+  <span class="string">de telefone da coluna B</span>
+
+<span class="prompt">›</span> <span class="string">cruze os números do VCF com a planilha fiscal</span>
+  <span class="string">e gere um XLSX consolidado</span>
+
+<span class="prompt">›</span> <span class="string">crie um script Python para processar o PDF da Claro</span>
+  <span class="string">usando OCR — o Tesseract está em C:\Program Files\Tesseract-OCR</span></pre>
+    </div>
+
+    <h3>Ciclo recomendado de uso</h3>
+    <ol class="styled">
+      <li>Abra o VS Code na pasta do projeto</li>
+      <li>Pressione <code>Ctrl+`</code> para abrir o terminal integrado</li>
+      <li>Digite <code>claude</code> e pressione Enter</li>
+      <li>Descreva a tarefa em português, com contexto suficiente</li>
+      <li>Revise o diff antes de confirmar edições em arquivos críticos</li>
+      <li>Use <code>Ctrl+C</code> para interromper se algo sair errado</li>
+    </ol>
+  </section>
+
+  <!-- S7 -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Múltiplas Tarefas em Paralelo</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Às vezes é necessário fazer outra coisa enquanto o Claude trabalha. Três opções:</p>
+
+    <h3>Opção A — Novo terminal (recomendado)</h3>
+    <p>Clique no <code>+</code> na barra de terminais ou use <code>Ctrl+Shift+\</code> para abrir um terminal PowerShell normal ao lado. O Claude Code continua rodando no dele — você usa o outro para git, node, python etc.</p>
+
+    <h3>Opção B — Duas sessões Claude Code</h3>
+    <p>No novo terminal, digite <code>claude</code> novamente. Duas sessões independentes rodam simultaneamente.</p>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <span>Duas sessões editando os mesmos arquivos ao mesmo tempo pode gerar conflito. Use para projetos ou pastas diferentes.</span>
+    </div>
+
+    <h3>Opção C — Interromper e retomar</h3>
+    <ul class="styled">
+      <li><code>Ctrl+C</code> para pausar o que está fazendo</li>
+      <li>Digite o novo comando ou pergunta</li>
+      <li>O contexto anterior permanece na memória da sessão</li>
+    </ul>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <span>Para o projeto Loterias: Claude Code no terminal dele + terminal PowerShell ao lado para <code>git</code> e <code>npm</code> é a configuração ideal.</span>
+    </div>
+  </section>
+
+  <!-- S8 -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>Integração com o Chrome</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>Na primeira inicialização, o Claude Code detecta a extensão Claude in Chrome instalada e pergunta se quer ativar o browser:</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <span>Terminal — opt-in do Chrome</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-info">Claude in Chrome extension detected</span></div>
+        <br>
+        <div><span class="t-out">Claude will use your Chrome browser by default — navigating</span></div>
+        <div><span class="t-out">sites, filling forms, and capturing screenshots.</span></div>
+        <br>
+        <div><span class="t-claude">›</span> <span class="t-success">1. Yes, use my browser</span></div>
+        <div><span class="t-dim">  2. No, keep browser tools off</span></div>
+        <br>
+        <div><span class="t-dim">Enter to confirm · Esc to keep browser tools off</span></div>
+      </div>
+    </div>
+
+    <h3>Para que serve</h3>
+    <ul class="styled">
+      <li>Navegar sites automaticamente (ex: checar resultado da Caixa)</li>
+      <li>Tirar screenshots de páginas para análise</li>
+      <li>Testar como o palpitiar.com.br está renderizando</li>
+      <li>Preencher formulários e interagir com interfaces</li>
+      <li>Scraping de dados públicos</li>
+    </ul>
+
+    <h3>Como ligar/desligar a qualquer momento</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">claude</span><button class="copy-btn" onclick="copyCode(this)">copiar</button></div>
+      <pre><span class="prompt">›</span> <span class="cmd">/chrome</span></pre>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <span>Com o browser ativo, o Claude sempre pede confirmação antes de navegar ou clicar em algo. As ações passam pelos prompts normais de segurança.</span>
+    </div>
+  </section>
+
+  <!-- S9 -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>CLAUDE.md — Memória do Projeto</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <p>O <code>CLAUDE.md</code> é o arquivo mais importante para uso avançado. Ele funciona como memória persistente — toda sessão iniciada na pasta do projeto, o Claude lê esse arquivo automaticamente.</p>
+
+    <h3>O que colocar</h3>
+    <ul class="styled">
+      <li>Visão geral do projeto (o que é, para que serve)</li>
+      <li>Comandos principais (npm run, python scripts/...)</li>
+      <li>Arquitetura de pastas e arquivos importantes</li>
+      <li>Convenções e regras do projeto</li>
+      <li>Restrições e armadilhas conhecidas</li>
+    </ul>
+
+    <h3>Exemplo — Projeto Palpitiar</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">CLAUDE.md</span></div>
+      <pre><span class="key">## Regras do Projeto</span>
+
+<span class="comment">- NUNCA mostrar dezenas nos cards sociais (preserva funil do site)</span>
+<span class="comment">- Cores por loteria: seguir paleta oficial da Caixa Econômica</span>
+<span class="comment">- Stack: HTML/CSS/JS puro — sem build step</span>
+<span class="comment">- Deploy: Netlify (arquivos estáticos diretos)</span>
+<span class="comment">- Banco: Supabase (anon key exposta é intencional)</span>
+<span class="comment">- API Caixa: CORS — usar workaround via proxy</span>
+<span class="comment">- SVG deve ser convertido para PNG via cairosvg antes do Instagram</span>
+
+<span class="key">## Comandos</span>
+
+<span class="cmd">npm run gerar-artigos</span>     <span class="comment"># gera artigos do blog (requer ANTHROPIC_API_KEY)</span>
+<span class="cmd">node scripts/atualizar-historico.js</span>  <span class="comment"># atualiza JSONs das loterias</span></pre>
+    </div>
+
+    <h3>Como atualizar via Claude Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">claude</span></div>
+      <pre><span class="prompt">›</span> <span class="string">adiciona no CLAUDE.md que o SVG deve ser convertido</span>
+  <span class="string">para PNG via cairosvg antes de publicar no Instagram</span></pre>
+    </div>
+
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <span>Mantenha o CLAUDE.md atualizado com as decisões do projeto. É o que garante consistência entre sessões diferentes — sem precisar reexplicar tudo do zero.</span>
+    </div>
+  </section>
+
+  <!-- S10 -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2>Boas Práticas</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>Seja específico</h3>
+    <p>Quanto mais contexto, melhor o resultado:</p>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">comparação</span></div>
+      <pre><span class="bad">❌ › arruma o código</span>
+
+<span class="good">✅ › o arquivo scripts/gerador.js está retornando undefined</span>
+      <span class="good">na linha 47 quando o JSON da Caixa vem vazio — corrija</span>
+      <span class="good">sem quebrar o fallback que já existe na linha 83</span></pre>
+    </div>
+
+    <h3>Revise antes de confirmar</h3>
+    <p>O Claude mostra um diff no VS Code antes de salvar. Leia com atenção ao editar arquivos críticos como <code>index.html</code> ou scripts de deploy.</p>
+
+    <h3>Use Ctrl+C sem medo</h3>
+    <p>Se perceber que está indo na direção errada, interrompa. O contexto fica salvo, você reexplica e ele recomeça.</p>
+
+    <h3>Faça git commit antes de mudanças grandes</h3>
+    <p>Assim você pode reverter com <code>git checkout</code> se necessário. O Claude pode editar muitos arquivos de uma vez.</p>
+
+    <h3>claude.ai vs Claude Code — escolha certa</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tarefa</th><th>Melhor usar</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Posts e cards do Palpitiar / Dra. Andréa</td><td class="hl">claude.ai (tem Artifacts visuais)</td></tr>
+          <tr><td>Escrever, debugar, rodar código</td><td class="hl">Claude Code no VS Code</td></tr>
+          <tr><td>Automações MPF, pipelines Python</td><td class="hl">Claude Code no VS Code</td></tr>
+          <tr><td>Brainstorming, textos, análises</td><td class="hl">claude.ai</td></tr>
+          <tr><td>Tarefas longas com muitos arquivos</td><td class="hl">Claude Code no VS Code</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- S11 -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2>Limitações e Cuidados</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <h3>O que o Claude Code não faz</h3>
+    <ul class="styled">
+      <li>Não acessa a internet por conta própria (exceto com /chrome ativo)</li>
+      <li>Não tem memória entre sessões — só o CLAUDE.md persiste</li>
+      <li>Não gera imagens ou SVGs (use o claude.ai para isso)</li>
+      <li>Não executa código em sandbox isolado como o claude.ai</li>
+    </ul>
+
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <span>Nunca use "allow all edits" em projetos em produção sem saber o que será feito. O Claude é capaz de sobrescrever arquivos importantes. Faça um git commit antes de tarefas grandes.</span>
+    </div>
+
+    <h3>Quando o Claude Code trava ou erra</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">recuperação</span></div>
+      <pre><span class="comment"># 1. Interromper</span>
+<span class="key">Ctrl+C</span>
+
+<span class="comment"># 2. Limpar contexto</span>
+<span class="prompt">›</span> <span class="cmd">/clear</span>
+
+<span class="comment"># 3. Reexplicar de forma diferente</span>
+<span class="prompt">›</span> <span class="string">nova instrução mais específica...</span>
+
+<span class="comment"># 4. Reverter arquivos se necessário</span>
+<span class="cmd">git checkout -- arquivo-com-problema.js</span></pre>
+    </div>
+
+    <h3>Verificar consumo</h3>
+    <p>Em sessões longas, use <code>/cost</code> periodicamente para saber quanto de token foi consumido.</p>
+  </section>
+
+  <footer>
+    <span>IA-MAX · Claude Code Tutorial · v2.1.196</span>
+    <span>maxeller@gmail.com</span>
+  </footer>
+
+</main>
+
+<script>
+  // Scroll spy — ativa item do nav conforme seção visível
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('#nav-list a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`#nav-list a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Copy button
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copiado!';
+      setTimeout(() => btn.textContent = 'copiar', 1500);
+    });
+  }
+</script>
+</body>
+</html>
