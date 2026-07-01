@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nichos Mais Assistidos no YouTube — Análise 2025/2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e8e8e8;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.7rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 36px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    canvas { width: 100% !important; }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      text-align: left;
+      padding: 8px 10px;
+      color: #888;
+      border-bottom: 1px solid #2a2d3a;
+      font-weight: 600;
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #1e2130;
+    }
+    tr:last-child td { border-bottom: none; }
+    .rank { color: #555; font-weight: 700; width: 28px; }
+    .nicho { font-weight: 600; color: #e8e8e8; }
+    .bar-cell { min-width: 120px; }
+    .bar-bg {
+      background: #2a2d3a;
+      border-radius: 4px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 10px;
+      border-radius: 4px;
+    }
+    .pct { color: #aaa; font-size: 0.8rem; text-align: right; }
+    .tag {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .tag.alto   { background: #1a3a1a; color: #4caf7d; }
+    .tag.medio  { background: #3a2a10; color: #d4a84b; }
+    .tag.baixo  { background: #2a1a1a; color: #c0695a; }
+    .insight-box {
+      grid-column: 1 / -1;
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 14px;
+      padding: 24px 28px;
+    }
+    .insight-box h2 {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .insight {
+      background: #12141d;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border-left: 3px solid;
+    }
+    .insight h3 { font-size: 0.9rem; margin-bottom: 6px; }
+    .insight p  { font-size: 0.8rem; color: #888; line-height: 1.5; }
+    .fonte {
+      text-align: center;
+      color: #444;
+      font-size: 0.75rem;
+      margin-top: 32px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Nichos Mais Assistidos no YouTube — Mundo</h1>
+<p class="subtitle">Análise de audiência global para seleção de nicho de canal · Base: relatórios 2024–2026</p>
+
+<div class="grid">
+
+  <!-- Gráfico de barras horizontais -->
+  <div class="card" style="grid-column: 1 / -1;">
+    <h2>Participação de Audiência por Nicho (%)</h2>
+    <canvas id="barChart" height="420"></canvas>
+  </div>
+
+  <!-- Tabela detalhada -->
+  <div class="card">
+    <h2>Ranking Detalhado</h2>
+    <div class="table-wrap">
+      <table id="rankTable">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th>Nicho</th>
+            <th class="pct">%</th>
+            <th>Barra</th>
+            <th>Concorrência</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gráfico de rosca -->
+  <div class="card">
+    <h2>Distribuição por Grupo</h2>
+    <canvas id="donutChart" height="300"></canvas>
+  </div>
+
+  <!-- Insights -->
+  <div class="insight-box">
+    <h2>Insights para Canal no YouTube</h2>
+    <div class="insights">
+      <div class="insight" style="border-color:#4caf7d;">
+        <h3 style="color:#4caf7d;">Música & Entretenimento</h3>
+        <p>Domínio absoluto. Difícil entrar sem investimento em produção, mas cover, análise e bastidores têm espaço.</p>
+      </div>
+      <div class="insight" style="border-color:#6b8cda;">
+        <h3 style="color:#6b8cda;">Gaming</h3>
+        <p>Enorme base, mas saturada. Oportunidade real em jogos mobile Brasil e nichos de indie games.</p>
+      </div>
+      <div class="insight" style="border-color:#d4a84b;">
+        <h3 style="color:#d4a84b;">Educação / How-To</h3>
+        <p>Alto CPM. Audiência qualificada. Ótimo para monetização via AdSense + infoprodutos.</p>
+      </div>
+      <div class="insight" style="border-color:#c4452d;">
+        <h3 style="color:#c4452d;">Finanças Pessoais</h3>
+        <p>Crescimento explosivo pós-pandemia. CPM mais alto do YouTube. Exige credibilidade.</p>
+      </div>
+      <div class="insight" style="border-color:#9b59b6;">
+        <h3 style="color:#9b59b6;">True Crime</h3>
+        <p>Nicho em ascensão. Alta retenção. Ótimo para podcasts + YouTube. Pouco saturado no Brasil.</p>
+      </div>
+      <div class="insight" style="border-color:#1abc9c;">
+        <h3 style="color:#1abc9c;">Saúde & Bem-estar</h3>
+        <p>Demanda constante. Funciona bem com shorts. Cuidado com diretrizes médicas do YouTube.</p>
+      </div>
+      <div class="insight" style="border-color:#f39c12;">
+        <h3 style="color:#f39c12;">Tecnologia / IA</h3>
+        <p>Explosão de interesse com IA em 2024–2026. CPM elevado. Público internacional alcançável.</p>
+      </div>
+      <div class="insight" style="border-color:#e74c3c;">
+        <h3 style="color:#e74c3c;">Loterias / Apostas</h3>
+        <p>Nicho emergente. Baixa concorrência no Brasil. Boa retenção. Monetiza com afiliados e Adsense.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="fonte">
+  Fontes: YouTube Culture &amp; Trends Report 2024–2026 · Statista Media &amp; Entertainment · Tubics YouTube Statistics · Think with Google ·
+  Dados estimados com base em participação de audiência; valores exatos variam por metodologia e período.
+</p>
+
+<script>
+const dados = [
+  { nicho: 'Música & Clipes',        pct: 30, cor: '#e91e63', grupo: 'Entretenimento', concorrencia: 'alto'  },
+  { nicho: 'Entretenimento / Humor', pct: 14, cor: '#f06292', grupo: 'Entretenimento', concorrencia: 'alto'  },
+  { nicho: 'Gaming',                 pct: 11, cor: '#6b8cda', grupo: 'Games',          concorrencia: 'alto'  },
+  { nicho: 'Infantil / Família',     pct: 9,  cor: '#ffb300', grupo: 'Entretenimento', concorrencia: 'medio' },
+  { nicho: 'Esportes',               pct: 7,  cor: '#4caf7d', grupo: 'Esportes',       concorrencia: 'alto'  },
+  { nicho: 'Educação / How-To',      pct: 6,  cor: '#00bcd4', grupo: 'Educação',       concorrencia: 'medio' },
+  { nicho: 'Tecnologia / IA',        pct: 5,  cor: '#9b59b6', grupo: 'Tech',           concorrencia: 'medio' },
+  { nicho: 'Beleza & Moda',          pct: 4,  cor: '#ff7043', grupo: 'Lifestyle',      concorrencia: 'alto'  },
+  { nicho: 'Saúde & Bem-estar',      pct: 3,  cor: '#1abc9c', grupo: 'Lifestyle',      concorrencia: 'medio' },
+  { nicho: 'Culinária / Food',       pct: 3,  cor: '#d4a84b', grupo: 'Lifestyle',      concorrencia: 'medio' },
+  { nicho: 'Finanças Pessoais',      pct: 2,  cor: '#f1c40f', grupo: 'Educação',       concorrencia: 'medio' },
+  { nicho: 'True Crime',             pct: 2,  cor: '#c4452d', grupo: 'Entretenimento', concorrencia: 'baixo' },
+  { nicho: 'Viagem & Aventura',      pct: 2,  cor: '#26a69a', grupo: 'Lifestyle',      concorrencia: 'medio' },
+  { nicho: 'Loterias / Apostas',     pct: 1,  cor: '#8d6e63', grupo: 'Educação',       concorrencia: 'baixo' },
+  { nicho: 'Outros',                 pct: 1,  cor: '#555',    grupo: 'Outros',         concorrencia: 'baixo' },
+];
+
+/* Gráfico de barras horizontais */
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: dados.map(d => d.nicho),
+    datasets: [{
+      data: dados.map(d => d.pct),
+      backgroundColor: dados.map(d => d.cor + 'cc'),
+      borderColor: dados.map(d => d.cor),
+      borderWidth: 1.5,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.parsed.x}% da audiência global estimada`
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#888', callback: v => v + '%' },
+        grid: { color: '#1e2130' },
+        max: 35,
+      },
+      y: {
+        ticks: { color: '#ccc', font: { size: 12 } },
+        grid: { display: false },
+      }
+    }
+  }
+});
+
+/* Gráfico de rosca por grupo */
+const grupos = {};
+dados.forEach(d => {
+  grupos[d.grupo] = (grupos[d.grupo] || 0) + d.pct;
+});
+const gLabels = Object.keys(grupos);
+const gCores  = ['#e91e63','#6b8cda','#ffb300','#4caf7d','#00bcd4','#9b59b6','#555'];
+
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: gLabels,
+    datasets: [{
+      data: gLabels.map(g => grupos[g]),
+      backgroundColor: gCores.map(c => c + 'cc'),
+      borderColor: gCores,
+      borderWidth: 1.5,
+    }]
+  },
+  options: {
+    cutout: '60%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#aaa', font: { size: 11 }, padding: 14 }
+      },
+      tooltip: {
+        callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` }
+      }
+    }
+  }
+});
+
+/* Tabela */
+const tbody = document.querySelector('#rankTable tbody');
+dados.forEach((d, i) => {
+  const pctMax = dados[0].pct;
+  const tagClass = d.concorrencia;
+  const tagLabel = { alto: 'Alta', medio: 'Média', baixo: 'Baixa' }[tagClass];
+  tbody.innerHTML += `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td class="nicho">${d.nicho}</td>
+      <td class="pct">${d.pct}%</td>
+      <td class="bar-cell">
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:${(d.pct/pctMax*100).toFixed(1)}%;background:${d.cor}"></div>
+        </div>
+      </td>
+      <td><span class="tag ${tagClass}">${tagLabel}</span></td>
+    </tr>`;
+});
+</script>
+</body>
+</html>
