@@ -275,59 +275,6 @@
   .ms .cb { background: var(--gold); }
   .lf .cb { background: var(--green); }
 
-  /* ===== PRÊMIO ESTIMADO NOS CARDS ===== */
-  .card-premio {
-    position: relative; z-index: 1;
-    margin-bottom: 28px;
-  }
-  .card-premio-label {
-    font-family: var(--mono); font-size: 9px;
-    letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--ink-faint); margin-bottom: 6px;
-  }
-  .card-premio-valor {
-    font-family: var(--display); font-weight: 600;
-    font-size: clamp(22px, 2.4vw, 30px);
-    letter-spacing: -0.02em; line-height: 1;
-  }
-  .ms .card-premio-valor { color: var(--gold); }
-  .lf .card-premio-valor { color: var(--green); }
-  .card-premio-badge {
-    display: inline-block;
-    font-family: var(--mono); font-size: 8px; font-weight: 700;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    padding: 2px 7px; border-radius: 2px; margin-bottom: 6px;
-  }
-  .ms .card-premio-badge { background: rgba(212,168,75,0.18); color: var(--gold); border: 1px solid rgba(212,168,75,0.35); }
-  .lf .card-premio-badge { background: rgba(76,175,125,0.18); color: var(--green); border: 1px solid rgba(76,175,125,0.35); }
-  .qn .card-premio-badge { background: rgba(107,140,218,0.18); color: #6b8cda; border: 1px solid rgba(107,140,218,0.35); }
-  .qn .card-premio-valor { color: #6b8cda; }
-
-  /* Premio mobile */
-  .mobile-premio {
-    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
-  }
-  .mobile-premio-label {
-    font-family: var(--mono); font-size: 9px;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--ink-faint);
-  }
-  .mobile-premio-valor {
-    font-family: var(--display); font-weight: 700;
-    font-size: 18px; letter-spacing: -0.02em; line-height: 1.1;
-  }
-  .ms .mobile-premio-valor { color: var(--gold); }
-  .lf .mobile-premio-valor { color: var(--green); }
-  .qn .mobile-premio-valor { color: #6b8cda; }
-  .mobile-premio-badge {
-    font-family: var(--mono); font-size: 8px; font-weight: 700;
-    letter-spacing: 0.15em; text-transform: uppercase;
-    padding: 1px 5px; border-radius: 2px;
-  }
-  .ms .mobile-premio-badge { background: rgba(212,168,75,0.18); color: var(--gold); }
-  .lf .mobile-premio-badge { background: rgba(76,175,125,0.18); color: var(--green); }
-  .qn .mobile-premio-badge { background: rgba(107,140,218,0.18); color: #6b8cda; }
-
   .card-cta {
     position: relative; z-index: 1;
     display: inline-flex; align-items: center; gap: 10px;
@@ -909,12 +856,7 @@
         <div class="mobile-btn-desc">1–60 · aposta mínima R$ 6,00</div>
       </div>
       <div class="mobile-btn-right">
-        <div class="mobile-premio" id="ms-mobile-premio" style="display:none">
-          <div id="ms-mobile-badge" class="mobile-premio-badge" style="display:none">Acumulado</div>
-          <div class="mobile-premio-label">próximo · estimativa</div>
-          <div class="mobile-premio-valor" id="ms-mobile-valor">—</div>
-        </div>
-        <div class="mobile-btn-balls" id="ms-mobile-balls">
+        <div class="mobile-btn-balls">
           <span class="mb">04</span><span class="mb">23</span>
           <span class="mb">38</span><span class="mb">42</span>
         </div>
@@ -928,12 +870,7 @@
         <div class="mobile-btn-desc">1–25 · aposta mínima R$ 3,00</div>
       </div>
       <div class="mobile-btn-right">
-        <div class="mobile-premio" id="lf-mobile-premio" style="display:none">
-          <div id="lf-mobile-badge" class="mobile-premio-badge" style="display:none">Acumulado</div>
-          <div class="mobile-premio-label">próximo · estimativa</div>
-          <div class="mobile-premio-valor" id="lf-mobile-valor">—</div>
-        </div>
-        <div class="mobile-btn-balls" id="lf-mobile-balls">
+        <div class="mobile-btn-balls">
           <span class="mb">07</span><span class="mb">11</span>
           <span class="mb">18</span><span class="mb">22</span>
         </div>
@@ -947,12 +884,7 @@
         <div class="mobile-btn-desc">1–80 · aposta mínima R$ 2,00</div>
       </div>
       <div class="mobile-btn-right">
-        <div class="mobile-premio" id="qn-mobile-premio" style="display:none">
-          <div id="qn-mobile-badge" class="mobile-premio-badge" style="display:none">Acumulado</div>
-          <div class="mobile-premio-label">próximo · estimativa</div>
-          <div class="mobile-premio-valor" id="qn-mobile-valor">—</div>
-        </div>
-        <div class="mobile-btn-balls" id="qn-mobile-balls">
+        <div class="mobile-btn-balls">
           <span class="mb">04</span><span class="mb">26</span>
           <span class="mb">52</span><span class="mb">63</span>
         </div>
@@ -1017,12 +949,7 @@
           <div class="cs-value">1–60</div>
         </div>
       </div>
-      <div class="card-premio" id="ms-premio" style="display:none">
-        <div class="card-premio-label">Próximo concurso · estimativa</div>
-        <div id="ms-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
-        <div class="card-premio-valor" id="ms-premio-valor">—</div>
-      </div>
-      <div class="card-balls" id="ms-balls">
+      <div class="card-balls">
         <span class="cb">04</span><span class="cb">14</span><span class="cb">23</span>
         <span class="cb">38</span><span class="cb">42</span><span class="cb">57</span>
       </div>
@@ -1049,12 +976,7 @@
           <div class="cs-value">1–25</div>
         </div>
       </div>
-      <div class="card-premio" id="lf-premio" style="display:none">
-        <div class="card-premio-label">Próximo concurso · estimativa</div>
-        <div id="lf-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
-        <div class="card-premio-valor" id="lf-premio-valor">—</div>
-      </div>
-      <div class="card-balls" id="lf-balls">
+      <div class="card-balls">
         <span class="cb">03</span><span class="cb">07</span><span class="cb">11</span>
         <span class="cb">15</span><span class="cb">18</span><span class="cb">22</span>
         <span class="cb">25</span>
@@ -1083,12 +1005,7 @@
           <div class="cs-value">1&ndash;80</div>
         </div>
       </div>
-      <div class="card-premio" id="qn-premio" style="display:none">
-        <div class="card-premio-label">Próximo concurso · estimativa</div>
-        <div id="qn-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
-        <div class="card-premio-valor" id="qn-premio-valor">—</div>
-      </div>
-      <div class="card-balls" id="qn-balls">
+      <div class="card-balls">
         <span class="cb">04</span><span class="cb">26</span><span class="cb">44</span>
         <span class="cb">52</span><span class="cb">63</span>
       </div>
@@ -1388,51 +1305,8 @@
             );
           });
         }
-
-        /* Prêmios estimados — desktop e mobile */
-        function fmtPremio(v) {
-          if (!v || isNaN(v)) return null;
-          var n = parseFloat(v);
-          if (n >= 1e6) return 'R$ ' + (n / 1e6).toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' mi';
-          if (n >= 1e3) return 'R$ ' + (n / 1e3).toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ' mil';
-          return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        }
-
-        function aplicarPremio(prefix, dados) {
-          var valor = fmtPremio(dados.valorEstimadoProximoConcurso);
-          if (!valor) return; // API não retornou valor — mantém bolas
-          var acumulado = dados.acumulado === true;
-
-          // Desktop
-          var elPremio = document.getElementById(prefix + '-premio');
-          var elValor  = document.getElementById(prefix + '-premio-valor');
-          var elBadge  = document.getElementById(prefix + '-premio-badge');
-          var elBalls  = document.getElementById(prefix + '-balls');
-          if (elPremio && elValor) {
-            elValor.textContent = valor;
-            if (acumulado && elBadge) elBadge.style.display = 'inline-block';
-            elPremio.style.display = 'block';
-            if (elBalls) elBalls.style.display = 'none';
-          }
-
-          // Mobile
-          var elMPremio = document.getElementById(prefix + '-mobile-premio');
-          var elMValor  = document.getElementById(prefix + '-mobile-valor');
-          var elMBadge  = document.getElementById(prefix + '-mobile-badge');
-          var elMBalls  = document.getElementById(prefix + '-mobile-balls');
-          if (elMPremio && elMValor) {
-            elMValor.textContent = valor;
-            if (acumulado && elMBadge) elMBadge.style.display = 'inline-block';
-            elMPremio.style.display = 'flex';
-            if (elMBalls) elMBalls.style.display = 'none';
-          }
-        }
-
-        aplicarPremio('ms', resultados[0]);
-        aplicarPremio('lf', resultados[1]);
-        aplicarPremio('qn', resultados[2]);
       })
-      .catch(function() { /* falha silenciosa — mantém bolas e valores hardcoded */ });
+      .catch(function() { /* falha silenciosa — mantém valores hardcoded */ });
   })();
   </script>
 
