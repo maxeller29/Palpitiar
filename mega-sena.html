@@ -2380,6 +2380,28 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 </div>
 
 <script>
+/* ===== AUTO-GERAR VIA URL PARAMS (vindo do index.html) ===== */
+(function () {
+  const p = new URLSearchParams(location.search);
+  if (!p.get('autogerar')) return;
+  const combos  = Math.max(1,  Math.min(50, parseInt(p.get('combos')  || '5', 10)));
+  const dezenas = Math.max(6,  Math.min(20, parseInt(p.get('dezenas') || '6', 10)));
+  const app = document.getElementById('app');
+  const observer = new MutationObserver(() => {
+    if (!app.classList.contains('ready')) return;
+    observer.disconnect();
+    setTimeout(() => {
+      const ci = document.getElementById('combos');
+      const di = document.getElementById('dezenas');
+      if (ci) ci.value = combos;
+      if (di) di.value = dezenas;
+      const btn = document.getElementById('generateBtn');
+      if (btn && !btn.disabled) btn.click();
+    }, 400);
+  });
+  observer.observe(app, { attributes: true, attributeFilter: ['class'] });
+})();
+
 /* ===== QUICK-GENERATE BOTTOM SHEET ===== */
 (function () {
   const overlay   = document.getElementById('qgOverlay');
