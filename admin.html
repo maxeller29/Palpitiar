@@ -776,9 +776,11 @@ aguardar(() => {
       btn.classList.add('f-active');
       serverFilter = btn.dataset.f;
       serverPage = 0;
-      // Ao trocar de filtro manualmente, volta para a ordenação padrão
-      // (a ordenação por prêmio só faz sentido dentro de "Premiadas").
-      if (serverFilter !== 'premiada' && serverOrder.startsWith('valor_premio')) {
+      // Reseta a ordenação por prêmio apenas quando o novo filtro é "todas" ou
+      // "pendente" (onde não há prêmio). Para loteria específica (ms/lf/qn) ou
+      // "premiada", mantém a ordenação ativa.
+      const filtrosSemPremio = ['todas', 'pendente'];
+      if (filtrosSemPremio.includes(serverFilter) && serverOrder.startsWith('valor_premio')) {
         serverOrder = 'id.desc';
         atualizarIconeOrdenacao();
       }
@@ -808,9 +810,11 @@ aguardar(() => {
       serverOrder = 'id.desc';
     } else {
       serverOrder = 'valor_premio.desc.nullslast';
-      // Ordenar por prêmio só é útil junto do filtro "Premiadas"
-      // (senão a maioria das linhas tem valor nulo). Ativa automaticamente.
-      if (serverFilter !== 'premiada') {
+      // Só força "Premiadas" se o filtro atual for "todas" ou "pendente" —
+      // filtros de loteria específica (ms/lf/qn) são mantidos pois o admin
+      // pode querer ordenar por prêmio dentro de uma loteria específica.
+      const filtrosGenericosSemPremio = ['todas', 'pendente'];
+      if (filtrosGenericosSemPremio.includes(serverFilter)) {
         serverFilter = 'premiada';
         document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('f-active'));
         document.querySelector('.filter-btn[data-f="premiada"]').classList.add('f-active');
