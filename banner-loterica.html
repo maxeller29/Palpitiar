@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banner Lotérica — Palpitiar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #e8e4d8;
+    font-family: 'Fraunces', Georgia, serif;
+    padding: 32px 20px;
+    min-height: 100vh;
+  }
+
+  /* ===== CONTROLES DE TELA ===== */
+  .controls {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .controls h1 {
+    font-size: 18px;
+    color: #1a3a20;
+    font-weight: 700;
+    flex: 1;
+    min-width: 200px;
+  }
+  .btn-ctrl {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-print { background: #d4a84b; color: #0a1a14; }
+  .btn-print:hover { background: #e8bc5a; }
+  .btn-toggle { background: #0a1a14; color: #f4ebd0; }
+  .btn-toggle:hover { background: #1a3a20; }
+  .format-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #666;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ===== BANNER A4 RETRATO — VERSÃO CLARA (padrão de impressão) ===== */
+  .banner-wrap {
+    max-width: 900px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .banner-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  /* ── BANNER CLARO (impressão econômica) ── */
+  .banner.light {
+    width: 100%;
+    max-width: 595px; /* A4 largura em px @ 72dpi */
+    background: #fff;
+    border: 2px solid #0a1a14;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Fraunces', Georgia, serif;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .banner.light .top-bar {
+    background: #0a1a14;
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .banner.light .top-bar-logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 22px;
+    color: #f4ebd0;
+    letter-spacing: -0.02em;
+  }
+  .banner.light .top-bar-logo em { color: #d4a84b; font-style: normal; }
+  .banner.light .top-bar-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #d4a84b;
+    letter-spacing: 0.05em;
+  }
+  .banner.light .body {
+    padding: 28px 28px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .banner.light .texto { flex: 1; }
+  .banner.light .chamada {
+    font-size: 13px;
+    font-weight: 400;
+    font-style: italic;
+    color: #1a3a20;
+    line-height: 1.3;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .banner.light .headline {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0a1a14;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+  .banner.light .headline em { color: #d4a84b; font-style: normal; }
+  .banner.light .descricao {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: #444;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    margin-bottom: 16px;
+  }
+  .banner.light .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .banner.light .pill {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .banner.light .pill.gold { background: #fdf3dc; border-color: #d4a84b; color: #8a5e00; }
+  .banner.light .qr-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .banner.light .qr-box {
+    width: 110px;
+    height: 110px;
+    border: 2px solid #0a1a14;
+    border-radius: 4px;
+    padding: 6px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .banner.light .qr-box canvas, .banner.light .qr-box img { width: 96px !important; height: 96px !important; }
+  .banner.light .qr-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    text-align: center;
+  }
+  .banner.light .bottom-bar {
+    background: #f7f4ec;
+    border-top: 1px solid #e0d9c8;
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .banner.light .bottom-bar-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+  }
+  .banner.light .bottom-bar-cta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #0a1a14;
+    background: #d4a84b;
+    padding: 6px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ── BANNER ESCURO (display digital / vitrine) ── */
+  .banner.dark {
+    width: 100%;
+    max-width: 595px;
+    background: #0a1a14;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Fraunces', Georgia, serif;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .banner.dark::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4a84b, transparent);
+  }
+  .banner.dark .top-bar {
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(244,235,208,0.1);
+  }
+  .banner.dark .top-bar-logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 22px;
+    color: #f4ebd0;
+    letter-spacing: -0.02em;
+  }
+  .banner.dark .top-bar-logo em { color: #d4a84b; font-style: normal; }
+  .banner.dark .top-bar-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(212,168,75,0.7);
+    letter-spacing: 0.05em;
+  }
+  .banner.dark .body {
+    padding: 28px 28px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .banner.dark .texto { flex: 1; }
+  .banner.dark .chamada {
+    font-size: 13px;
+    font-weight: 300;
+    font-style: italic;
+    color: rgba(244,235,208,0.55);
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .banner.dark .headline {
+    font-size: 30px;
+    font-weight: 800;
+    color: #f4ebd0;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+  .banner.dark .headline em { color: #d4a84b; font-style: normal; }
+  .banner.dark .descricao {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: rgba(244,235,208,0.55);
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    margin-bottom: 16px;
+  }
+  .banner.dark .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .banner.dark .pill {
+    background: rgba(244,235,208,0.06);
+    border: 1px solid rgba(244,235,208,0.15);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(244,235,208,0.5);
+  }
+  .banner.dark .pill.gold {
+    background: rgba(212,168,75,0.12);
+    border-color: rgba(212,168,75,0.4);
+    color: #d4a84b;
+  }
+  .banner.dark .qr-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .banner.dark .qr-box {
+    width: 110px;
+    height: 110px;
+    border: 1px solid rgba(212,168,75,0.4);
+    border-radius: 4px;
+    padding: 6px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .banner.dark .qr-box canvas, .banner.dark .qr-box img { width: 96px !important; height: 96px !important; }
+  .banner.dark .qr-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(244,235,208,0.35);
+    text-align: center;
+  }
+  .banner.dark .bottom-bar {
+    background: rgba(212,168,75,0.08);
+    border-top: 1px solid rgba(212,168,75,0.15);
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .banner.dark .bottom-bar-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(244,235,208,0.35);
+  }
+  .banner.dark .bottom-bar-cta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #0a1a14;
+    background: #d4a84b;
+    padding: 6px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* ── BANNER HORIZONTAL A3 ── */
+  .banner.horizontal {
+    max-width: 900px;
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .banner.horizontal .top-bar { display: none; }
+  .banner.horizontal .body {
+    flex: 1;
+    padding: 28px 32px;
+    flex-direction: row;
+    gap: 32px;
+    align-items: center;
+  }
+  .banner.horizontal .headline { font-size: 34px; }
+  .banner.horizontal .qr-side { justify-content: center; }
+  .banner.horizontal .bottom-bar { display: none; }
+  .banner.horizontal .side-logo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 28px 24px;
+    border-right: 1px solid rgba(244,235,208,0.1);
+    gap: 10px;
+    min-width: 140px;
+  }
+  .banner.light.horizontal .side-logo { border-right-color: #e0d9c8; border-color: #e0d9c8; background: #f7f4ec; }
+  .banner.horizontal .side-logo-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    text-align: center;
+  }
+  .banner.dark.horizontal .side-logo-name { color: #f4ebd0; }
+  .banner.dark.horizontal .side-logo-name em { color: #d4a84b; font-style: normal; }
+  .banner.light.horizontal .side-logo-name { color: #0a1a14; }
+  .banner.light.horizontal .side-logo-name em { color: #d4a84b; font-style: normal; }
+  .banner.horizontal .side-logo-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+  .banner.dark.horizontal .side-logo-url { color: rgba(212,168,75,0.6); }
+  .banner.light.horizontal .side-logo-url { color: #8a5e00; }
+  .banner.horizontal .side-logo-free {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: #d4a84b;
+    color: #0a1a14;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .controls { display: none; }
+    .banner-label { display: none; }
+    .banner-wrap { margin: 0; gap: 0; }
+    .banner.dark { display: none !important; }
+    .banner.horizontal { display: none !important; }
+    .banner.light:not(.horizontal) {
+      max-width: 100%;
+      border-radius: 0;
+      box-shadow: none;
+      border: 1px solid #ccc;
+      page-break-after: always;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <h1>Banner Lotérica — Palpitiar</h1>
+  <span class="format-label">Formatos: A4 retrato · A3 paisagem · Digital</span>
+  <button class="btn-ctrl btn-print" onclick="window.print()">🖨 Imprimir</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     BANNER 1 — A4 RETRATO CLARO (impressão)
+════════════════════════════════════════════ -->
+<div class="banner-wrap">
+  <div class="banner-label">A4 Retrato · Versão Clara · Recomendada para impressão</div>
+
+  <div class="banner light">
+    <div class="top-bar">
+      <div class="top-bar-logo">Palpit<em>ia</em>r</div>
+      <div class="top-bar-url">palpitiar.com.br</div>
+    </div>
+    <div class="body">
+      <div class="texto">
+        <div class="chamada">Está sem palpite para hoje?</div>
+        <div class="headline">Gere combinações<br><em>inteligentes</em></div>
+        <div class="descricao">
+          Análise estatística de mais de 13.000 concursos<br>
+          da série histórica real da Mega-Sena, Lotofácil e Quina.<br>
+          Frequência · Paridade · Distribuição · Soma
+        </div>
+        <div class="pills">
+          <span class="pill gold">100% Grátis</span>
+          <span class="pill">Mega-Sena</span>
+          <span class="pill">Lotofácil</span>
+          <span class="pill">Quina</span>
+        </div>
+      </div>
+      <div class="qr-side">
+        <div class="qr-box" id="qr-light"></div>
+        <div class="qr-label">Aponte a câmera<br>do celular</div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <div class="bottom-bar-msg">Gere seus números antes de apostar</div>
+      <div class="bottom-bar-cta">palpitiar.com.br →</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     BANNER 2 — A4 RETRATO ESCURO (digital/vitrine)
+════════════════════════════════════════════ -->
+<div class="banner-wrap">
+  <div class="banner-label">A4 Retrato · Versão Escura · Display digital / vitrine</div>
+
+  <div class="banner dark">
+    <div class="top-bar">
+      <div class="top-bar-logo">Palpit<em>ia</em>r</div>
+      <div class="top-bar-url">palpitiar.com.br</div>
+    </div>
+    <div class="body">
+      <div class="texto">
+        <div class="chamada">Está sem palpite para hoje?</div>
+        <div class="headline">Gere combinações<br><em>inteligentes</em></div>
+        <div class="descricao">
+          Análise estatística de mais de 13.000 concursos<br>
+          da série histórica real da Mega-Sena, Lotofácil e Quina.<br>
+          Frequência · Paridade · Distribuição · Soma
+        </div>
+        <div class="pills">
+          <span class="pill gold">100% Grátis</span>
+          <span class="pill">Mega-Sena</span>
+          <span class="pill">Lotofácil</span>
+          <span class="pill">Quina</span>
+        </div>
+      </div>
+      <div class="qr-side">
+        <div class="qr-box" id="qr-dark"></div>
+        <div class="qr-label">Aponte a câmera<br>do celular</div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <div class="bottom-bar-msg">Gere seus números antes de apostar</div>
+      <div class="bottom-bar-cta">palpitiar.com.br →</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     BANNER 3 — A3 PAISAGEM CLARO (balcão largo)
+════════════════════════════════════════════ -->
+<div class="banner-wrap">
+  <div class="banner-label">A3 Paisagem · Versão Clara · Balcão / parede</div>
+
+  <div class="banner light horizontal">
+    <div class="side-logo">
+      <div class="side-logo-name">Palpit<em>ia</em>r</div>
+      <div class="side-logo-url">palpitiar.com.br</div>
+      <div class="side-logo-free">Grátis</div>
+    </div>
+    <div class="body">
+      <div class="texto">
+        <div class="chamada">Está sem palpite para hoje?</div>
+        <div class="headline">Gere combinações<br><em>inteligentes</em></div>
+        <div class="descricao">
+          Análise estatística de mais de 13.000 concursos reais.<br>
+          Mega-Sena · Lotofácil · Quina · 100% Grátis
+        </div>
+        <div class="pills">
+          <span class="pill gold">IA + Estatística</span>
+          <span class="pill">Série histórica completa</span>
+          <span class="pill">Sem cadastro</span>
+        </div>
+      </div>
+      <div class="qr-side">
+        <div class="qr-box" id="qr-horiz-light"></div>
+        <div class="qr-label">Aponte a câmera<br>do celular</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     BANNER 4 — A3 PAISAGEM ESCURO
+════════════════════════════════════════════ -->
+<div class="banner-wrap">
+  <div class="banner-label">A3 Paisagem · Versão Escura · Display / vitrine</div>
+
+  <div class="banner dark horizontal">
+    <div class="side-logo">
+      <div class="side-logo-name">Palpit<em>ia</em>r</div>
+      <div class="side-logo-url">palpitiar.com.br</div>
+      <div class="side-logo-free">Grátis</div>
+    </div>
+    <div class="body">
+      <div class="texto">
+        <div class="chamada">Está sem palpite para hoje?</div>
+        <div class="headline">Gere combinações<br><em>inteligentes</em></div>
+        <div class="descricao">
+          Análise estatística de mais de 13.000 concursos reais.<br>
+          Mega-Sena · Lotofácil · Quina · 100% Grátis
+        </div>
+        <div class="pills">
+          <span class="pill gold">IA + Estatística</span>
+          <span class="pill">Série histórica completa</span>
+          <span class="pill">Sem cadastro</span>
+        </div>
+      </div>
+      <div class="qr-side">
+        <div class="qr-box" id="qr-horiz-dark"></div>
+        <div class="qr-label">Aponte a câmera<br>do celular</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const URL_DESTINO = 'https://palpitiar.com.br/loterica';
+  const opts = { width: 96, height: 96, colorDark: '#0a1a14', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M };
+
+  new QRCode(document.getElementById('qr-light'),       { ...opts, text: URL_DESTINO });
+  new QRCode(document.getElementById('qr-dark'),        { ...opts, text: URL_DESTINO });
+  new QRCode(document.getElementById('qr-horiz-light'), { ...opts, text: URL_DESTINO });
+  new QRCode(document.getElementById('qr-horiz-dark'),  { ...opts, text: URL_DESTINO });
+</script>
+</body>
+</html>

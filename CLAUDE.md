@@ -71,7 +71,27 @@ Usa `@anthropic-ai/sdk` para chamar o Claude e gerar artigos SEO. Executado via 
 ### Sistema de design
 Todas as páginas compartilham uma paleta de variáveis CSS definida inline em cada página:
 - `--bg` verde-escuro/preto, `--ink` creme quente, `--gold` (#d4a84b), `--green` (#4caf7d), `--blue` (#6b8cda), `--red` (#c4452d)
+- Lotofácil usa `--purple` como cor de destaque (não `--green`)
 - Fontes: `Fraunces` (display/serif) + `JetBrains Mono` (monoespaçada), carregadas do Google Fonts
+
+### Padrão UX — Geração rápida mobile (Bottom Sheet)
+Implementado em `mega-sena.html`, `lotofacil.html`, `quina.html` e `index.html`.
+
+**Dentro de cada página de loteria:**
+- Botão `⚡ Gerar combinações` (`.nd-gen-btn`) no rodapé do card `.next-draw`, canto direito
+- Clique abre um bottom sheet (`.qg-overlay` / `.qg-sheet`) com seletores de cartões e dezenas
+- Ao confirmar, sincroniza os inputs reais (`#combos`, `#dezenas`) e clica programaticamente em `#generateBtn`
+
+**No `index.html`:**
+- Botão `⚡ Gerar` (`.mobile-gen-btn`) dentro de cada `.mobile-btn` (layout mobile)
+- Botão `⚡ Gerar agora` (`.idx-gen-btn`) dentro de cada `.loteria-card` (layout desktop)
+- Bottom sheet compartilhado que adapta cor, título e limites via `data-*` attributes no botão clicado
+- Ao confirmar, navega para a página da loteria com query params: `loteria.html?combos=X&dezenas=Y&autogerar=1`
+
+**Auto-trigger nas páginas de loteria:**
+- Cada página lê os params `autogerar`, `combos` e `dezenas` da URL via `URLSearchParams`
+- Usa `MutationObserver` em `#app` para aguardar a classe `ready` (dados históricos carregados)
+- Após 400ms do ready, preenche os inputs e dispara `#generateBtn.click()` automaticamente
 
 ### Subpasta Loteca
 `Loteca/` é um módulo semi-independente para análise da Loteca, com seus próprios scripts para coleta, análise e conferência de resultados. A página pública principal é `loteca.html` na raiz.
