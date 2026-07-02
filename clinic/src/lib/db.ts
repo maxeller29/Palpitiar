@@ -3,7 +3,6 @@
  * This lets the app work locally without any config, and in production with full cloud sync.
  */
 import type { Patient, TreatmentSession, PatientPhoto, Appointment, Treatment } from '../types'
-import { PREDEFINED_TREATMENTS } from '../types'
 import * as local from './localStorage'
 
 const USE_SUPABASE = !!(
