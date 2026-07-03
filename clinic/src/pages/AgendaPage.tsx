@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { format, startOfWeek, addDays, isToday, isSameDay, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Clock, Trash2, CheckCircle, Circle } from 'lucide-react'
-import { getAppointments, saveAppointment, deleteAppointment, getPatients, getTreatments } from '../lib/localStorage'
+import { getAppointments, saveAppointment, deleteAppointment, getPatients, getTreatments } from '../lib/db'
 import type { Appointment, Patient, Treatment } from '../types'
 
 export function AgendaPage() {
@@ -24,12 +24,14 @@ export function AgendaPage() {
   })
 
   useEffect(() => {
-    reload()
-    setPatients(getPatients())
-    setTreatments(getTreatments())
+    void (async () => {
+      await reload()
+      setPatients(await getPatients())
+      setTreatments(await getTreatments())
+    })()
   }, [])
 
-  function reload() { setAppointments(getAppointments()) }
+  async function reload() { setAppointments(await getAppointments()) }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -37,9 +39,9 @@ export function AgendaPage() {
     .filter(a => isSameDay(parseISO(a.appointment_date), selectedDate) && a.status !== 'cancelled')
     .sort((a, b) => a.appointment_date.localeCompare(b.appointment_date))
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.patient_id || !form.appointment_date) { alert('Selecione o paciente e o horário'); return }
-    saveAppointment({
+    await saveAppointment({
       patient_id: form.patient_id,
       treatment_id: form.treatment_id || undefined,
       appointment_date: new Date(form.appointment_date).toISOString(),
@@ -49,7 +51,7 @@ export function AgendaPage() {
     })
     setShowForm(false)
     setForm({ patient_id: '', treatment_id: '', appointment_date: format(selectedDate, 'yyyy-MM-dd') + 'T09:00', duration_minutes: 60, notes: '' })
-    reload()
+    await reload()
   }
 
   const dayNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -159,10 +161,10 @@ export function AgendaPage() {
         )}
         {dayAppts.map(appt => (
           <div key={appt.id} className="flex items-center gap-3 px-4 py-4 bg-white">
-            <button onClick={() => {
-              saveAppointment({ ...appt, status: appt.status === 'completed' ? 'scheduled' : 'completed' })
-              reload()
-            }} className="flex-shrink-0">
+            <button onClick={() => void (async () => {
+              await saveAppointment({ ...appt, status: appt.status === 'completed' ? 'scheduled' : 'completed' })
+              await reload()
+            })()} className="flex-shrink-0">
               {appt.status === 'completed'
                 ? <CheckCircle size={24} className="text-green-500" />
                 : <Circle size={24} className="text-[#4a7aaa]" />}
@@ -178,7 +180,7 @@ export function AgendaPage() {
               {appt.notes && <p className="text-xs text-gray-400 mt-0.5 truncate">{appt.notes}</p>}
             </button>
 
-            <button onClick={() => { if (confirm('Excluir?')) { deleteAppointment(appt.id); reload() } }}
+            <button onClick={() => { if (confirm('Excluir?')) void (async () => { await deleteAppointment(appt.id); await reload() })() }}
               className="p-2 flex-shrink-0">
               <Trash2 size={16} className="text-gray-300" />
             </button>
