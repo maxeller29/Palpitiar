@@ -14,9 +14,10 @@ exports.handler = async (event) => {
 
   // Mapeia nomes para endpoint da Caixa
   const endpoints = {
-    'mega-sena': 'megasena',
+    'mega-sena':  'megasena',
     'lotofacil':  'lotofacil',
     'quina':      'quina',
+    'lotomania':  'lotomania',
   };
   
   const endpoint = endpoints[loteria];

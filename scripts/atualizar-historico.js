@@ -83,6 +83,26 @@ const LOTERIAS = [
       });
       return p;
     }
+  },
+  {
+    id:      'lotomania',
+    slug:    'lotomania',
+    arquivo: 'lotomania-historico.json',
+    qtdDez:  20,
+    range:   { min: 0, max: 99 },
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'20',1:'19',2:'18',3:'17',4:'16',5:'0' };
+      const mG = { 0:'g20',1:'g19',2:'g18',3:'g17',4:'g16',5:'g0' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
   }
 ];
 
@@ -114,10 +134,11 @@ function fetchJSON(url) {
   });
 }
 
-function calcularStats(draws, qtdDez) {
-  const max = qtdDez===6?60:qtdDez===15?25:80;
+function calcularStats(draws, qtdDez, range) {
+  const lo = (range && range.min !== undefined) ? range.min : 1;
+  const hi = (range && range.max !== undefined) ? range.max : (qtdDez===6?60:qtdDez===15?25:80);
   const freqMap={}, ultimoSorteio={};
-  for(let n=1;n<=max;n++) freqMap[n]=0;
+  for(let n=lo;n<=hi;n++) freqMap[n]=0;
   let somaTotal=0, comAcert=0, semAcert=0;
   draws.forEach((d,idx) => {
     somaTotal += d[2].reduce((s,n)=>s+n,0);
@@ -177,7 +198,7 @@ async function atualizarLoteria(cfg) {
   if (novos === 0) { console.log('  Nenhum concurso novo.\n'); return false; }
 
   existente.draws = draws;
-  existente.stats = calcularStats(draws, cfg.qtdDez);
+  existente.stats = calcularStats(draws, cfg.qtdDez, cfg.range);
   const hoje = new Date().toISOString().slice(0,10);
   existente.meta = Object.assign({}, existente.meta, {
     geradoEm:hoje, totalConcursos:draws.length,
