@@ -1003,7 +1003,7 @@
   #mobile-home-grid {
     display: none;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr 1fr auto;
     height: calc(100dvh - 52px);
   }
   .mhg-tile {
@@ -1013,7 +1013,7 @@
     align-items: center;
     text-align: center;
     text-decoration: none;
-    padding: 20px 14px;
+    padding: 24px 16px;
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -1029,34 +1029,34 @@
   .mhg-name {
     font-family: var(--display);
     font-weight: 800;
-    font-size: 20px;
+    font-size: 28px;
     letter-spacing: -0.01em;
     line-height: 1.15;
     color: #fff;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .mhg-concurso {
     font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.13em;
+    font-size: 12px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 3px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
   }
   .mhg-premio {
     font-family: var(--mono);
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 700;
     color: rgba(255,255,255,0.95);
-    margin-bottom: 14px;
-    min-height: 18px;
+    margin-bottom: 16px;
+    min-height: 26px;
   }
   .mhg-tile .mobile-gen-btn {
     background: rgba(255,255,255,0.18) !important;
     border: 1px solid rgba(255,255,255,0.4) !important;
     color: #fff !important;
-    font-size: 12px;
-    padding: 10px 18px;
+    font-size: 14px;
+    padding: 12px 26px;
     font-weight: 800;
     letter-spacing: 0.14em;
   }
@@ -1081,6 +1081,22 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
+  .mhg-footer {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.28);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .mhg-footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+  .mhg-footer a:hover { color: #fff; }
   @media (max-width: 720px) {
     #mobile-home-grid { display: grid !important; }
     .hero, .caixa-banner, .mobile-loterias, #ad-mid, #ad-bottom, footer { display: none !important; }
@@ -1288,6 +1304,13 @@
       <div class="mhg-sub">Mega · Lotofácil · Quina</div>
       <div class="mhg-an-btn">Analisar →</div>
     </a>
+    <div class="mhg-footer">
+      <a href="termos.html">Termos</a>
+      <span>·</span>
+      <a href="privacidade.html">Privacidade</a>
+      <span>·</span>
+      <span>+18 · Jogue com responsabilidade</span>
+    </div>
   </div>
 
   <!-- INTRO POPUP -->
