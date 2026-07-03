@@ -58,15 +58,9 @@ create table appointments (
 
 -- Insert predefined treatments
 insert into treatments (name, category, is_predefined) values
-  ('Toxina Botulínica (Botox)', 'Facial', true),
-  ('Preenchimento Labial', 'Facial', true),
-  ('Preenchimento Facial', 'Facial', true),
-  ('Preenchimento de Glúteos', 'Corporal', true),
-  ('Bioestimulador de Colágeno', 'Facial', true),
-  ('Fios de PDO', 'Facial', true),
-  ('Skinbooster', 'Facial', true),
-  ('Lipo de Papada', 'Facial', true),
-  ('Harmonização Facial Completa', 'Facial', true),
-  ('Micropigmentação', 'Estético', true),
-  ('Peeling Químico', 'Facial', true),
-  ('Consulta/Avaliação', 'Geral', true);
+  ('Toxina Botulínica', 'Facial', true),
+  ('Bioestimulador', 'Facial', true),
+  ('Preenchedor Facial', 'Facial', true),
+  ('Preenchedor Labial', 'Facial', true),
+  ('Ultrassom Microfocado', 'Facial', true),
+  ('Fios de PDO', 'Facial', true);
