@@ -7,7 +7,7 @@ const KEYS = {
   sessions: 'clinic_sessions',
   photos: 'clinic_photos',
   appointments: 'clinic_appointments',
-  treatments: 'clinic_treatments',
+  treatments: 'clinic_treatments_v2',
 }
 
 function getAll<T>(key: string): T[] {

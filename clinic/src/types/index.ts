@@ -55,16 +55,10 @@ export interface Appointment {
 }
 
 export const PREDEFINED_TREATMENTS: Omit<Treatment, 'id'>[] = [
-  { name: 'Toxina Botulínica (Botox)', category: 'Facial', is_predefined: true },
-  { name: 'Preenchimento Labial', category: 'Facial', is_predefined: true },
-  { name: 'Preenchimento Facial', category: 'Facial', is_predefined: true },
-  { name: 'Preenchimento de Glúteos', category: 'Corporal', is_predefined: true },
-  { name: 'Bioestimulador de Colágeno', category: 'Facial', is_predefined: true },
+  { name: 'Toxina Botulínica', category: 'Facial', is_predefined: true },
+  { name: 'Bioestimulador', category: 'Facial', is_predefined: true },
+  { name: 'Preenchedor Facial', category: 'Facial', is_predefined: true },
+  { name: 'Preenchedor Labial', category: 'Facial', is_predefined: true },
+  { name: 'Ultrassom Microfocado', category: 'Facial', is_predefined: true },
   { name: 'Fios de PDO', category: 'Facial', is_predefined: true },
-  { name: 'Skinbooster', category: 'Facial', is_predefined: true },
-  { name: 'Lipo de Papada', category: 'Facial', is_predefined: true },
-  { name: 'Harmonização Facial Completa', category: 'Facial', is_predefined: true },
-  { name: 'Micropigmentação', category: 'Estético', is_predefined: true },
-  { name: 'Peeling Químico', category: 'Facial', is_predefined: true },
-  { name: 'Consulta/Avaliação', category: 'Geral', is_predefined: true },
 ]
