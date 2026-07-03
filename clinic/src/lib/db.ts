@@ -127,39 +127,29 @@ export async function getPhotos(patientId: string): Promise<PatientPhoto[]> {
 export async function savePhoto(
   patientId: string, file: File, label?: string, sessionId?: string
 ): Promise<PatientPhoto> {
-  if (!USE_SUPABASE) {
-    // In local mode, convert file to base64
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = ev => resolve(local.savePhoto(patientId, ev.target?.result as string, label, sessionId))
-      reader.onerror = reject
-      reader.readAsDataURL(file)
-    })
-  }
+  // Convert file to base64 data URL — works in both localStorage and Supabase modes
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = ev => resolve(ev.target?.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+  if (!USE_SUPABASE) return local.savePhoto(patientId, base64, label, sessionId)
   const client = await sb()
-  const ext = file.name.split('.').pop()
-  const path = `${patientId}/${Date.now()}.${ext}`
-  await client.storage.from('patient-photos').upload(path, file)
-  const { data: { publicUrl } } = client.storage.from('patient-photos').getPublicUrl(path)
   const { data: row } = await client.from('patient_photos').insert({
     patient_id: patientId,
     session_id: sessionId,
-    url: publicUrl,
+    url: base64,
     label,
     taken_at: new Date().toISOString(),
   }).select().single()
   return row as PatientPhoto
 }
 
-export async function deletePhoto(id: string, url?: string): Promise<void> {
+export async function deletePhoto(id: string): Promise<void> {
   if (!USE_SUPABASE) { local.deletePhoto(id); return }
   const client = await sb()
   await client.from('patient_photos').delete().eq('id', id)
-  // Also remove from storage if we can parse the path
-  if (url) {
-    const match = url.match(/patient-photos\/(.+)$/)
-    if (match) await client.storage.from('patient-photos').remove([match[1]])
-  }
 }
 
 // ── Appointments ──────────────────────────────────────────────────────────────
