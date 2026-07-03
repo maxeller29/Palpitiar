@@ -4,11 +4,11 @@
 
 exports.handler = async (event) => {
   const { loteria, concurso } = event.queryStringParameters || {};
-  
-  if (!loteria || !concurso) {
+
+  if (!loteria) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Parâmetros loteria e concurso são obrigatórios' })
+      body: JSON.stringify({ error: 'Parâmetro loteria é obrigatório' })
     };
   }
 
@@ -20,13 +20,16 @@ exports.handler = async (event) => {
     'lotomania':  'lotomania',
     'dupla-sena': 'duplasena',
   };
-  
+
   const endpoint = endpoints[loteria];
   if (!endpoint) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Loteria inválida' }) };
   }
 
-  const url = `https://servicebus2.caixa.gov.br/portaldeloterias/api/${endpoint}/${concurso}`;
+  // Sem concurso → busca o último sorteio disponível
+  const url = concurso
+    ? `https://servicebus2.caixa.gov.br/portaldeloterias/api/${endpoint}/${concurso}`
+    : `https://servicebus2.caixa.gov.br/portaldeloterias/api/${endpoint}/`;
   
   try {
     const response = await fetch(url, {
@@ -59,11 +62,14 @@ exports.handler = async (event) => {
     }));
 
     const payload = {
-      concurso:    data.numero,
-      data:        data.dataApuracao,
+      concurso:      data.numero,
+      data:          data.dataApuracao,
       dezenas,
       rateio,
-      acumulado:   data.acumulado || false,
+      acumulado:     data.acumulado || false,
+      proximoNumero: data.numeroConcursoProximo   || (data.numero + 1),
+      proximaData:   data.dataProximoConcurso     || null,
+      proximoValor:  data.valorEstimadoProximoConcurso || 0,
     };
     if (dezenasSegundo) payload.dezenasSegundo = dezenasSegundo;
 

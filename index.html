@@ -217,10 +217,12 @@
   .loterias-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
 
   .loteria-card {
-    display: block; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    text-decoration: none; color: inherit;
     border: 1px solid var(--line); border-radius: 4px;
     padding: 40px; position: relative; overflow: hidden;
     transition: all 0.35s; background: rgba(255,255,255,0.02);
+    min-height: 480px;
   }
   .loteria-card::before {
     content: ''; position: absolute; inset: 0;
@@ -325,6 +327,10 @@
   .lf .card-premio-badge { background: rgba(76,175,125,0.18); color: var(--green); border: 1px solid rgba(76,175,125,0.35); }
   .qn .card-premio-badge { background: rgba(107,140,218,0.18); color: #6b8cda; border: 1px solid rgba(107,140,218,0.35); }
   .qn .card-premio-valor { color: #6b8cda; }
+  .lm .card-premio-valor { color: #e87722; }
+  .lm .card-premio-badge { background: rgba(232,119,34,0.18); color: #e87722; border: 1px solid rgba(232,119,34,0.35); }
+  .ds .card-premio-valor { color: #00b4cc; }
+  .ds .card-premio-badge { background: rgba(0,180,204,0.18); color: #00b4cc; border: 1px solid rgba(0,180,204,0.35); }
 
   /* Premio mobile */
   .mobile-premio {
@@ -357,6 +363,7 @@
     font-family: var(--mono); font-size: 11px;
     font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
     padding: 14px 24px; border-radius: 2px; transition: all 0.2s;
+    margin-top: auto;
   }
   .ms .card-cta { background: var(--gold); color: var(--bg); }
   .ms .card-cta:hover { background: #e8c474; }
@@ -1678,6 +1685,11 @@
           <div class="cs-value">00&ndash;99</div>
         </div>
       </div>
+      <div class="card-premio" id="lm-premio" style="display:none">
+        <div class="card-premio-label">Próximo concurso · estimativa</div>
+        <div id="lm-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
+        <div class="card-premio-valor" id="lm-premio-valor">—</div>
+      </div>
       <div class="card-balls" id="lm-balls">
         <span class="cb">07</span><span class="cb">23</span><span class="cb">38</span>
         <span class="cb">51</span><span class="cb">74</span>
@@ -1710,6 +1722,11 @@
           <div class="cs-label">Universo</div>
           <div class="cs-value">01&ndash;50</div>
         </div>
+      </div>
+      <div class="card-premio" id="ds-premio" style="display:none">
+        <div class="card-premio-label">Próximo concurso · estimativa</div>
+        <div id="ds-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
+        <div class="card-premio-valor" id="ds-premio-valor">—</div>
       </div>
       <div class="card-balls" id="ds-balls">
         <span class="cb">08</span><span class="cb">21</span><span class="cb">35</span>
@@ -1969,7 +1986,9 @@
     var APIS = {
       ms: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/megasena/',
       lf: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil/',
-      qn: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina/'
+      qn: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina/',
+      lm: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotomania/',
+      ds: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/duplasena/'
     };
 
     function fmt(n) { return n.toLocaleString('pt-BR'); }
@@ -1978,7 +1997,7 @@
       return fetch(url, { cache: 'no-cache' }).then(function(r) { return r.json(); });
     }
 
-    Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn)])
+    Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn), fetchJSON(APIS.lm), fetchJSON(APIS.ds)])
       .then(function(resultados) {
         var numMS = parseInt(resultados[0].numero) || 0;
         var numLF = parseInt(resultados[1].numero) || 0;
@@ -2072,6 +2091,8 @@
         aplicarPremio('ms', resultados[0]);
         aplicarPremio('lf', resultados[1]);
         aplicarPremio('qn', resultados[2]);
+        aplicarPremio('lm', resultados[3]);
+        aplicarPremio('ds', resultados[4]);
       })
       .catch(function() { /* falha silenciosa — mantém bolas e valores hardcoded */ });
   })();

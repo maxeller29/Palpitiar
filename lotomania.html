@@ -885,7 +885,8 @@ function analisar(draws) {
 
   let acumuladoQtd = 0;
   for (let i = draws.length-1; i >= 0; i--) {
-    if (draws[i][3] === 0) acumuladoQtd++; else break;
+    const g20 = draws[i][4]?.g20 ?? draws[i][3];
+    if (g20 === 0) acumuladoQtd++; else break;
   }
 
   return {
@@ -1020,7 +1021,8 @@ function renderStatsStrip() {
   if (STATS.acumuladoQtd > 0) {
     statusHTML = `<div class="stat"><div class="label">Status do premio</div><div class="value" style="color:var(--gold)">Acumulada</div><div class="meta">ha ${STATS.acumuladoQtd} concurso${STATS.acumuladoQtd!==1?'s':''} sem ganhador</div></div>`;
   } else {
-    statusHTML = `<div class="stat"><div class="label">Status do premio</div><div class="value" style="font-size:18px;color:var(--orange-bright)">Teve ganhador</div><div class="meta">${ult[3]} ganhador${ult[3]!==1?'es':''} no concurso ${ult[0]}</div></div>`;
+    const g20ult = ult[4]?.g20 ?? ult[3];
+    statusHTML = `<div class="stat"><div class="label">Status do premio</div><div class="value" style="font-size:18px;color:var(--orange-bright)">Teve ganhador</div><div class="meta">${g20ult} ganhador${g20ult!==1?'es':''} no concurso ${ult[0]}</div></div>`;
   }
   document.getElementById('statsStrip').innerHTML = `
     <div class="stat"><div class="label">Concursos analisados</div><div class="value">${STATS.totalAnalisado.toLocaleString('pt-BR')}</div><div class="meta">serie historica completa</div></div>
