@@ -990,6 +990,160 @@
     color: rgba(240,236,224,0.3);
     margin-top: 10px;
   }
+
+  /* ===== MOBILE HOME GRID ===== */
+  #mobile-home-grid {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: calc(100dvh - 52px);
+  }
+  .mhg-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    padding: 20px 14px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 0.15s;
+    user-select: none;
+  }
+  .mhg-tile:active { filter: brightness(0.82); }
+  .mhg-ms { background: #209869; border-right: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.15); }
+  .mhg-qn { background: #260085; border-bottom: 1px solid rgba(0,0,0,0.15); }
+  .mhg-lf { background: #930046; border-right: 1px solid rgba(0,0,0,0.15); }
+  .mhg-an { background: #5c3fbe; }
+  .mhg-name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .mhg-concurso {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 3px;
+  }
+  .mhg-premio {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.95);
+    margin-bottom: 14px;
+    min-height: 18px;
+  }
+  .mhg-tile .mobile-gen-btn {
+    background: rgba(255,255,255,0.18) !important;
+    border: 1px solid rgba(255,255,255,0.4) !important;
+    color: #fff !important;
+    font-size: 10px;
+    padding: 9px 20px;
+    letter-spacing: 0.14em;
+  }
+  .mhg-tile .mobile-gen-btn:active { background: rgba(255,255,255,0.32) !important; transform: scale(0.95); }
+  .mhg-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin: 6px 0 16px;
+    letter-spacing: 0.04em;
+  }
+  .mhg-an-btn {
+    display: inline-block;
+    padding: 10px 22px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.32);
+    border-radius: 3px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 720px) {
+    #mobile-home-grid { display: grid !important; }
+    .hero, .caixa-banner, .mobile-loterias, #ad-mid, #ad-bottom, footer { display: none !important; }
+  }
+
+  /* ===== INTRO POPUP ===== */
+  #intro-popup {
+    display: none;
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.78);
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 20px;
+  }
+  #intro-popup.show { display: flex; }
+  #intro-card {
+    background: #0f1a0f;
+    border: 1px solid rgba(212,168,75,0.45);
+    border-radius: 16px;
+    padding: 36px 28px 28px;
+    max-width: 340px; width: 100%;
+    text-align: center;
+    position: relative;
+    animation: slideUp 0.35s ease-out;
+  }
+  #intro-close {
+    position: absolute; top: 14px; right: 16px;
+    background: transparent; border: none;
+    color: rgba(244,235,208,0.4);
+    font-size: 18px; cursor: pointer; line-height: 1;
+    padding: 4px 6px;
+  }
+  #intro-close:hover { color: rgba(244,235,208,0.8); }
+  #intro-brand {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -0.03em;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  #intro-tagline {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(244,235,208,0.4);
+    margin-bottom: 20px;
+  }
+  #intro-desc {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(244,235,208,0.65);
+    line-height: 1.7;
+    margin-bottom: 22px;
+  }
+  #intro-progress {
+    height: 3px;
+    background: rgba(212,168,75,0.18);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #intro-bar {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    width: 100%;
+    transform-origin: left;
+    animation: shrink-bar 5s linear forwards;
+  }
+  @keyframes shrink-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 </style>
 
   <!-- PWA: Lotoia -->
@@ -1078,6 +1232,61 @@
     </div>
   </section>
 
+
+  <!-- MOBILE HOME GRID -->
+  <div id="mobile-home-grid">
+    <a class="mhg-tile mhg-ms" href="mega-sena.html">
+      <div class="mhg-name">MEGA-SENA</div>
+      <div class="mhg-concurso" id="mhg-ms-concurso">Concurso —</div>
+      <div class="mhg-premio" id="mhg-ms-premio">—</div>
+      <button class="mobile-gen-btn"
+        data-lottery="ms" data-url="mega-sena.html" data-name="Mega-Sena"
+        data-color="#209869" data-combos="5" data-dez="6"
+        data-dez-min="6" data-dez-max="20" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
+    <a class="mhg-tile mhg-qn" href="quina.html">
+      <div class="mhg-name">QUINA</div>
+      <div class="mhg-concurso" id="mhg-qn-concurso">Concurso —</div>
+      <div class="mhg-premio" id="mhg-qn-premio">—</div>
+      <button class="mobile-gen-btn"
+        data-lottery="qn" data-url="quina.html" data-name="Quina"
+        data-color="#260085" data-combos="5" data-dez="5"
+        data-dez-min="5" data-dez-max="15" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
+    <a class="mhg-tile mhg-lf" href="lotofacil.html">
+      <div class="mhg-name">LOTOFÁCIL</div>
+      <div class="mhg-concurso" id="mhg-lf-concurso">Concurso —</div>
+      <div class="mhg-premio" id="mhg-lf-premio">—</div>
+      <button class="mobile-gen-btn"
+        data-lottery="lf" data-url="lotofacil.html" data-name="Lotofácil"
+        data-color="#930046" data-combos="5" data-dez="15"
+        data-dez-min="15" data-dez-max="20" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
+    <a class="mhg-tile mhg-an" href="analisar.html">
+      <div class="mhg-name">ANALISE<br>SUAS DEZENAS</div>
+      <div class="mhg-sub">Mega · Lotofácil · Quina</div>
+      <div class="mhg-an-btn">Analisar →</div>
+    </a>
+  </div>
+
+  <!-- INTRO POPUP -->
+  <div id="intro-popup" role="dialog" aria-modal="true" aria-label="Bem-vindo ao Palpitiar">
+    <div id="intro-card">
+      <button id="intro-close" aria-label="Fechar">✕</button>
+      <div id="intro-brand">Palpitiar</div>
+      <div id="intro-tagline">Loterias com inteligência</div>
+      <div id="intro-desc">
+        Gere combinações de Mega-Sena, Lotofácil e Quina usando análise estatística do histórico oficial da Caixa.<br><br>Gratuito. Sem cadastro.
+      </div>
+      <div id="intro-progress"><div id="intro-bar"></div></div>
+    </div>
+  </div>
 
   <!-- MOBILE LOTERIA BUTTONS -->
   <div class="mobile-loterias">
@@ -1616,8 +1825,19 @@
 
         function aplicarPremio(prefix, dados) {
           var valor = fmtPremio(dados.valorEstimadoProximoConcurso);
-          if (!valor) return; // API não retornou valor — mantém bolas
           var acumulado = dados.acumulado === true;
+
+          // Mobile Grid tiles
+          var elGConcurso = document.getElementById('mhg-' + prefix + '-concurso');
+          var elGPremio   = document.getElementById('mhg-' + prefix + '-premio');
+          if (elGConcurso && dados.numero) {
+            elGConcurso.textContent = 'Concurso ' + (parseInt(dados.numero, 10) + 1);
+          }
+          if (elGPremio && valor) {
+            elGPremio.textContent = (acumulado ? '★ ' : '') + valor;
+          }
+
+          if (!valor) return;
 
           // Desktop
           var elPremio = document.getElementById(prefix + '-premio');
@@ -1804,6 +2024,30 @@
     confirmBtn.textContent = 'Abrindo…';
     const url = `${cfg.url}?combos=${qCombos}&dezenas=${qDezenas}&autogerar=1`;
     window.location.href = url;
+  });
+})();
+</script>
+
+<script>
+/* ===== INTRO POPUP ===== */
+(function() {
+  if (localStorage.getItem('palpitiar_intro_seen')) return;
+  var popup = document.getElementById('intro-popup');
+  var close = document.getElementById('intro-close');
+  if (!popup) return;
+
+  popup.classList.add('show');
+  var timer = setTimeout(dismiss, 5000);
+
+  function dismiss() {
+    clearTimeout(timer);
+    popup.classList.remove('show');
+    localStorage.setItem('palpitiar_intro_seen', '1');
+  }
+
+  close.addEventListener('click', dismiss);
+  popup.addEventListener('click', function(e) {
+    if (e.target === popup) dismiss();
   });
 })();
 </script>
