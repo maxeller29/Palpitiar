@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format, differenceInDays, differenceInMonths } from 'date-fns'
 import { ArrowLeft, Edit2, Plus, Camera, Trash2, ChevronDown, ChevronUp, CalendarPlus, AlertTriangle } from 'lucide-react'
-import { getPatient, getSessions, getPhotos, saveSession, deleteSession, savePhoto, deletePhoto, getTreatments, addTreatment } from '../lib/localStorage'
+import { getPatient, getSessions, getPhotos, saveSession, deleteSession, savePhoto, deletePhoto, getTreatments, addTreatment } from '../lib/db'
 import type { Patient, TreatmentSession, PatientPhoto, Treatment } from '../types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -89,23 +89,25 @@ export function PatientDetail() {
 
   useEffect(() => {
     if (!id) return
-    reload()
-    setTreatments(getTreatments())
+    void (async () => {
+      await reload()
+      setTreatments(await getTreatments())
+    })()
   }, [id])
 
-  function reload() {
+  async function reload() {
     if (!id) return
-    const p = getPatient(id)
+    const p = await getPatient(id)
     if (!p) { navigate('/pacientes'); return }
     setPatient(p)
-    setSessions(getSessions(id))
-    setPhotos(getPhotos(id))
+    setSessions(await getSessions(id))
+    setPhotos(await getPhotos(id))
   }
 
   const selectedTreatment = treatments.find(t => t.id === sessionForm.treatment_id)
   const treatmentType = selectedTreatment ? getTreatmentType(selectedTreatment.name) : ''
 
-  function handleTreatmentChange(tid: string) {
+  function handleTreatmentChange(tid: string): void {
     setSessionForm(f => ({ ...f, treatment_id: tid }))
     setBotoxData({})
     setFacialData({})
@@ -126,12 +128,12 @@ export function PatientDetail() {
     setShowCustom(false)
   }
 
-  function handleAddSession() {
+  async function handleAddSession() {
     if (!id) return
     let tid = sessionForm.treatment_id
     if (showCustom && sessionForm.custom_treatment.trim()) {
-      const t = addTreatment(sessionForm.custom_treatment.trim(), 'Outro')
-      setTreatments(getTreatments())
+      const t = await addTreatment(sessionForm.custom_treatment.trim(), 'Outro')
+      setTreatments(await getTreatments())
       tid = t.id
     }
     if (!tid || !sessionForm.session_date) { alert('Selecione o tratamento e a data'); return }
@@ -150,7 +152,7 @@ export function PatientDetail() {
       if (Object.keys(areas).length) dose = JSON.stringify({ type: 'ultrassom', areas })
     }
 
-    saveSession({
+    await saveSession({
       patient_id: id,
       treatment_id: tid,
       session_date: sessionForm.session_date,
@@ -160,15 +162,14 @@ export function PatientDetail() {
     })
     setShowSessionForm(false)
     resetForm()
-    reload()
+    await reload()
   }
 
-  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !id) return
-    const reader = new FileReader()
-    reader.onload = ev => { savePhoto(id, ev.target?.result as string, undefined); reload() }
-    reader.readAsDataURL(file)
+    await savePhoto(id, file)
+    await reload()
     e.target.value = ''
   }
 
@@ -400,7 +401,7 @@ export function PatientDetail() {
               <p className="px-4 py-6 text-sm text-gray-400 text-center">Nenhum atendimento registrado</p>
             )}
             {sessions.map(s => (
-              <SessionRow key={s.id} session={s} onDelete={() => { deleteSession(s.id); reload() }} />
+              <SessionRow key={s.id} session={s} onDelete={async () => { await deleteSession(s.id); await reload() }} />
             ))}
           </div>
         </section>
@@ -436,7 +437,7 @@ export function PatientDetail() {
                 <div key={photo.id} className="relative aspect-square">
                   <img src={photo.url} alt="" className="w-full h-full object-cover" />
                   <button
-                    onClick={() => { if (confirm('Excluir foto?')) { deletePhoto(photo.id); reload() } }}
+                    onClick={() => { if (confirm('Excluir foto?')) void (async () => { await deletePhoto(photo.id); await reload() })() }}
                     className="absolute top-1 right-1 bg-black/60 rounded-full p-1">
                     <Trash2 size={11} color="white" />
                   </button>

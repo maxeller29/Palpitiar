@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, Trash2 } from 'lucide-react'
-import { getPatient, savePatient, deletePatient } from '../lib/localStorage'
+import { getPatient, savePatient, deletePatient } from '../lib/db'
 
 export function PatientForm() {
   const { id } = useParams()
@@ -13,10 +13,10 @@ export function PatientForm() {
   })
 
   useEffect(() => {
-    if (id) {
-      const p = getPatient(id)
+    if (id) void (async () => {
+      const p = await getPatient(id)
       if (p) setForm({ name: p.name, phone: p.phone, email: p.email || '', birth_date: p.birth_date || '', cpf: p.cpf || '', address: p.address || '', notes: p.notes || '' })
-    }
+    })()
   }, [id])
 
   const fields: Array<[string, keyof typeof form, string, string]> = [
@@ -28,15 +28,16 @@ export function PatientForm() {
     ['ENDEREÇO', 'address', 'text', 'Rua, número, bairro…'],
   ]
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name.trim() || !form.phone.trim()) { alert('Nome e telefone são obrigatórios'); return }
-    savePatient({ ...form, ...(isEdit ? { id } : {}) })
+    await savePatient({ ...form, ...(isEdit ? { id } : {}) })
     navigate(isEdit ? `/pacientes/${id}` : '/pacientes')
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!confirm('Excluir este paciente e todos os seus registros?')) return
-    deletePatient(id!); navigate('/pacientes')
+    await deletePatient(id!)
+    navigate('/pacientes')
   }
 
   return (

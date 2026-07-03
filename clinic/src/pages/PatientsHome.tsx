@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { differenceInDays, differenceInMonths } from 'date-fns'
 import { ArrowLeft, Search, UserPlus, ChevronRight, Clock, AlertTriangle } from 'lucide-react'
-import { getPatients, getAllSessions } from '../lib/localStorage'
+import { getPatients, getAllSessions } from '../lib/db'
 import type { Patient } from '../types'
 
 interface PatientWithMeta extends Patient {
@@ -18,20 +18,22 @@ export function PatientsHome() {
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const pts = getPatients()
-    const sessions = getAllSessions()
-    const now = new Date()
-    const enriched = pts.map(p => {
-      const last = sessions
-        .filter(s => s.patient_id === p.id)
-        .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime())[0]
-      return {
-        ...p,
-        daysSinceLast: last ? differenceInDays(now, new Date(last.session_date)) : undefined,
-        monthsSinceLast: last ? differenceInMonths(now, new Date(last.session_date)) : undefined,
-      }
-    })
-    setPatients(enriched)
+    void (async () => {
+      const pts = await getPatients()
+      const sessions = await getAllSessions()
+      const now = new Date()
+      const enriched = pts.map(p => {
+        const last = sessions
+          .filter(s => s.patient_id === p.id)
+          .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime())[0]
+        return {
+          ...p,
+          daysSinceLast: last ? differenceInDays(now, new Date(last.session_date)) : undefined,
+          monthsSinceLast: last ? differenceInMonths(now, new Date(last.session_date)) : undefined,
+        }
+      })
+      setPatients(enriched)
+    })()
   }, [])
 
   const filtered = patients.filter(p =>
