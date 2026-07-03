@@ -18,6 +18,7 @@ exports.handler = async (event) => {
     'lotofacil':  'lotofacil',
     'quina':      'quina',
     'lotomania':  'lotomania',
+    'dupla-sena': 'duplasena',
   };
   
   const endpoint = endpoints[loteria];
@@ -48,11 +49,23 @@ exports.handler = async (event) => {
     
     // Extrai dezenas e rateio
     const dezenas = (data.listaDezenas || []).map(d => parseInt(d, 10)).sort((a, b) => a - b);
+    const dezenasSegundo = data.listaDezenasSegundoSorteio
+      ? data.listaDezenasSegundoSorteio.map(d => parseInt(d, 10)).sort((a, b) => a - b)
+      : undefined;
     const rateio  = (data.listaRateioPremio || []).map(p => ({
       faixa:      p.descricaoFaixa,
       ganhadores: p.numeroDeGanhadores,
       valor:      p.valorPremio,
     }));
+
+    const payload = {
+      concurso:    data.numero,
+      data:        data.dataApuracao,
+      dezenas,
+      rateio,
+      acumulado:   data.acumulado || false,
+    };
+    if (dezenasSegundo) payload.dezenasSegundo = dezenasSegundo;
 
     return {
       statusCode: 200,
@@ -60,13 +73,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify({
-        concurso:    data.numero,
-        data:        data.dataApuracao,
-        dezenas,
-        rateio,
-        acumulado:   data.acumulado || false,
-      })
+      body: JSON.stringify(payload)
     };
   } catch (err) {
     return {

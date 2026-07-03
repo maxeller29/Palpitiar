@@ -103,6 +103,26 @@ const LOTERIAS = [
       });
       return p;
     }
+  },
+  {
+    id:      'dupla-sena',
+    slug:    'duplasena',
+    arquivo: 'dupla-sena-historico.json',
+    qtdDez:  6,
+    dual:    true,
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'s1',1:'q1',2:'qt1',3:'t1',4:'s2',5:'q2',6:'qt2',7:'t2' };
+      const mG = { 0:'gs1',1:'gq1',2:'gqt1',3:'gt1',4:'gs2',5:'gq2',6:'gqt2',7:'gt2' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
   }
 ];
 
@@ -134,7 +154,7 @@ function fetchJSON(url) {
   });
 }
 
-function calcularStats(draws, qtdDez, range) {
+function calcularStats(draws, qtdDez, range, dual) {
   const lo = (range && range.min !== undefined) ? range.min : 1;
   const hi = (range && range.max !== undefined) ? range.max : (qtdDez===6?60:qtdDez===15?25:80);
   const freqMap={}, ultimoSorteio={};
@@ -142,8 +162,11 @@ function calcularStats(draws, qtdDez, range) {
   let somaTotal=0, comAcert=0, semAcert=0;
   draws.forEach((d,idx) => {
     somaTotal += d[2].reduce((s,n)=>s+n,0);
-    if(d[3]>0) comAcert++; else semAcert++;
+    // dual: d=[num,date,dez1[],dez2[],ganhadores,premios]; single: d=[num,date,dez[],ganhadores,premios]
+    const g = dual ? d[4] : d[3];
+    if(g>0) comAcert++; else semAcert++;
     d[2].forEach(n => { freqMap[n]=(freqMap[n]||0)+1; ultimoSorteio[n]=idx; });
+    if(dual && Array.isArray(d[3])) d[3].forEach(n => { freqMap[n]=(freqMap[n]||0)+1; ultimoSorteio[n]=idx; });
   });
   const total=draws.length, last=total-1;
   const frequencia={}, atraso={};
@@ -183,12 +206,20 @@ async function atualizarLoteria(cfg) {
     catch(e) { console.log('ERRO: '+e.message); break; }
     if (!resultado) { console.log('nao existe ainda.'); break; }
 
-    const dezenas=(resultado.listaDezenas||resultado.dezenas||[]).map(Number).sort((a,b)=>a-b);
-    if (dezenas.length !== cfg.qtdDez) { console.log('dezenas invalidas ('+dezenas.length+'). Abortando.'); break; }
-
     const data=formatarData(resultado.dataApuracao||resultado.data);
-    const ganhadores=resultado.numeroDeGanhadores??resultado.numeradorGanhadores??resultado.ganhadores??0;
-    draws.push([proximo, data, dezenas, ganhadores, cfg.premios(resultado)]);
+
+    if (cfg.dual) {
+      const dez1=(resultado.listaDezenas||[]).map(Number).sort((a,b)=>a-b);
+      const dez2=(resultado.listaDezenasSegundoSorteio||[]).map(Number).sort((a,b)=>a-b);
+      if (dez1.length !== 6 || dez2.length !== 6) { console.log('dezenas invalidas ('+dez1.length+'/'+dez2.length+'). Abortando.'); break; }
+      const ganhadores=parseInt(resultado.listaRateioPremio?.[0]?.numeroDeGanhadores)||0;
+      draws.push([proximo, data, dez1, dez2, ganhadores, cfg.premios(resultado)]);
+    } else {
+      const dezenas=(resultado.listaDezenas||resultado.dezenas||[]).map(Number).sort((a,b)=>a-b);
+      if (dezenas.length !== cfg.qtdDez) { console.log('dezenas invalidas ('+dezenas.length+'). Abortando.'); break; }
+      const ganhadores=resultado.numeroDeGanhadores??resultado.numeradorGanhadores??resultado.ganhadores??0;
+      draws.push([proximo, data, dezenas, ganhadores, cfg.premios(resultado)]);
+    }
     novos++; ultimoProcessado=proximo; ultimaData=data;
     console.log('OK ('+data+')');
     proximo++;
@@ -198,7 +229,7 @@ async function atualizarLoteria(cfg) {
   if (novos === 0) { console.log('  Nenhum concurso novo.\n'); return false; }
 
   existente.draws = draws;
-  existente.stats = calcularStats(draws, cfg.qtdDez, cfg.range);
+  existente.stats = calcularStats(draws, cfg.qtdDez, cfg.range, cfg.dual);
   const hoje = new Date().toISOString().slice(0,10);
   existente.meta = Object.assign({}, existente.meta, {
     geradoEm:hoje, totalConcursos:draws.length,

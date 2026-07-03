@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- ===== SEO ===== -->
-  <title>Palpitiar · Gerador de Loteria com IA Grátis | Mega-Sena, Lotofácil, Quina e Lotomania</title>
-  <meta name="description" content="Gere combinações para Mega-Sena, Lotofácil, Quina e Lotomania com Inteligência Artificial. Análise estatística da série histórica completa das loterias. 100% grátis, sem cadastro.">
-  <meta name="keywords" content="gerador mega-sena, gerador lotofácil, gerador quina, gerador lotomania, palpite loteria, combinações loterias grátis, loteria inteligência artificial">
+  <title>Palpitiar · Gerador de Loteria com IA Grátis | Mega-Sena, Lotofácil, Quina, Lotomania e Dupla Sena</title>
+  <meta name="description" content="Gere combinações para Mega-Sena, Lotofácil, Quina, Lotomania e Dupla Sena com Inteligência Artificial. Análise estatística da série histórica completa das loterias. 100% grátis, sem cadastro.">
+  <meta name="keywords" content="gerador mega-sena, gerador lotofácil, gerador quina, gerador lotomania, gerador dupla sena, palpite loteria, combinações loterias grátis, loteria inteligência artificial">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Palpitiar">
   <link rel="canonical" href="https://palpitiar.com.br/">
@@ -128,6 +128,7 @@
   .nav-link.qn:hover { color: #6b8cda; border-color: rgba(107,140,218,0.3); }
   .nav-link.lf:hover { color: var(--green); border-color: rgba(76,175,125,0.3); }
   .nav-link.lm:hover { color: #e87722; border-color: rgba(232,119,34,0.3); }
+  .nav-link.ds:hover { color: #00b4cc; border-color: rgba(0,180,204,0.3); }
   .nav-link.active-ms { color: var(--gold); border-color: rgba(212,168,75,0.4); background: rgba(212,168,75,0.06); }
   .nav-link.active-lf { color: var(--green); border-color: rgba(76,175,125,0.4); background: rgba(76,175,125,0.06); }
 
@@ -193,6 +194,15 @@
   .lm .cs-value { color: #e87722; }
   .lm .card-cta { background: #e87722; color: var(--bg); }
   .lm .card-cta:hover { background: #f5921f; }
+  /* Dupla Sena cyan */
+  .loteria-card.ds::before { background: radial-gradient(ellipse at top left, rgba(0,180,204,0.12), transparent 70%); }
+  .loteria-card.ds:hover { border-color: rgba(0,180,204,0.45); box-shadow: 0 16px 48px rgba(0,180,204,0.12); }
+  .ds .card-tag { color: #00b4cc; }
+  .ds .card-top-line { background: linear-gradient(90deg, transparent, #00b4cc, transparent); }
+  .ds .card-title em { color: #00b4cc; }
+  .ds .cs-value { color: #00b4cc; }
+  .ds .card-cta { background: #00b4cc; color: var(--bg); }
+  .ds .card-cta:hover { background: #00d4f0; }
 
   /* ===== LOTERIAS GRID ===== */
   .loterias-label {
@@ -480,6 +490,9 @@
   .mobile-btn.lm { border-color: rgba(232,119,34,0.35); }
   .mobile-btn.lm::before { background: #e87722; }
   .mobile-btn.lm:active { background: rgba(232,119,34,0.08); }
+  .mobile-btn.ds { border-color: rgba(0,180,204,0.35); }
+  .mobile-btn.ds::before { background: #00b4cc; }
+  .mobile-btn.ds:active { background: rgba(0,180,204,0.08); }
 
   .mobile-btn-left { flex: 1; }
   .mobile-btn-name {
@@ -494,6 +507,7 @@
   .mobile-btn.lf .mobile-btn-name { color: var(--green); }
   .mobile-btn.qn .mobile-btn-name { color: #6b8cda; }
   .mobile-btn.lm .mobile-btn-name { color: #e87722; }
+  .mobile-btn.ds .mobile-btn-name { color: #00b4cc; }
 
   .mobile-btn-desc {
     font-family: var(--mono);
@@ -521,6 +535,8 @@
   .ms .mb { background: var(--gold); }
   .lf .mb { background: var(--green); }
   .qn .mb { background: #6b8cda; }
+  .lm .mb { background: #e87722; }
+  .ds .mb { background: #00b4cc; }
 
   .mobile-btn-arrow {
     font-family: var(--mono);
@@ -532,6 +548,7 @@
   .mobile-btn.lf:hover .mobile-btn-arrow { color: var(--green); transform: translateX(4px); }
   .mobile-btn.qn:hover .mobile-btn-arrow { color: #6b8cda; transform: translateX(4px); }
   .mobile-btn.lm:hover .mobile-btn-arrow { color: #e87722; transform: translateX(4px); }
+  .mobile-btn.ds:hover .mobile-btn-arrow { color: #00b4cc; transform: translateX(4px); }
 
   /* Hero stats com mais destaque */
   .hero-stats {
@@ -883,6 +900,7 @@
   .lf .idx-gen-btn { background: var(--green); color: #090f09; }
   .qn .idx-gen-btn { background: #6b8cda; color: #090f09; }
   .lm .idx-gen-btn { background: #e87722; color: #090f09; }
+  .ds .idx-gen-btn { background: #00b4cc; color: #090f09; }
   .idx-gen-btn:hover { opacity: 0.85; transform: translateY(-1px); }
   .idx-gen-btn:active { transform: scale(0.96); }
 
@@ -1042,7 +1060,8 @@
   .mhg-qn { background: #260085; border-bottom: 1px solid rgba(0,0,0,0.15); }
   .mhg-lf { background: #930046; border-right: 1px solid rgba(0,0,0,0.15); }
   .mhg-an { background: #5c3fbe; }
-  .mhg-lm { background: #c45800; grid-column: 1 / -1; }
+  .mhg-lm { background: #c45800; }
+  .mhg-ds { background: #005f6e; }
   .mhg-name {
     font-family: var(--display);
     font-weight: 800;
@@ -1255,6 +1274,7 @@
       <a class="nav-link lf" href="lotofacil.html">Lotofácil</a>
       <a class="nav-link qn" href="quina.html">Quina</a>
       <a class="nav-link lm" href="lotomania.html">Lotomania</a>
+      <a class="nav-link ds" href="dupla-sena.html">Dupla Sena</a>
       <a class="nav-link" href="loteca.html" style="color:var(--ink-dim)">Loteca</a>
       <a class="nav-link" href="analisar.html" style="color:var(--ink-dim)">Analisador</a>
       <a class="nav-link" href="blog.html" style="color:var(--ink-dim)">Blog</a>
@@ -1333,6 +1353,17 @@
         ⚡ Gerar
       </button>
     </a>
+    <a class="mhg-tile mhg-ds" href="dupla-sena.html">
+      <div class="mhg-name">DUPLA SENA</div>
+      <div class="mhg-concurso" id="mhg-ds-concurso">Concurso —</div>
+      <div class="mhg-premio" id="mhg-ds-premio">2 sorteios · R$ 2,50</div>
+      <button class="mobile-gen-btn"
+        data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
+        data-color="#00b4cc" data-combos="5" data-dez="6"
+        data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
     <div class="mhg-footer">
       <a href="termos.html">Termos</a>
       <span>·</span>
@@ -1349,7 +1380,7 @@
       <div id="intro-brand">Palpitiar</div>
       <div id="intro-tagline">Loterias com inteligência</div>
       <div id="intro-desc">
-        Gere combinações de Mega-Sena, Lotofácil, Quina e Lotomania usando análise estatística do histórico oficial da Caixa.<br><br>Gratuito. Sem cadastro.
+        Gere combinações de Mega-Sena, Lotofácil, Quina, Lotomania e Dupla Sena usando análise estatística do histórico oficial da Caixa.<br><br>Gratuito. Sem cadastro.
       </div>
       <div id="intro-progress"><div id="intro-bar"></div></div>
     </div>
@@ -1448,6 +1479,26 @@
           data-lottery="lm" data-url="lotomania.html" data-name="Lotomania"
           data-color="#e87722" data-combos="5" data-dez="50"
           data-dez-min="50" data-dez-max="50" data-combos-min="1" data-combos-max="50">
+          ⚡ Gerar
+        </button>
+        <div class="mobile-btn-arrow">→</div>
+      </div>
+    </a>
+
+    <a class="mobile-btn ds" href="dupla-sena.html">
+      <div class="mobile-btn-left">
+        <div class="mobile-btn-name">Dupla Sena</div>
+        <div class="mobile-btn-desc">01–50 · 2 sorteios · R$ 2,50</div>
+      </div>
+      <div class="mobile-btn-right">
+        <div class="mobile-btn-balls" id="ds-mobile-balls">
+          <span class="mb" style="background:#00b4cc">08</span><span class="mb" style="background:#00b4cc">21</span>
+          <span class="mb" style="background:#00b4cc">35</span><span class="mb" style="background:#00b4cc">47</span>
+        </div>
+        <button class="mobile-gen-btn"
+          data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
+          data-color="#00b4cc" data-combos="5" data-dez="6"
+          data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
           ⚡ Gerar
         </button>
         <div class="mobile-btn-arrow">→</div>
@@ -1636,6 +1687,39 @@
         data-lottery="lm" data-url="lotomania.html" data-name="Lotomania"
         data-color="#e87722" data-combos="5" data-dez="50"
         data-dez-min="50" data-dez-max="50" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar agora
+      </button>
+    </a>
+
+    <!-- DUPLA SENA -->
+    <a class="loteria-card ds" href="dupla-sena.html">
+      <div class="card-top-line"></div>
+      <div class="card-tag">◑ Dupla Sena</div>
+      <h2 class="card-title">Dupla<em>Sena</em></h2>
+      <div class="card-sub" id="ds-card-sub">2001&ndash;hoje &middot; 2.900+ concursos</div>
+      <div class="card-stats-row">
+        <div class="cs">
+          <div class="cs-label">Sorteios</div>
+          <div class="cs-value">2×</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Aposta min.</div>
+          <div class="cs-value">R$ 2,50</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Universo</div>
+          <div class="cs-value">01&ndash;50</div>
+        </div>
+      </div>
+      <div class="card-balls" id="ds-balls">
+        <span class="cb">08</span><span class="cb">21</span><span class="cb">35</span>
+        <span class="cb">42</span><span class="cb">47</span>
+      </div>
+      <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
+      <button class="idx-gen-btn"
+        data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
+        data-color="#00b4cc" data-combos="5" data-dez="6"
+        data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
         ⚡ Gerar agora
       </button>
     </a>

@@ -5,8 +5,8 @@
                Versão incrementada = força atualização automática
    ============================================================ */
 
-const CACHE_VERSION = 'lotoia-v3';
-const CACHE_DATA    = 'lotoia-data-v3';
+const CACHE_VERSION = 'lotoia-v4';
+const CACHE_DATA    = 'lotoia-data-v4';
 
 const HTML_FILES = [
   '/',
@@ -15,6 +15,7 @@ const HTML_FILES = [
   '/lotofacil.html',
   '/quina.html',
   '/lotomania.html',
+  '/dupla-sena.html',
   '/admin.html',
   '/manifest.json',
   '/icon-192.png',
@@ -28,6 +29,7 @@ const DATA_FILES = [
   '/lotofacil-historico.json',
   '/quina-historico.json',
   '/lotomania-historico.json',
+  '/dupla-sena-historico.json',
 ];
 
 // ===== INSTALL =====
