@@ -19,6 +19,8 @@ exports.handler = async (event) => {
     'quina':      'quina',
     'lotomania':  'lotomania',
     'dupla-sena': 'duplasena',
+    'timemania':   'timemania',
+    'dia-de-sorte':'diadesorte',
   };
 
   const endpoint = endpoints[loteria];

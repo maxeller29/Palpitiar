@@ -203,6 +203,25 @@
   .ds .cs-value { color: #00b4cc; }
   .ds .card-cta { background: #00b4cc; color: var(--bg); }
   .ds .card-cta:hover { background: #00d4f0; }
+  /* Timemania lime */
+  .loteria-card.tm::before { background: radial-gradient(ellipse at top left, rgba(124,179,0,0.12), transparent 70%); }
+  .loteria-card.tm:hover { border-color: rgba(124,179,0,0.45); box-shadow: 0 16px 48px rgba(124,179,0,0.12); }
+  .tm .card-tag { color: #7cb300; }
+  .tm .card-top-line { background: linear-gradient(90deg, transparent, #7cb300, transparent); }
+  .tm .card-title em { color: #7cb300; }
+  .tm .cs-value { color: #7cb300; }
+  .tm .card-cta { background: #7cb300; color: #0c1800; }
+  .tm .card-cta:hover { background: #91d000; }
+
+  /* Dia de Sorte rose */
+  .loteria-card.dds::before { background: radial-gradient(ellipse at top left, rgba(196,64,110,0.12), transparent 70%); }
+  .loteria-card.dds:hover { border-color: rgba(196,64,110,0.45); box-shadow: 0 16px 48px rgba(196,64,110,0.12); }
+  .dds .card-tag { color: #c4406e; }
+  .dds .card-top-line { background: linear-gradient(90deg, transparent, #c4406e, transparent); }
+  .dds .card-title em { color: #c4406e; }
+  .dds .cs-value { color: #c4406e; }
+  .dds .card-cta { background: #c4406e; color: #fff; }
+  .dds .card-cta:hover { background: #e05585; }
 
   /* ===== LOTERIAS GRID ===== */
   .loterias-label {
@@ -500,6 +519,12 @@
   .mobile-btn.ds { border-color: rgba(0,180,204,0.35); }
   .mobile-btn.ds::before { background: #00b4cc; }
   .mobile-btn.ds:active { background: rgba(0,180,204,0.08); }
+  .mobile-btn.tm { border-color: rgba(124,179,0,0.35); }
+  .mobile-btn.tm::before { background: #7cb300; }
+  .mobile-btn.tm:active { background: rgba(124,179,0,0.08); }
+  .mobile-btn.dds { border-color: rgba(196,64,110,0.35); }
+  .mobile-btn.dds::before { background: #c4406e; }
+  .mobile-btn.dds:active { background: rgba(196,64,110,0.08); }
 
   .mobile-btn-left { flex: 1; }
   .mobile-btn-name {
@@ -1044,7 +1069,7 @@
   #mobile-home-grid {
     display: none;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, 1fr) auto;
+    grid-template-rows: repeat(3, 1fr) auto auto;
     height: calc(100dvh - 52px);
   }
   .mhg-tile {
@@ -1070,6 +1095,32 @@
   .mhg-an .mhg-name { font-size: 22px; }
   .mhg-lm { background: #c45800; border-right: 1px solid rgba(0,0,0,0.15); }
   .mhg-ds { background: #005f6e; }
+  .mhg-tm {
+    background: #3d6e00;
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(0,0,0,0.2);
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 28px;
+  }
+  .mhg-tm .mhg-name { font-size: 26px; margin-bottom: 0; }
+  .mhg-tm .mhg-concurso { margin-bottom: 0; margin-left: auto; }
+  .mhg-tm .mobile-gen-btn { margin-top: 0; }
+  .mhg-dds {
+    background: #6b0030;
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(0,0,0,0.2);
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 28px;
+  }
+  .mhg-dds .mhg-name { font-size: 26px; margin-bottom: 0; }
+  .mhg-dds .mhg-concurso { margin-bottom: 0; margin-left: auto; }
+  .mhg-dds .mobile-gen-btn { margin-top: 0; }
   .mhg-name {
     font-family: var(--display);
     font-weight: 800;
@@ -1283,6 +1334,8 @@
       <a class="nav-link qn" href="quina.html">Quina</a>
       <a class="nav-link lm" href="lotomania.html">Lotomania</a>
       <a class="nav-link ds" href="dupla-sena.html">Dupla Sena</a>
+      <a class="nav-link" href="timemania.html" style="color:rgba(124,179,0,0.8)">Timemania</a>
+      <a class="nav-link" href="diadesorte.html" style="color:rgba(196,64,110,0.8)">Dia de Sorte</a>
       <a class="nav-link" href="loteca.html" style="color:var(--ink-dim)">Loteca</a>
       <a class="nav-link" href="analisar.html" style="color:var(--ink-dim)">Analisador</a>
       <a class="nav-link" href="blog.html" style="color:var(--ink-dim)">Blog</a>
@@ -1369,6 +1422,26 @@
         data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
         data-color="#00b4cc" data-combos="5" data-dez="6"
         data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
+    <a class="mhg-tile mhg-tm" href="timemania.html">
+      <div class="mhg-name">TIMEMANIA</div>
+      <div class="mhg-concurso" id="mhg-tm-concurso">10 dezenas · R$ 3,50</div>
+      <button class="mobile-gen-btn"
+        data-lottery="tm" data-url="timemania.html" data-name="Timemania"
+        data-color="#7cb300" data-combos="5" data-dez="10"
+        data-dez-min="10" data-dez-max="10" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
+    </a>
+    <a class="mhg-tile mhg-dds" href="diadesorte.html">
+      <div class="mhg-name">DIA DE SORTE</div>
+      <div class="mhg-concurso" id="mhg-dds-concurso">7 dezenas · R$ 2,50</div>
+      <button class="mobile-gen-btn"
+        data-lottery="dds" data-url="diadesorte.html" data-name="Dia de Sorte"
+        data-color="#c4406e" data-combos="5" data-dez="7"
+        data-dez-min="7" data-dez-max="7" data-combos-min="1" data-combos-max="50">
         ⚡ Gerar
       </button>
     </a>
@@ -1507,6 +1580,46 @@
           data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
           data-color="#00b4cc" data-combos="5" data-dez="6"
           data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
+          ⚡ Gerar
+        </button>
+        <div class="mobile-btn-arrow">→</div>
+      </div>
+    </a>
+
+    <a class="mobile-btn tm" href="timemania.html">
+      <div class="mobile-btn-left">
+        <div class="mobile-btn-name">Timemania</div>
+        <div class="mobile-btn-desc">01–80 · 10 dezenas · R$ 3,50</div>
+      </div>
+      <div class="mobile-btn-right">
+        <div class="mobile-btn-balls">
+          <span class="mb" style="background:#7cb300">12</span><span class="mb" style="background:#7cb300">34</span>
+          <span class="mb" style="background:#7cb300">56</span><span class="mb" style="background:#7cb300">73</span>
+        </div>
+        <button class="mobile-gen-btn"
+          data-lottery="tm" data-url="timemania.html" data-name="Timemania"
+          data-color="#7cb300" data-combos="5" data-dez="10"
+          data-dez-min="10" data-dez-max="10" data-combos-min="1" data-combos-max="50">
+          ⚡ Gerar
+        </button>
+        <div class="mobile-btn-arrow">→</div>
+      </div>
+    </a>
+
+    <a class="mobile-btn dds" href="diadesorte.html">
+      <div class="mobile-btn-left">
+        <div class="mobile-btn-name">Dia de Sorte</div>
+        <div class="mobile-btn-desc">01–31 · 7 dezenas · R$ 2,50</div>
+      </div>
+      <div class="mobile-btn-right">
+        <div class="mobile-btn-balls">
+          <span class="mb" style="background:#c4406e">07</span><span class="mb" style="background:#c4406e">14</span>
+          <span class="mb" style="background:#c4406e">22</span><span class="mb" style="background:#c4406e">29</span>
+        </div>
+        <button class="mobile-gen-btn"
+          data-lottery="dds" data-url="diadesorte.html" data-name="Dia de Sorte"
+          data-color="#c4406e" data-combos="5" data-dez="7"
+          data-dez-min="7" data-dez-max="7" data-combos-min="1" data-combos-max="50">
           ⚡ Gerar
         </button>
         <div class="mobile-btn-arrow">→</div>
@@ -1738,6 +1851,82 @@
         data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
         data-color="#00b4cc" data-combos="5" data-dez="6"
         data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar agora
+      </button>
+    </a>
+
+    <!-- TIMEMANIA -->
+    <a class="loteria-card tm" href="timemania.html">
+      <div class="card-top-line"></div>
+      <div class="card-tag">⏱ Timemania</div>
+      <h2 class="card-title">Time<em>mania</em></h2>
+      <div class="card-sub" id="tm-card-sub">2008&ndash;hoje &middot; 2.000+ concursos</div>
+      <div class="card-stats-row">
+        <div class="cs">
+          <div class="cs-label">Aposta min.</div>
+          <div class="cs-value">R$ 3,50</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Dezenas</div>
+          <div class="cs-value">10</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Universo</div>
+          <div class="cs-value">01&ndash;80</div>
+        </div>
+      </div>
+      <div class="card-premio" id="tm-premio" style="display:none">
+        <div class="card-premio-label">Próximo concurso · estimativa</div>
+        <div id="tm-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
+        <div class="card-premio-valor" id="tm-premio-valor">—</div>
+      </div>
+      <div class="card-balls" id="tm-balls">
+        <span class="cb">12</span><span class="cb">34</span><span class="cb">47</span>
+        <span class="cb">56</span><span class="cb">73</span>
+      </div>
+      <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
+      <button class="idx-gen-btn"
+        data-lottery="tm" data-url="timemania.html" data-name="Timemania"
+        data-color="#7cb300" data-combos="5" data-dez="10"
+        data-dez-min="10" data-dez-max="10" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar agora
+      </button>
+    </a>
+
+    <!-- DIA DE SORTE -->
+    <a class="loteria-card dds" href="diadesorte.html">
+      <div class="card-top-line"></div>
+      <div class="card-tag">🌸 Dia de Sorte</div>
+      <h2 class="card-title">Dia de <em>Sorte</em></h2>
+      <div class="card-sub" id="dds-card-sub">2018&ndash;hoje &middot; 1.200+ concursos</div>
+      <div class="card-stats-row">
+        <div class="cs">
+          <div class="cs-label">Aposta min.</div>
+          <div class="cs-value">R$ 2,50</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Dezenas</div>
+          <div class="cs-value">7</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Universo</div>
+          <div class="cs-value">01&ndash;31</div>
+        </div>
+      </div>
+      <div class="card-premio" id="dds-premio" style="display:none">
+        <div class="card-premio-label">Próximo concurso · estimativa</div>
+        <div id="dds-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
+        <div class="card-premio-valor" id="dds-premio-valor">—</div>
+      </div>
+      <div class="card-balls" id="dds-balls">
+        <span class="cb">07</span><span class="cb">14</span><span class="cb">18</span>
+        <span class="cb">22</span><span class="cb">29</span>
+      </div>
+      <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
+      <button class="idx-gen-btn"
+        data-lottery="dds" data-url="diadesorte.html" data-name="Dia de Sorte"
+        data-color="#c4406e" data-combos="5" data-dez="7"
+        data-dez-min="7" data-dez-max="7" data-combos-min="1" data-combos-max="50">
         ⚡ Gerar agora
       </button>
     </a>

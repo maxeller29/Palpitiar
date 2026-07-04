@@ -765,7 +765,7 @@
   /* ===== BOTÃO RÁPIDO DENTRO DO CARD PRÓXIMO CONCURSO ===== */
   .next-draw-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid rgba(137,37,137,0.15);
@@ -914,6 +914,17 @@
     padding: 4px 8px;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Botão Ver Estatísticas */
+  .nd-stats-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 10px 18px; border: 1px solid rgba(139,92,246,0.45);
+    color: #8b5cf6; text-decoration: none; border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nd-stats-btn:hover { background: rgba(139,92,246,0.1); border-color: #8b5cf6; }
 </style>
 
   <!-- PWA: Lotoia -->
@@ -1018,6 +1029,7 @@
         </div>
       </div>
       <div class="next-draw-footer">
+        <a class="nd-stats-btn" href="stats-lotofacil.html">📊 Ver estatísticas</a>
         <button class="nd-gen-btn" id="quickGenBar" aria-label="Gerar combinações agora">
           ⚡ Gerar combinações
         </button>

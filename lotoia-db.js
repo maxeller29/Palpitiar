@@ -16,6 +16,8 @@ const PREMIOS_FIXOS = {
   'quina':      { 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
   'dupla-sena': { 'sena': null, 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
   'lotomania':  { 'sena': null, 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
+  'timemania':    { '7 acertos': null, '6 acertos': null, '5 acertos': null, '4 acertos': null, '3 acertos': null, 'time do coração': null },
+  'dia-de-sorte': { '7 acertos': null, '6 acertos': null, '5 acertos': null, '4 acertos': null, 'mes da sorte': null },
 };
 
 const FAIXAS_PREMIADAS = {
@@ -24,6 +26,8 @@ const FAIXAS_PREMIADAS = {
   'quina':      { 5:'quina', 4:'quadra', 3:'terno', 2:'duque' },
   'dupla-sena': { 6:'sena', 5:'quina', 4:'quadra', 3:'terno', 2:'duque' },
   'lotomania':  { 20:'vinte', 19:'dezenove', 18:'dezoito', 0:'zero' },
+  'timemania':    { 7:'7 acertos', 6:'6 acertos', 5:'5 acertos', 4:'4 acertos', 3:'3 acertos' },
+  'dia-de-sorte': { 7:'7 acertos', 6:'6 acertos', 5:'5 acertos', 4:'4 acertos' },
 };
 
 // Client Supabase REST
@@ -58,7 +62,7 @@ async function buscarResultado(loteria, concurso) {
   } catch(e) { console.warn('Proxy falhou:', e.message); }
 
   // Fallback direto
-  const ep = { 'mega-sena':'megasena', 'lotofacil':'lotofacil', 'quina':'quina', 'dupla-sena':'duplasena', 'lotomania':'lotomania' };
+  const ep = { 'mega-sena':'megasena', 'lotofacil':'lotofacil', 'quina':'quina', 'dupla-sena':'duplasena', 'lotomania':'lotomania', 'timemania':'timemania', 'dia-de-sorte':'diadesorte' };
   const r = await fetch(`https://servicebus2.caixa.gov.br/portaldeloterias/api/${ep[loteria]}/${concurso}`);
   if (!r.ok) throw new Error(`Resultado não disponível (HTTP ${r.status})`);
   const d = await r.json();

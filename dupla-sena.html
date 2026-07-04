@@ -414,10 +414,26 @@
   .qg-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--ink-dim); font-size: 20px; cursor: pointer; padding: 4px 8px; }
   .qg-note { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); text-align: center; margin-bottom: 16px; letter-spacing: 0.08em; }
 
+  /* DUAL SORTEIO CARDS */
+  .ds-sorteio-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cyan); margin: 0 0 6px; }
+  .ds-sorteio-label.s2 { margin-top: 14px; color: rgba(0,180,204,0.6); }
+  .ball-s2 { background: rgba(0,180,204,0.15); color: var(--cyan); border: 1px solid rgba(0,180,204,0.45); }
+
   /* NEXT DRAW FOOTER */
-  .next-draw-footer { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(0,180,204,0.15); }
+  .next-draw-footer { display: flex; justify-content: space-between;
   .nd-gen-btn { background: var(--cyan); color: var(--bg); border: none; border-radius: 2px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
   .nd-gen-btn:hover { background: var(--cyan-bright); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,180,204,0.3); }
+
+  /* Botão Ver Estatísticas */
+  .nd-stats-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 10px 18px; border: 1px solid rgba(0,180,204,0.45);
+    color: #00b4cc; text-decoration: none; border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nd-stats-btn:hover { background: rgba(0,180,204,0.1); border-color: #00b4cc; }
 </style>
 
   <link rel="manifest" href="/manifest.json">
@@ -518,6 +534,7 @@
         </div>
       </div>
       <div class="next-draw-footer">
+        <a class="nd-stats-btn" href="stats-dupla-sena.html">📊 Ver estatísticas</a>
         <button class="nd-gen-btn" id="ndGenBtn">⚡ Gerar combinações</button>
       </div>
     </section>
@@ -595,7 +612,7 @@
           <input id="dezenas" type="number" min="6" max="15" value="6" readonly>
           <button type="button" id="dezenasUp">+</button>
         </div>
-        <div class="hint" id="dezenasHint">6 dezenas · 1 jogo · R$ 2,50</div>
+        <div class="hint" id="dezenasHint">6 dezenas · 2 jogos/cartão · R$ 5,00</div>
       </div>
       <button class="generate" id="generateBtn">⚡ Gerar</button>
     </div>
@@ -631,7 +648,7 @@
           <label>Cotas no bolão</label>
           <div class="num-input compact">
             <button type="button" id="cotasDown">−</button>
-            <input id="cotas" type="number" min="2" max="100" value="10" readonly>
+            <input id="cotas" type="number" min="2" max="100" value="2" readonly>
             <button type="button" id="cotasUp">+</button>
           </div>
         </div>
@@ -823,25 +840,27 @@ const statusTx = $('statusText');
 
 /* ===== BOOT / CARGA ===== */
 async function carregarDados() {
-  // Tenta cache local
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.draws && parsed.draws.length >= 1500 && parsed.stats) {
-        iniciarApp(parsed);
-        return;
-      }
-    }
-  } catch (_) {}
   bootMsg.textContent = 'Buscando dados históricos...';
   try {
-    const resp = await fetch(DATA_URL);
+    const resp = await fetch(DATA_URL + '?v=' + Date.now());
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const json = await resp.json();
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(json)); } catch (_) {}
     iniciarApp(json);
   } catch (e) {
+    // fallback para cache local
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.draws && parsed.draws.length >= 100 && parsed.stats &&
+            Array.isArray(parsed.draws[0]?.[2])) {
+          bootMsg.textContent = 'Usando cache local...';
+          iniciarApp(parsed);
+          return;
+        }
+      }
+    } catch (_) {}
     bootMsg.textContent = 'Erro ao carregar dados: ' + e.message;
   }
 }
@@ -950,12 +969,16 @@ function sampleSemReposicao(pesos, qtd) {
   const pool = pesos.map((p, i) => ({ i: i + 1, p }));
   const res = [];
   for (let q = 0; q < qtd; q++) {
+    if (!pool.length) break;
     const total = pool.reduce((s, x) => s + x.p, 0);
     let r = Math.random() * total;
+    let picked = pool.length - 1; // fallback: último elemento
     for (let j = 0; j < pool.length; j++) {
       r -= pool[j].p;
-      if (r <= 0) { res.push(pool[j].i); pool.splice(j, 1); break; }
+      if (r <= 0) { picked = j; break; }
     }
+    res.push(pool[picked].i);
+    pool.splice(picked, 1);
   }
   return res.sort((a, b) => a - b);
 }
@@ -988,48 +1011,58 @@ function gerarCartoes(qtd, analiseData, strat) {
 }
 
 /* ===== RENDERIZAÇÃO ===== */
-function renderCartoes(cartoes) {
+function renderCartoes(seqs, numCards) {
   const grid = $('cardsGrid');
   grid.innerHTML = '';
-  cartoes.forEach((dz, i) => {
+  for (let i = 0; i < numCards; i++) {
+    const dz1 = seqs[i * 2];
+    const dz2 = seqs[i * 2 + 1] || seqs[i * 2];
+    if (!dz1) break;
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = (i * 0.05) + 's';
-    const soma = dz.reduce((s, n) => s + n, 0);
-    const pares = dz.filter(n => n % 2 === 0).length;
-    const k = dz.length;
+    const k = dz1.length;
     const jogos = comb(k, 6);
+    const soma1 = dz1.reduce((s, n) => s + n, 0);
+    const pares1 = dz1.filter(n => n % 2 === 0).length;
+    const soma2 = dz2.reduce((s, n) => s + n, 0);
+    const pares2 = dz2.filter(n => n % 2 === 0).length;
+    const balls1 = dz1.map((n, ii) => `<div class="ball" style="animation-delay:${ii * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('');
+    const balls2 = dz2.map((n, ii) => `<div class="ball ball-s2" style="animation-delay:${(ii + k) * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('');
     card.innerHTML = `
       <div class="card-head">
         <div class="idx">Cartão <strong>#${i + 1}</strong></div>
-        <div class="card-meta">${k} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''}</div>
+        <div class="card-meta">${k} dezenas · ${jogos * 2} jogos</div>
       </div>
-      <div class="balls">${dz.map((n, ii) => `<div class="ball" style="animation-delay:${ii * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('')}</div>
+      <div class="ds-sorteio-label">1.º Sorteio</div>
+      <div class="balls">${balls1}</div>
+      <div class="card-stats" style="margin-bottom:10px">
+        <span>Soma: <strong>${soma1}</strong></span>
+        <span>Pares: <strong>${pares1}</strong></span>
+      </div>
+      <div class="ds-sorteio-label s2">2.º Sorteio</div>
+      <div class="balls">${balls2}</div>
       <div class="card-stats">
-        <span>Soma: <strong>${soma}</strong></span>
-        <span>Pares: <strong>${pares}</strong></span>
-        <span>Ímpares: <strong>${k - pares}</strong></span>
-        <span>Custo: <strong>${fmtBRL(jogos * PRICE_TICKET)}</strong></span>
+        <span>Soma: <strong>${soma2}</strong></span>
+        <span>Pares: <strong>${pares2}</strong></span>
       </div>`;
     grid.appendChild(card);
-  });
-  $('resultCount').textContent = cartoes.length;
+  }
+  $('resultCount').textContent = numCards;
   $('resultsSection').style.display = '';
 }
 
-function renderReport(cartoes, analiseData) {
+function renderReport(seqs, analiseData, numCards) {
   const report = $('reportSection');
-  const { freq } = analiseData;
-  const todos = cartoes.flat();
+  const todos = seqs.flat();
   const contagem = {};
   todos.forEach(n => { contagem[n] = (contagem[n] || 0) + 1; });
   const sorted = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
   const mais = sorted.slice(0, 8).map(([n]) => n);
-  const menos = sorted.slice(-8).reverse().map(([n]) => n);
-  const quentes = stats.quentes.slice(0, 8);
-  const frias   = stats.frias.slice(0, 8);
+  const quentes = stats.quentes.filter(n => n <= 50).slice(0, 8);
+  const frias   = stats.frias.filter(n => n <= 50).slice(0, 8);
 
-  $('reportDate').textContent = `${cartoes.length} cartões · estratégia: ${estrategia} · ${dezPorCartao} dezenas · gerado em ${new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('reportDate').textContent = `${numCards} cartão${numCards > 1 ? 's' : ''} (${seqs.length} sequências) · ${estrategia} · ${dezPorCartao} dez · ${new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
 
   $('reportGrid').innerHTML = `
     <div class="report-item"><h4>Mais usados nesta geração</h4><p>Os números que apareceram com maior frequência entre os cartões gerados:</p>
@@ -1039,8 +1072,8 @@ function renderReport(cartoes, analiseData) {
     <div class="report-item"><h4>Números frios (hist.)</h4><p>Com menor frequência histórica — podem estar em momento de retorno:</p>
       <div class="freq-list">${frias.map(n => `<span class="freq-pill cold">${String(n).padStart(2,'0')}</span>`).join('')}</div></div>
     <div class="report-item"><h4>Distribuição dos cartões</h4><p>Paridade e soma médias nos cartões gerados nesta sessão:</p>
-      <p style="margin-top:8px">Soma média: <strong>${(cartoes.reduce((s, dz) => s + dz.reduce((a, b) => a + b, 0), 0) / cartoes.length).toFixed(1)}</strong><br>
-      Média pares: <strong>${(cartoes.reduce((s, dz) => s + dz.filter(n => n % 2 === 0).length, 0) / cartoes.length).toFixed(1)}</strong></p></div>`;
+      <p style="margin-top:8px">Soma média: <strong>${(seqs.reduce((s, dz) => s + dz.reduce((a, b) => a + b, 0), 0) / seqs.length).toFixed(1)}</strong><br>
+      Média pares: <strong>${(seqs.reduce((s, dz) => s + dz.filter(n => n % 2 === 0).length, 0) / seqs.length).toFixed(1)}</strong></p></div>`;
 
   report.classList.add('show');
 }
@@ -1066,42 +1099,48 @@ async function gerarComOverlay(qtd, strat) {
     steps[i].classList.add('done');
   };
 
-  await activate(0, 25);
-  const analiseData = analisar();
-  counter.textContent = `${draws.length} concursos lidos`;
+  try {
+    await activate(0, 25);
+    const analiseData = analisar();
+    counter.textContent = `${draws.length} concursos lidos`;
 
-  await activate(1, 50);
-  await delay(100);
+    await activate(1, 50);
+    await delay(100);
 
-  await activate(2, 75);
-  await delay(80);
+    await activate(2, 75);
+    await delay(80);
 
-  steps[3].classList.add('active');
-  bar.style.width = '90%';
-  const cartoes = gerarCartoes(qtd, analiseData, strat);
-  counter.textContent = `${cartoes.length} cartões gerados`;
-  await delay(200);
-  steps[3].classList.remove('active');
-  steps[3].classList.add('done');
-  bar.style.width = '100%';
+    steps[3].classList.add('active');
+    bar.style.width = '90%';
+    // Gera 2 sequências por cartão (1.º e 2.º sorteio)
+    const seqs = gerarCartoes(qtd * 2, analiseData, strat);
+    counter.textContent = `${qtd} cartão${qtd > 1 ? 's' : ''} gerados`;
+    await delay(200);
+    steps[3].classList.remove('active');
+    steps[3].classList.add('done');
+    bar.style.width = '100%';
 
-  await delay(300);
-  overlay.classList.remove('show');
+    await delay(300);
+    overlay.classList.remove('show');
 
-  lastCartoes = cartoes;
-  renderCartoes(cartoes);
-  renderReport(cartoes, analiseData);
-  renderCostBar(cartoes);
-  $('saveSection').style.display = '';
+    lastCartoes = seqs;
+    renderCartoes(seqs, qtd);
+    renderReport(seqs, analiseData, qtd);
+    renderCostBar(seqs, qtd);
+    $('saveSection').style.display = '';
+  } catch (e) {
+    overlay.classList.remove('show');
+    console.error('Erro ao gerar:', e);
+  }
 }
 
-function renderCostBar(cartoes) {
+function renderCostBar(seqs, numCards) {
   const k = dezPorCartao;
-  const jogos = comb(k, 6);
-  const totalJogos = cartoes.length * jogos;
+  const jogosPorSeq = comb(k, 6);
+  const totalJogos = seqs.length * jogosPorSeq;
   const totalCusto = totalJogos * PRICE_TICKET;
   $('costBreakdown').innerHTML =
-    `${cartoes.length} cartão${cartoes.length > 1 ? 's' : ''} × ${jogos} jogo${jogos > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo`;
+    `${numCards} cartão${numCards > 1 ? 's' : ''} × ${jogosPorSeq * 2} jogo${jogosPorSeq * 2 > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo`;
   $('costTotal').textContent = fmtBRL(totalCusto);
   $('costBar').style.display = '';
 }
@@ -1109,11 +1148,11 @@ function renderCostBar(cartoes) {
 /* ===== BOLÃO ===== */
 function atualizarBolao() {
   if (!$('bolaoToggle').checked) return;
-  const cotas = parseInt($('cotas').value) || 10;
+  const cotas = parseInt($('cotas').value) || 2;
   const k = dezPorCartao;
   const jogos = comb(k, 6);
   const qtd = parseInt($('combos').value) || 5;
-  const totalJogos = qtd * jogos;
+  const totalJogos = qtd * 2 * jogos; // 2 sequências por cartão
   const totalCusto = totalJogos * PRICE_TICKET;
   const cotaVal = totalCusto / cotas;
   $('bolaoResult').innerHTML = `
@@ -1167,8 +1206,8 @@ function bindNumInput(downId, upId, inputId, min, max, onChange) {
 
 function atualizarHintDezenas(k) {
   const jogos = comb(k, 6);
-  const custo = fmtBRL(jogos * PRICE_TICKET);
-  $('dezenasHint').textContent = `${k} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''} · ${custo}`;
+  const custo = fmtBRL(jogos * 2 * PRICE_TICKET);
+  $('dezenasHint').textContent = `${k} dezenas · ${jogos * 2} jogos/cartão · ${custo}`;
 }
 
 function autoTrigger() {
@@ -1188,8 +1227,8 @@ function autoTrigger() {
 /* ===== BOTTOM SHEET ===== */
 let qgCombos = 5, qgDez = 6;
 function updateQGNote() {
-  const jogos = comb(qgDez, 6);
-  $('qgNote').textContent = `${qgDez} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''} · ${fmtBRL(jogos * PRICE_TICKET)} por cartão`;
+  const jogos = comb(qgDez, 6) * 2;
+  $('qgNote').textContent = `${qgDez} dezenas · ${jogos} jogos/cartão · ${fmtBRL(jogos * PRICE_TICKET)}`;
 }
 
 function abrirSheet() {
@@ -1264,31 +1303,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const qgCombosDown = $('qgCombosDown'), qgCombosUp = $('qgCombosUp');
   const qgDezDown = $('qgDezDown'), qgDezUp = $('qgDezUp');
-  qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
-  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 20) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
-  qgDezDown.addEventListener('click',    () => { if (qgDez > DEZ_MIN) { qgDez--; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
-  qgDezUp.addEventListener('click',      () => { if (qgDez < DEZ_MAX) { qgDez++; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
-
-  $('qgConfirm').addEventListener('click', () => {
-    $('combos').value  = qgCombos;
-    $('combosHint').textContent = `${qgCombos} cartão${qgCombos > 1 ? 's' : ''}`;
-    $('dezenas').value = qgDez;
-    dezPorCartao = qgDez;
-    atualizarHintDezenas(qgDez);
-    atualizarProbabilidades();
-    fecharSheet();
-    $('generateBtn').click();
-  });
-
-  // cache
-  $('btnLimparCache').addEventListener('click', () => {
-    localStorage.removeItem(CACHE_KEY);
-    location.reload();
-  });
-
-  // inicia tudo
-  carregarDados();
-});
-</script>
-</body>
-</html>
+  qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } })
