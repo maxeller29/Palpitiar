@@ -348,4 +348,48 @@ async function buscarTotaisGerais() {
 
   try {
     const [totalCombinacoes, totalPremiadas, totalSorteios, valorTotal] = await Promise.all([
-      countExact('combinaco
+      countExact('combinacoes', 'status=neq.expirada'),
+      countExact('combinacoes', 'status=eq.premiada'),
+      countExact('sorteios_conferidos'),
+      somarPremiadas(),
+    ]);
+    return { totalCombinacoes, totalPremiadas, totalSorteios, valorTotal };
+  } catch(e) {
+    return { totalCombinacoes:0, totalPremiadas:0, totalSorteios:0, valorTotal:0 };
+  }
+}
+
+async function registrarPremioManual(id, valor) {
+  await sb.update('combinacoes', { valor_premio: valor }, `?id=eq.${id}`);
+  // Atualiza resumo da faixa correspondente
+  const comb = await sb.select('combinacoes', `?id=eq.${id}&select=loteria,faixa_premiada`);
+  if (comb?.length) {
+    const { loteria, faixa_premiada } = comb[0];
+    await atualizarResumoPorFaixa([{ faixa: faixa_premiada, valor }], loteria);
+  }
+}
+
+async function expirarAntigas() {
+  const limite = new Date();
+  limite.setDate(limite.getDate()-90);
+  return sb.update('combinacoes',
+    { status:'expirada' },
+    `?status=eq.pendente&gerado_em=lt.${limite.toISOString()}`
+  );
+}
+
+window.LotoiaDB = {
+  salvarCombinacoes,
+  conferirConcurso,
+  conferirTodosPendentes,
+  buscarResumoPorLoteria,
+  buscarContadoresGerados,
+  buscarTotaisGerais,
+  registrarPremioManual,
+  expirarAntigas,
+  _sb: sb,
+  _calcularFaixa: calcularFaixa,
+  _buscarResultado: buscarResultado,
+  _PREMIOS_FIXOS: PREMIOS_FIXOS,
+  configurado: () => !SUPABASE_URL.includes('SEU_PROJETO'),
+};

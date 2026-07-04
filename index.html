@@ -1044,7 +1044,7 @@
   #mobile-home-grid {
     display: none;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr auto auto;
+    grid-template-rows: repeat(3, 1fr) auto;
     height: calc(100dvh - 52px);
   }
   .mhg-tile {
@@ -1065,9 +1065,10 @@
   .mhg-tile:active { filter: brightness(0.82); }
   .mhg-ms { background: #209869; border-right: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.15); }
   .mhg-qn { background: #260085; border-bottom: 1px solid rgba(0,0,0,0.15); }
-  .mhg-lf { background: #930046; border-right: 1px solid rgba(0,0,0,0.15); }
-  .mhg-an { background: #5c3fbe; }
-  .mhg-lm { background: #c45800; }
+  .mhg-lf { background: #930046; border-right: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.15); }
+  .mhg-an { background: #5c3fbe; border-bottom: 1px solid rgba(0,0,0,0.15); }
+  .mhg-an .mhg-name { font-size: 22px; }
+  .mhg-lm { background: #c45800; border-right: 1px solid rgba(0,0,0,0.15); }
   .mhg-ds { background: #005f6e; }
   .mhg-name {
     font-family: var(--display);

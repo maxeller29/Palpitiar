@@ -1299,4 +1299,18 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarHintDezenas(qgDez);
     atualizarProbabilidades();
     fecharSheet();
-    $('
+    $('generateBtn').click();
+  });
+
+  // cache
+  $('btnLimparCache').addEventListener('click', () => {
+    localStorage.removeItem(CACHE_KEY);
+    location.reload();
+  });
+
+  // inicia tudo
+  carregarDados();
+});
+</script>
+</body>
+</html>
