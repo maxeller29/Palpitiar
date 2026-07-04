@@ -1023,16 +1023,12 @@ function updateCost() {
 
 function updateProb(combos) {
   const p20 = probLotomania(20);
-  const p16 = probLotomania(16);
   const p0  = probLotomania(0);
   const pAll20 = 1 - Math.pow(1 - p20, combos);
-  const pAll16 = 1 - Math.pow(1 - p16, combos);
   const pAll0  = 1 - Math.pow(1 - p0,  combos);
   const meta = `${combos} cartao${combos!==1?'es':''}`;
   document.getElementById('prob20All').innerHTML = `<strong>${fmtChance(pAll20)}</strong>`;
   document.getElementById('prob20AllMeta').textContent = `acertar 20 de 20 · ${meta}`;
-  document.getElementById('prob16All').textContent = fmtChance(pAll16);
-  document.getElementById('prob16AllMeta').textContent = `acertar 16 de 20 · ${meta}`;
   document.getElementById('prob0All').textContent = fmtChance(pAll0);
   document.getElementById('prob0AllMeta').textContent = `nenhum acerto · ${meta}`;
 }

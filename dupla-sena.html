@@ -533,21 +533,11 @@
       <div class="caixa-banner-arrow">→</div>
     </a>
 
-    <div class="stats-strip" id="statsStrip">
-      <div class="stat">
+    <div class="stats-strip" id="statsStrip" style="grid-template-columns:1fr">
+      <div class="stat" style="border-right:none">
         <div class="label">Concursos analisados</div>
         <div class="value" id="statTotal">-</div>
-        <div class="meta">série histórica</div>
-      </div>
-      <div class="stat">
-        <div class="label">Com acertador(es)</div>
-        <div class="value" id="statAcert">-</div>
-        <div class="meta">pelo menos 1 ganhador</div>
-      </div>
-      <div class="stat">
-        <div class="label">Soma média 1º sorteio</div>
-        <div class="value" id="statSoma">-</div>
-        <div class="meta">dos 6 números sorteados</div>
+        <div class="meta">série histórica completa</div>
       </div>
     </div>
 
@@ -559,21 +549,6 @@
       <div class="ddi-side">
         <div class="ddi-tag">2.º Sorteio</div>
         <div class="ddi-text">Um segundo sorteio independente de mais 6 dezenas. O mesmo cartão concorre automaticamente, dobrando suas chances de prêmio.</div>
-      </div>
-    </div>
-
-    <div class="loto-info">
-      <div class="loto-info-cell">
-        <div class="li-value">01–50</div>
-        <div class="li-label">universo de números</div>
-      </div>
-      <div class="loto-info-cell">
-        <div class="li-value">6–15</div>
-        <div class="li-label">dezenas por cartão</div>
-      </div>
-      <div class="loto-info-cell">
-        <div class="li-value">R$ 2,50</div>
-        <div class="li-label">por jogo simples (6 dez.)</div>
       </div>
     </div>
 
@@ -880,9 +855,10 @@ function iniciarApp(json) {
   statusTx.textContent = `${json.meta.totalConcursos} concursos · até ${fmtData(json.meta.ultimaData)}`;
 
   $('statTotal').textContent = json.meta.totalConcursos.toLocaleString('pt-BR');
-  $('statAcert').textContent  = stats.percentualComAcertadores + '%';
-  $('statSoma').textContent   = stats.somaMedia;
   $('footerConcurso').textContent = `Última série: concurso ${json.meta.ultimoConcurso}`;
+
+  // Pré-preenche o card do próximo concurso com dados do JSON (API atualiza em seguida)
+  $('nextNumber').textContent = json.meta.ultimoConcurso + 1;
 
   atualizarDeAPI();
   atualizarProbabilidades();
@@ -910,8 +886,10 @@ async function atualizarDeAPI() {
     // Prêmio estimado: usa valorEstimadoProximoConcurso da API (combina os dois sorteios)
     if (d.proximoValor > 0) {
       $('nextPrize').textContent = fmtBRL(d.proximoValor);
-    } else if (d.acumulado && d.rateio?.[0]?.valor > 0) {
+    } else if (d.rateio?.length > 0 && d.rateio[0].valor > 0) {
       $('nextPrize').textContent = fmtBRL(d.rateio[0].valor);
+    } else {
+      $('nextPrize').textContent = 'consulte na Caixa';
     }
 
     // Avisa se há concursos mais recentes que o JSON local
