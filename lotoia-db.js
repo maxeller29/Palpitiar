@@ -12,14 +12,18 @@ const PREMIOS_FIXOS = {
     '11 acertos': 6.00, '12 acertos': 12.00, '13 acertos': 30.00,
     '14 acertos': null, '15 acertos': null,
   },
-  'mega-sena': { 'sena': null, 'quina': null, 'quadra': null },
-  'quina':     { 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
+  'mega-sena':  { 'sena': null, 'quina': null, 'quadra': null },
+  'quina':      { 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
+  'dupla-sena': { 'sena': null, 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
+  'lotomania':  { 'sena': null, 'quina': null, 'quadra': null, 'terno': null, 'duque': null },
 };
 
 const FAIXAS_PREMIADAS = {
-  'mega-sena': { 6:'sena', 5:'quina', 4:'quadra' },
-  'lotofacil': { 15:'15 acertos', 14:'14 acertos', 13:'13 acertos', 12:'12 acertos', 11:'11 acertos' },
-  'quina':     { 5:'quina', 4:'quadra', 3:'terno', 2:'duque' },
+  'mega-sena':  { 6:'sena', 5:'quina', 4:'quadra' },
+  'lotofacil':  { 15:'15 acertos', 14:'14 acertos', 13:'13 acertos', 12:'12 acertos', 11:'11 acertos' },
+  'quina':      { 5:'quina', 4:'quadra', 3:'terno', 2:'duque' },
+  'dupla-sena': { 6:'sena', 5:'quina', 4:'quadra', 3:'terno', 2:'duque' },
+  'lotomania':  { 20:'vinte', 19:'dezenove', 18:'dezoito', 0:'zero' },
 };
 
 // Client Supabase REST
@@ -54,7 +58,7 @@ async function buscarResultado(loteria, concurso) {
   } catch(e) { console.warn('Proxy falhou:', e.message); }
 
   // Fallback direto
-  const ep = { 'mega-sena':'megasena', 'lotofacil':'lotofacil', 'quina':'quina' };
+  const ep = { 'mega-sena':'megasena', 'lotofacil':'lotofacil', 'quina':'quina', 'dupla-sena':'duplasena', 'lotomania':'lotomania' };
   const r = await fetch(`https://servicebus2.caixa.gov.br/portaldeloterias/api/${ep[loteria]}/${concurso}`);
   if (!r.ok) throw new Error(`Resultado não disponível (HTTP ${r.status})`);
   const d = await r.json();
@@ -98,6 +102,14 @@ function obterValorPremio(loteria, faixa, rateio) {
       if (norm.includes('4') && faixa==='quadra' && r.ganhadores>0) return r.valor;
       if (norm.includes('3') && faixa==='terno' && r.ganhadores>0) return r.valor;
       if (norm.includes('2') && faixa==='duque' && r.ganhadores>0) return r.valor;
+    }
+    // Match Dupla Sena (mesmo padrão de faixas da Quina)
+    if (loteria === 'dupla-sena') {
+      if (norm.includes('6') && faixa==='sena'   && r.ganhadores>0) return r.valor;
+      if (norm.includes('5') && faixa==='quina'  && r.ganhadores>0) return r.valor;
+      if (norm.includes('4') && faixa==='quadra' && r.ganhadores>0) return r.valor;
+      if (norm.includes('3') && faixa==='terno'  && r.ganhadores>0) return r.valor;
+      if (norm.includes('2') && faixa==='duque'  && r.ganhadores>0) return r.valor;
     }
   }
   return null;
@@ -172,11 +184,21 @@ async function conferirConcurso(loteria, concurso) {
              conferidas:0, premiadas:0, deletadas:0, detalhes:[] };
   }
 
+  // Dupla Sena tem dois sorteios por concurso — confere contra ambos e usa o melhor
+  const isDuplaSena = loteria === 'dupla-sena';
+  const dezenas2 = isDuplaSena ? (resultado.dezenasSegundo || []) : null;
+
   let premiadas=0, deletadas=0;
   const detalhes=[];
 
   for (const comb of pendentes) {
-    const { acertos, faixa, premiado } = calcularFaixa(loteria, comb.dezenas, resultado.dezenas);
+    let melhor = calcularFaixa(loteria, comb.dezenas, resultado.dezenas);
+    // Para Dupla Sena: verifica também o segundo sorteio e usa o melhor resultado
+    if (isDuplaSena && dezenas2.length) {
+      const r2 = calcularFaixa(loteria, comb.dezenas, dezenas2);
+      if (r2.acertos > melhor.acertos) melhor = r2;
+    }
+    const { acertos, faixa, premiado } = melhor;
     if (premiado) {
       const valor = obterValorPremio(loteria, faixa, resultado.rateio);
       await sb.update('combinacoes', {
@@ -326,48 +348,4 @@ async function buscarTotaisGerais() {
 
   try {
     const [totalCombinacoes, totalPremiadas, totalSorteios, valorTotal] = await Promise.all([
-      countExact('combinacoes', 'status=neq.expirada'),
-      countExact('combinacoes', 'status=eq.premiada'),
-      countExact('sorteios_conferidos'),
-      somarPremiadas(),
-    ]);
-    return { totalCombinacoes, totalPremiadas, totalSorteios, valorTotal };
-  } catch(e) {
-    return { totalCombinacoes:0, totalPremiadas:0, totalSorteios:0, valorTotal:0 };
-  }
-}
-
-async function registrarPremioManual(id, valor) {
-  await sb.update('combinacoes', { valor_premio: valor }, `?id=eq.${id}`);
-  // Atualiza resumo da faixa correspondente
-  const comb = await sb.select('combinacoes', `?id=eq.${id}&select=loteria,faixa_premiada`);
-  if (comb?.length) {
-    const { loteria, faixa_premiada } = comb[0];
-    await atualizarResumoPorFaixa([{ faixa: faixa_premiada, valor }], loteria);
-  }
-}
-
-async function expirarAntigas() {
-  const limite = new Date();
-  limite.setDate(limite.getDate()-90);
-  return sb.update('combinacoes',
-    { status:'expirada' },
-    `?status=eq.pendente&gerado_em=lt.${limite.toISOString()}`
-  );
-}
-
-window.LotoiaDB = {
-  salvarCombinacoes,
-  conferirConcurso,
-  conferirTodosPendentes,
-  buscarResumoPorLoteria,
-  buscarContadoresGerados,
-  buscarTotaisGerais,
-  registrarPremioManual,
-  expirarAntigas,
-  _sb: sb,
-  _calcularFaixa: calcularFaixa,
-  _buscarResultado: buscarResultado,
-  _PREMIOS_FIXOS: PREMIOS_FIXOS,
-  configurado: () => !SUPABASE_URL.includes('SEU_PROJETO'),
-};
+      countExact('combinaco

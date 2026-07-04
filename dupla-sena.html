@@ -836,7 +836,7 @@ function probK(playerK, drawnK, N, k) {
 
 /* ===== ESTADO ===== */
 let stats = null, draws = [], estrategia = 'equilibrado', lastCartoes = [];
-let dezPorCartao = 6;
+let dezPorCartao = 6, proximoConcurso = null;
 
 /* ===== DOM ===== */
 const $ = id => document.getElementById(id);
@@ -901,6 +901,7 @@ async function atualizarDeAPI() {
 
     // Exibe o próximo concurso
     const proxNum = d.proximoNumero || (d.concurso + 1);
+    proximoConcurso = proxNum;
     $('nextNumber').textContent = proxNum;
     const dataISO = d.proximaData ? d.proximaData.split('/').reverse().join('-') : null;
     $('nextDate').textContent = fmtData(dataISO);
@@ -1158,7 +1159,9 @@ async function salvarCombinacoes() {
   status.className = 'save-status show';
   status.textContent = 'Enviando combinações...';
   try {
-    await window.LotoiaDB.salvarCombinacoes('dupla-sena', lastCartoes);
+    const concurso = proximoConcurso || (draws[draws.length - 1]?.[0] + 1) || null;
+    const cartoes = lastCartoes.map(dz => ({ dezenas: dz }));
+    await window.LotoiaDB.salvarCombinacoes(cartoes, 'dupla-sena', concurso, dezPorCartao, estrategia);
     status.className = 'save-status show ok';
     status.textContent = `✓ ${lastCartoes.length} combinações salvas. Serão conferidas automaticamente após o próximo sorteio.`;
     btn.textContent = '✓ Salvo';
@@ -1296,18 +1299,4 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarHintDezenas(qgDez);
     atualizarProbabilidades();
     fecharSheet();
-    $('generateBtn').click();
-  });
-
-  // cache
-  $('btnLimparCache').addEventListener('click', () => {
-    localStorage.removeItem(CACHE_KEY);
-    location.reload();
-  });
-
-  // inicia tudo
-  carregarDados();
-});
-</script>
-</body>
-</html>
+    $('
