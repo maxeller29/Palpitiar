@@ -213,6 +213,16 @@
   .tm .card-cta { background: #7cb300; color: #0c1800; }
   .tm .card-cta:hover { background: #91d000; }
 
+  /* Milionária violet */
+  .loteria-card.ml::before { background: radial-gradient(ellipse at top left, rgba(147,51,234,0.12), transparent 70%); }
+  .loteria-card.ml:hover { border-color: rgba(147,51,234,0.45); box-shadow: 0 16px 48px rgba(147,51,234,0.12); }
+  .ml .card-tag { color: #9333ea; }
+  .ml .card-top-line { background: linear-gradient(90deg, transparent, #9333ea, transparent); }
+  .ml .card-title em { color: #9333ea; }
+  .ml .cs-value { color: #9333ea; }
+  .ml .card-cta { background: #9333ea; color: #fff; }
+  .ml .card-cta:hover { background: #a855f7; }
+
   /* Dia de Sorte rose */
   .loteria-card.dds::before { background: radial-gradient(ellipse at top left, rgba(196,64,110,0.12), transparent 70%); }
   .loteria-card.dds:hover { border-color: rgba(196,64,110,0.45); box-shadow: 0 16px 48px rgba(196,64,110,0.12); }
@@ -1113,6 +1123,7 @@
   .mhg-ds { background: #005f6e; }
   .mhg-lm { background: #c45800; }
   .mhg-tm { background: #3d6e00; }
+  .mhg-ml  { background: #3d1270; }
   .mhg-dds { background: #6b0030; border-bottom: none; }
   .mhg-name {
     font-family: var(--display);
@@ -1398,6 +1409,11 @@
         data-dez-min="15" data-dez-max="20" data-combos-min="1" data-combos-max="50">
         ⚡ Gerar
       </button>
+    </a>
+    <a class="mhg-tile mhg-ml" href="milionaria.html">
+      <div class="mhg-name">MILIONÁRIA</div>
+      <div class="mhg-concurso" id="mhg-ml-concurso">Concurso —</div>
+      <div class="mhg-premio" id="mhg-ml-premio">6+2 dezenas · R$ 6,00</div>
     </a>
     <a class="mhg-tile mhg-ds" href="dupla-sena.html">
       <div class="mhg-name">DUPLA SENA</div>
@@ -1929,6 +1945,33 @@
         data-dez-min="7" data-dez-max="7" data-combos-min="1" data-combos-max="50">
         ⚡ Gerar agora
       </button>
+    </a>
+
+    <!-- MILIONÁRIA -->
+    <a class="loteria-card ml" href="milionaria.html">
+      <div class="card-top-line"></div>
+      <div class="card-tag">💎 Milionária</div>
+      <h2 class="card-title">Milion<em>ária</em></h2>
+      <div class="card-sub" id="ml-card-sub">2022&ndash;hoje &middot; 200+ concursos</div>
+      <div class="card-stats-row">
+        <div class="cs">
+          <div class="cs-label">Aposta min.</div>
+          <div class="cs-value">R$ 6,00</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Dezenas</div>
+          <div class="cs-value">6+2</div>
+        </div>
+        <div class="cs">
+          <div class="cs-label">Universo</div>
+          <div class="cs-value">01&ndash;50</div>
+        </div>
+      </div>
+      <div class="card-balls" id="ml-balls">
+        <span class="cb">08</span><span class="cb">15</span><span class="cb">27</span>
+        <span class="cb">33</span><span class="cb">44</span>
+      </div>
+      <span class="card-cta">Ver combinacoes <span class="arrow">&rarr;</span></span>
     </a>
 
   </div>
@@ -2474,10 +2517,4 @@
 
   close.addEventListener('click', dismiss);
   popup.addEventListener('click', function(e) {
-    if (e.target === popup) dismiss();
-  });
-})();
-</script>
-
-</body>
-</html>
+    if (e.target === popu
