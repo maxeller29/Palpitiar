@@ -4,37 +4,137 @@
 // Usa batches paralelos para ser rápido. Salva em timemania-historico.json na raiz.
 // Uso: node scripts/criar-historico-timemania.js
 
-const fs    = require('fs');
-const path  = require('path');
-const https = require('https');
+const fs     = require('fs');
+const path   = require('path');
+const https  = require('https');
+const crypto = require('crypto');
+const zlib   = require('zlib');
 
 const BASE_URL        = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/timemania';
 const CONCURSO_INICIO = 1;
 const CONCURSO_FIM    = 2500; // atualizar se houver mais
-const BATCH_SIZE      = 15;   // requisições paralelas por batch
-const DELAY_BATCH     = 600;  // ms entre batches
+const BATCH_SIZE      = 4;    // sem bloqueio de WAF confirmado — pode paralelizar moderadamente
+const DELAY_BATCH     = 500;  // ms entre lotes
 const OUT_FILE        = path.join(process.cwd(), 'timemania-historico.json');
+
+// Servidor da Caixa exige legacy renegotiation TLS — Node 18+/OpenSSL 3
+// bloqueiam isso por padrão, causando falha em 100% das requisições
+// (ECONNRESET/handshake). Este agent reabilita a compatibilidade.
+const agent = new https.Agent({
+  keepAlive: true,
+  secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
+});
 
 function sleep(ms) { return new Promise(ok => setTimeout(ok, ms)); }
 
-function fetchConcurso(num) {
+function descomprimir(res) {
+  // Descomprime o corpo de acordo com o content-encoding real da resposta
+  const enc = (res.headers['content-encoding'] || '').toLowerCase();
+  if (enc === 'gzip') return res.pipe(zlib.createGunzip());
+  if (enc === 'br')   return res.pipe(zlib.createBrotliDecompress());
+  if (enc === 'deflate') return res.pipe(zlib.createInflate());
+  return res; // sem compressão
+}
+
+function lerCorpo(res) {
+  return new Promise((resolve, reject) => {
+    const stream = descomprimir(res);
+    const chunks = [];
+    stream.on('data', c => chunks.push(c));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    stream.on('error', reject);
+  });
+}
+
+function fetchConcurso(num, tentativa = 0) {
   return new Promise((resolve) => {
     const url = BASE_URL + '/' + num;
     const req = https.get(url, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'palpitiar-bot/1.0' }
-    }, res => {
+      agent,
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        'Referer': 'https://loterias.caixa.gov.br/Paginas/Timemania.aspx',
+        'Origin': 'https://loterias.caixa.gov.br',
+        'Connection': 'keep-alive',
+        'sec-ch-ua': '"Chromium";v="126", "Google Chrome";v="126", "Not.A/Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+      }
+    }, async res => {
       if (res.statusCode === 404) { res.resume(); return resolve(null); }
-      if (res.statusCode !== 200) { res.resume(); return resolve({ _erro: res.statusCode, _num: num }); }
+
+      if (res.statusCode !== 200) {
+        let corpoErro = '';
+        try { corpoErro = await lerCorpo(res); } catch (e) { corpoErro = '[erro ao descomprimir: ' + e.message + ']'; }
+        if (!global.__erroHttpLogado) {
+          global.__erroHttpLogado = true;
+          const diag = '=== DIAGNOSTICO HTTP NAO-200 (primeira ocorrencia) ===\n' +
+            'concurso: ' + num + '\n' +
+            'status:   ' + res.statusCode + '\n' +
+            'headers:  ' + JSON.stringify(res.headers, null, 2) + '\n' +
+            'corpo:    ' + corpoErro.slice(0, 2000) + '\n' +
+            '================================\n';
+          fs.appendFileSync(path.join(process.cwd(), 'debug-timemania.log'), diag, 'utf8');
+        }
+        if (tentativa < 3) {
+          const espera = res.statusCode === 403 ? 5000 * (tentativa + 1) : 1500 * (tentativa + 1);
+          return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), espera);
+        }
+        return resolve({ _erro: res.statusCode, _num: num });
+      }
+
       let body = '';
-      res.setEncoding('utf8');
-      res.on('data', c => { body += c; });
-      res.on('end', () => {
-        try { resolve(JSON.parse(body)); }
-        catch(e) { resolve({ _erro: 'parse', _num: num }); }
-      });
+      try { body = await lerCorpo(res); }
+      catch (e) {
+        if (!global.__erroDescompLogado) {
+          global.__erroDescompLogado = true;
+          const diag = '=== DIAGNOSTICO ERRO AO DESCOMPRIMIR (primeira ocorrencia) ===\n' +
+            'concurso: ' + num + '\n' +
+            'content-encoding: ' + res.headers['content-encoding'] + '\n' +
+            'erro: ' + e.message + '\n' +
+            '================================\n';
+          fs.appendFileSync(path.join(process.cwd(), 'debug-timemania.log'), diag, 'utf8');
+        }
+        return resolve({ _erro: 'descompressao', _num: num });
+      }
+
+      try { resolve(JSON.parse(body)); }
+      catch(e) {
+        if (!global.__erroParseLogado) {
+          global.__erroParseLogado = true;
+          const diag = '=== DIAGNOSTICO 200 OK MAS JSON INVALIDO (primeira ocorrencia) ===\n' +
+            'concurso: ' + num + '\n' +
+            'status:   ' + res.statusCode + '\n' +
+            'headers:  ' + JSON.stringify(res.headers, null, 2) + '\n' +
+            'corpo bruto (primeiros 3000 chars):\n' + body.slice(0, 3000) + '\n' +
+            '================================\n';
+          fs.appendFileSync(path.join(process.cwd(), 'debug-timemania.log'), diag, 'utf8');
+        }
+        resolve({ _erro: 'parse', _num: num });
+      }
     });
-    req.on('error', () => resolve({ _erro: 'network', _num: num }));
-    req.setTimeout(20000, () => { req.destroy(); resolve({ _erro: 'timeout', _num: num }); });
+    req.on('error', (err) => {
+      if (!global.__erroRedeLogado) {
+        global.__erroRedeLogado = true;
+        const diag = '=== DIAGNOSTICO ERRO DE REDE (primeira ocorrencia) ===\n' +
+          'concurso: ' + num + '\n' +
+          'code:     ' + err.code + '\n' +
+          'message:  ' + err.message + '\n' +
+          '================================\n';
+        fs.appendFileSync(path.join(process.cwd(), 'debug-timemania.log'), diag, 'utf8');
+      }
+      if (tentativa < 3) {
+        return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
+      }
+      resolve({ _erro: 'network:' + (err.code || err.message), _num: num });
+    });
+    req.setTimeout(25000, () => { req.destroy(); resolve({ _erro: 'timeout', _num: num }); });
   });
 }
 
@@ -64,7 +164,7 @@ function formatarData(d) {
 }
 
 function calcularStats(draws) {
-  // Timemania: números 1-80, 10 dezenas sorteadas
+  // Timemania: números 1-80, 7 dezenas sorteadas por concurso (aposta mínima é de 10 números)
   const MAX = 80;
   const freqMap = {}, ultimoSorteio = {};
   for (let n = 1; n <= MAX; n++) freqMap[n] = 0;
@@ -129,7 +229,19 @@ async function main() {
       if (r._erro) { erros.push({ num, erro: r._erro }); return; }
 
       const dezenas = parseDezenas(r.listaDezenas);
-      if (dezenas.length !== 10) { erros.push({ num, erro: 'dezenas_invalidas_' + dezenas.length }); return; }
+      if (dezenas.length !== 7) {
+        if (!global.__erroFormatoLogado) {
+          global.__erroFormatoLogado = true;
+          const diag = '=== DIAGNOSTICO FORMATO INESPERADO (200 OK, mas dezenas invalidas, primeira ocorrencia) ===\n' +
+            'concurso: ' + num + '\n' +
+            'dezenas encontradas: ' + dezenas.length + '\n' +
+            'chaves do JSON retornado: ' + Object.keys(r).join(', ') + '\n' +
+            'JSON completo:\n' + JSON.stringify(r, null, 2).slice(0, 3000) + '\n' +
+            '================================\n';
+          fs.appendFileSync(path.join(process.cwd(), 'debug-timemania.log'), diag, 'utf8');
+        }
+        erros.push({ num, erro: 'dezenas_invalidas_' + dezenas.length }); return;
+      }
 
       const data = formatarData(r.dataApuracao);
       const ganhadores = r.listaRateioPremio?.[0]?.numeroDeGanhadores ?? 0;
@@ -177,7 +289,7 @@ async function main() {
       formato: '[numero, "YYYY-MM-DD", [dezenas_1_a_80], ganhadores_7ac, {premios}]',
       regras: {
         universo: '1-80 (80 números)',
-        dezenasSorteadas: 10,
+        dezenasSorteadas: 7,
         dezenasAposta: 10,
         faixas: ['7ac','6ac','5ac','4ac','3ac']
       },

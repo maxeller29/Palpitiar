@@ -11,20 +11,31 @@ const https = require('https');
 const BASE_URL        = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/diadesorte';
 const CONCURSO_INICIO = 1;
 const CONCURSO_FIM    = 1500; // atualizar se houver mais (iniciou em mai/2018)
-const BATCH_SIZE      = 15;   // requisições paralelas por batch
-const DELAY_BATCH     = 600;  // ms entre batches
+const BATCH_SIZE      = 8;    // requisições paralelas por batch
+const DELAY_BATCH     = 800;  // ms entre batches
 const OUT_FILE        = path.join(process.cwd(), 'diadesorte-historico.json');
 
 function sleep(ms) { return new Promise(ok => setTimeout(ok, ms)); }
 
-function fetchConcurso(num) {
+function fetchConcurso(num, tentativa = 0) {
   return new Promise((resolve) => {
     const url = BASE_URL + '/' + num;
     const req = https.get(url, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'palpitiar-bot/1.0' }
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://loterias.caixa.gov.br/',
+        'Origin': 'https://loterias.caixa.gov.br',
+      }
     }, res => {
       if (res.statusCode === 404) { res.resume(); return resolve(null); }
-      if (res.statusCode !== 200) { res.resume(); return resolve({ _erro: res.statusCode, _num: num }); }
+      if (res.statusCode !== 200) {
+        res.resume();
+        if (tentativa < 3) {
+          return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
+        }
+        return resolve({ _erro: res.statusCode, _num: num });
+      }
       let body = '';
       res.setEncoding('utf8');
       res.on('data', c => { body += c; });
@@ -33,8 +44,13 @@ function fetchConcurso(num) {
         catch(e) { resolve({ _erro: 'parse', _num: num }); }
       });
     });
-    req.on('error', () => resolve({ _erro: 'network', _num: num }));
-    req.setTimeout(20000, () => { req.destroy(); resolve({ _erro: 'timeout', _num: num }); });
+    req.on('error', () => {
+      if (tentativa < 3) {
+        return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
+      }
+      resolve({ _erro: 'network', _num: num });
+    });
+    req.setTimeout(25000, () => { req.destroy(); resolve({ _erro: 'timeout', _num: num }); });
   });
 }
 
