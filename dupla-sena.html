@@ -94,6 +94,10 @@
   .site-nav-link.ds { color: rgba(0,180,204,0.8); }
   .site-nav-link.ds:hover, .site-nav-link.ds-active { color: var(--cyan) !important; background: rgba(0,180,204,0.1) !important; border-color: rgba(0,180,204,0.35) !important; }
   .site-nav-link.ds-active { font-weight: 700; box-shadow: 0 2px 0 0 var(--cyan); }
+  .site-nav-link.tm { color: rgba(124,179,0,0.8); }
+  .site-nav-link.tm:hover { color: #7cb300; background: rgba(124,179,0,0.1); border-color: rgba(124,179,0,0.35); }
+  .site-nav-link.dds { color: rgba(196,64,110,0.9); }
+  .site-nav-link.dds:hover { color: #c4406e; background: rgba(196,64,110,0.1); border-color: rgba(196,64,110,0.35); }
 
   /* BOOT */
   .boot { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 80px 0; }
@@ -335,9 +339,15 @@
     .next-draw { padding: 24px; }
     .next-draw-grid { grid-template-columns: 1fr; gap: 20px; text-align: center; }
     .next-draw .info-block { text-align: center; }
-    .stats-strip, .loto-info { grid-template-columns: 1fr; }
-    .stat, .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
-    .stat:last-child, .loto-info-cell:last-child { border-bottom: none; }
+    .stats-strip { overflow-x: auto; }
+    .stat { padding: 12px 10px; }
+    .stat .value { font-size: 18px; }
+    .stat .label { font-size: 8px; }
+    .stat .meta { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-nav-link.home-btn { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.22) !important; color: var(--ink) !important; font-weight: 700 !important; }
+    .loto-info { grid-template-columns: 1fr; }
+    .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
+    .loto-info-cell:last-child { border-bottom: none; }
     .dual-draw-info { grid-template-columns: 1fr; }
     .dual-draw-info .ddi-side:first-child { border-right: none; border-bottom: 1px solid rgba(0,180,204,0.15); }
     .strategies { grid-template-columns: 1fr; }
@@ -429,11 +439,11 @@
     display: inline-flex; align-items: center; gap: 6px;
     font-family: var(--mono); font-size: 10px; font-weight: 500;
     letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 10px 18px; border: 1px solid rgba(0,180,204,0.45);
+    padding: 10px 18px; background: rgba(0,180,204,0.15); border: 1px solid rgba(0,180,204,0.55);
     color: #00b4cc; text-decoration: none; border-radius: 2px;
     transition: all 0.2s;
   }
-  .nd-stats-btn:hover { background: rgba(0,180,204,0.1); border-color: #00b4cc; }
+  .nd-stats-btn:hover { background: rgba(0,180,204,0.28); border-color: #00b4cc; transform: translateY(-1px); }
 </style>
 
   <link rel="manifest" href="/manifest.json">
@@ -456,12 +466,14 @@
       <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
     </a>
     <div class="site-nav-links">
-      <a class="site-nav-link" href="index.html">← Inicio</a>
+      <a class="site-nav-link home-btn" href="index.html">← INICIO</a>
       <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
       <a class="site-nav-link lf" href="lotofacil.html">Lotofacil</a>
       <a class="site-nav-link qn" href="quina.html">Quina</a>
       <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
       <a class="site-nav-link ds ds-active" href="dupla-sena.html">Dupla Sena</a>
+      <a class="site-nav-link tm" href="timemania.html">Timemania</a>
+      <a class="site-nav-link dds" href="diadesorte.html">Dia de Sorte</a>
       <a class="site-nav-link" href="loteca.html">Loteca</a>
       <a class="site-nav-link" href="/analisar.html">Analisador</a>
       <a class="site-nav-link" href="/blog.html">Blog</a>
@@ -550,11 +562,21 @@
       <div class="caixa-banner-arrow">→</div>
     </a>
 
-    <div class="stats-strip" id="statsStrip" style="grid-template-columns:1fr">
-      <div class="stat" style="border-right:none">
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat">
         <div class="label">Concursos analisados</div>
         <div class="value" id="statTotal">-</div>
         <div class="meta">série histórica completa</div>
+      </div>
+      <div class="stat">
+        <div class="label">Último concurso</div>
+        <div class="value" id="statLastNum">-</div>
+        <div class="meta" id="statLastData">-</div>
+      </div>
+      <div class="stat">
+        <div class="label">Formato</div>
+        <div class="value">2 sorteios</div>
+        <div class="meta">6 dezenas cada (1–50)</div>
       </div>
     </div>
 
@@ -875,6 +897,11 @@ function iniciarApp(json) {
 
   $('statTotal').textContent = json.meta.totalConcursos.toLocaleString('pt-BR');
   $('footerConcurso').textContent = `Última série: concurso ${json.meta.ultimoConcurso}`;
+  const ultDraw = draws[draws.length - 1];
+  if (ultDraw) {
+    $('statLastNum').textContent = `#${ultDraw[0]}`;
+    $('statLastData').textContent = fmtData(ultDraw[1]);
+  }
 
   // Pré-preenche o card do próximo concurso com dados do JSON (API atualiza em seguida)
   $('nextNumber').textContent = json.meta.ultimoConcurso + 1;
