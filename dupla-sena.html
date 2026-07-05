@@ -529,22 +529,22 @@
     </div>
 
     <section class="next-draw" id="nextDraw">
-      <div class="next-draw-tag">Proximo Concurso</div>
+      <div class="next-draw-tag">⬢ Próximo Concurso</div>
       <div class="next-draw-grid">
         <div>
-          <div class="prize">Premio estimado
-            <span class="prize-value" id="nextPrize">-</span>
+          <div class="prize">Prêmio estimado
+            <span class="prize-value" id="nextPrize">—</span>
           </div>
         </div>
         <div class="info-block">
-          <div class="info-label">Concurso n</div>
-          <div class="info-value" id="nextNumber">-</div>
-          <div class="info-meta">proximo sorteio</div>
+          <div class="info-label">Concurso nº</div>
+          <div class="info-value" id="nextNumber">—</div>
+          <div class="info-meta">após o último sorteio</div>
         </div>
         <div class="info-block">
-          <div class="info-label">Data</div>
-          <div class="info-value" id="nextDate">-</div>
-          <div class="info-meta" id="nextDays">-</div>
+          <div class="info-label">Data do sorteio</div>
+          <div class="info-value" id="nextDate">—</div>
+          <div class="info-meta" id="nextDays">—</div>
         </div>
       </div>
       <div class="next-draw-footer">
@@ -553,7 +553,23 @@
       </div>
     </section>
 
-    <div id="adTop" class="ad-slot empty"></div>
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat">
+        <div class="label">Concursos analisados</div>
+        <div class="value" id="statTotal">—</div>
+        <div class="meta">série histórica completa</div>
+      </div>
+      <div class="stat">
+        <div class="label">Último concurso</div>
+        <div class="value" id="statLastNum">—</div>
+        <div class="meta" id="statLastData">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Formato</div>
+        <div class="value">2 sorteios</div>
+        <div class="meta">6 dezenas cada (1–50)</div>
+      </div>
+    </div>
 
     <a class="caixa-banner" href="https://loterias.caixa.gov.br/Pages/Dupla-Sena.aspx" target="_blank" rel="noopener">
       <div class="caixa-banner-icon">🍀</div>
@@ -563,24 +579,6 @@
       </div>
       <div class="caixa-banner-arrow">→</div>
     </a>
-
-    <div class="stats-strip" id="statsStrip">
-      <div class="stat">
-        <div class="label">Concursos analisados</div>
-        <div class="value" id="statTotal">-</div>
-        <div class="meta">série histórica completa</div>
-      </div>
-      <div class="stat">
-        <div class="label">Último concurso</div>
-        <div class="value" id="statLastNum">-</div>
-        <div class="meta" id="statLastData">-</div>
-      </div>
-      <div class="stat">
-        <div class="label">Formato</div>
-        <div class="value">2 sorteios</div>
-        <div class="meta">6 dezenas cada (1–50)</div>
-      </div>
-    </div>
 
     <div class="dual-draw-info">
       <div class="ddi-side">
@@ -915,35 +913,34 @@ function iniciarApp(json) {
 }
 
 async function atualizarDeAPI() {
-  const BASE = '/.netlify/functions/resultado';
+  const API_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/duplasena/';
   try {
-    // Busca o último concurso disponível (sem número → retorna o mais recente)
-    const r = await fetch(`${BASE}?loteria=dupla-sena`);
+    const r = await fetch(API_BASE, { cache: 'no-store' });
     if (!r.ok) return;
     const d = await r.json();
-    if (!d.concurso) return;
+    if (!d.numero) return;
 
     // Exibe o próximo concurso
-    const proxNum = d.proximoNumero || (d.concurso + 1);
+    const proxNum = d.numeroConcursoProximo || (d.numero + 1);
     proximoConcurso = proxNum;
     $('nextNumber').textContent = proxNum;
-    const dataISO = d.proximaData ? d.proximaData.split('/').reverse().join('-') : null;
+    const dataISO = d.dataProximoConcurso ? d.dataProximoConcurso.split('/').reverse().join('-') : null;
     $('nextDate').textContent = fmtData(dataISO);
     $('nextDays').textContent = diasAte(dataISO);
 
     // Prêmio estimado: usa valorEstimadoProximoConcurso da API (combina os dois sorteios)
-    if (d.proximoValor > 0) {
-      $('nextPrize').textContent = fmtBRL(d.proximoValor);
-    } else if (d.rateio?.length > 0 && d.rateio[0].valor > 0) {
-      $('nextPrize').textContent = fmtBRL(d.rateio[0].valor);
+    if (d.valorEstimadoProximoConcurso > 0) {
+      $('nextPrize').textContent = fmtBRL(d.valorEstimadoProximoConcurso);
+    } else if (d.listaRateioPremio?.length > 0 && d.listaRateioPremio[0].valorPremio > 0) {
+      $('nextPrize').textContent = fmtBRL(d.listaRateioPremio[0].valorPremio);
     } else {
       $('nextPrize').textContent = 'consulte na Caixa';
     }
 
     // Avisa se há concursos mais recentes que o JSON local
     const latestInDraws = draws[draws.length - 1]?.[0] || 0;
-    if (d.concurso > latestInDraws) {
-      const missing = d.concurso - latestInDraws;
+    if (d.numero > latestInDraws) {
+      const missing = d.numero - latestInDraws;
       statusTx.textContent = `${draws.length} concursos · até #${latestInDraws} · +${missing} novos`;
     }
   } catch (_) {}
