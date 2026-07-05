@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador Loteria Milionária com IA | Combinações Estatísticas | Palpitiar</title>
+<meta name="description" content="Gere combinações para a Loteria Milionária com Inteligência Artificial. Análise estatística da série histórica: frequência, paridade e distribuição. 100% grátis.">
+<meta name="keywords" content="gerador loteria milionária, palpite milionária, combinações milionária IA, números milionária estatística">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Palpitiar">
+<link rel="canonical" href="https://palpitiar.com.br/milionaria.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://palpitiar.com.br/milionaria.html">
+<meta property="og:title" content="Gerador Loteria Milionária com IA · Palpitiar">
+<meta property="og:description" content="Combinações inteligentes para a Milionária baseadas na série histórica. Dezenas 1–50 + 2 trevos. Grátis.">
+<meta property="og:image" content="https://palpitiar.com.br/icon-512.png">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Palpitiar">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gerador Loteria Milionária com IA · Palpitiar">
+<meta name="twitter:description" content="Combinações inteligentes para a Milionária. Grátis.">
+<meta name="twitter:image" content="https://palpitiar.com.br/icon-512.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Gerador Loteria Milionária · Palpitiar","url":"https://palpitiar.com.br/milionaria.html","description":"Combinações inteligentes para a Milionária baseadas na série histórica completa.","applicationCategory":"UtilitiesApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"},"inLanguage":"pt-BR"}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0d0a1a;
+    --bg-2: #140f26;
+    --ink: #f4ebd0;
+    --ink-dim: rgba(244,235,208,0.62);
+    --ink-faint: rgba(244,235,208,0.28);
+    --violet: #9333ea;
+    --violet-bright: #a855f7;
+    --crimson: #c4452d;
+    --emerald: #5dba6f;
+    --sky: #9dcde3;
+    --line: rgba(244,235,208,0.12);
+    --display: 'Fraunces', Georgia, serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--display); font-weight: 400; line-height: 1.55; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 800px 600px at 85% 10%, rgba(147,51,234,0.09), transparent 60%),
+                radial-gradient(ellipse 600px 800px at 15% 90%, rgba(168,85,247,0.06), transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(244,235,208,0.008) 2px, rgba(244,235,208,0.008) 3px);
+    pointer-events: none; z-index: 1;
+  }
+  .wrap { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 16px 24px 96px; }
+
+  /* NAV */
+  .site-nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .site-nav-logo { font-family: var(--display); font-weight: 800; font-style: italic; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; transition: opacity 0.2s; }
+  .site-nav-logo:hover { opacity: 0.8; }
+  .site-nav-logo img { height: 32px; width: auto; display: block; }
+  .site-nav-links { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .site-nav-link { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 8px 16px; border-radius: 2px; text-decoration: none; color: var(--ink-dim); transition: all 0.2s; border: 1px solid transparent; }
+  .site-nav-link:hover { color: var(--ink); border-color: var(--line); }
+  .site-nav-link.ms { color: rgba(212,168,75,0.7); }
+  .site-nav-link.ms:hover { color: #d4a84b; background: rgba(212,168,75,0.1); border-color: rgba(212,168,75,0.35); }
+  .site-nav-link.lf { color: rgba(76,175,125,0.7); }
+  .site-nav-link.lf:hover { color: #4caf7d; background: rgba(76,175,125,0.1); border-color: rgba(76,175,125,0.35); }
+  .site-nav-link.qn { color: rgba(107,140,218,0.7); }
+  .site-nav-link.qn:hover { color: #6b8cda; background: rgba(107,140,218,0.1); border-color: rgba(107,140,218,0.35); }
+  .site-nav-link.lm { color: rgba(232,119,34,0.7); }
+  .site-nav-link.lm:hover { color: #e87722; background: rgba(232,119,34,0.1); border-color: rgba(232,119,34,0.35); }
+  .site-nav-link.ds { color: rgba(0,180,204,0.7); }
+  .site-nav-link.ds:hover { color: #00b4cc; background: rgba(0,180,204,0.1); border-color: rgba(0,180,204,0.35); }
+  .site-nav-link.tm { color: rgba(124,179,0,0.8); }
+  .site-nav-link.tm:hover { color: #7cb300; background: rgba(124,179,0,0.1); border-color: rgba(124,179,0,0.35); }
+  .site-nav-link.dds { color: rgba(196,64,110,0.9); }
+  .site-nav-link.dds:hover { color: #c4406e; background: rgba(196,64,110,0.1); border-color: rgba(196,64,110,0.35); }
+  .site-nav-link.ml { color: rgba(147,51,234,0.85); }
+  .site-nav-link.ml:hover, .site-nav-link.ml-active { color: #9333ea !important; background: rgba(147,51,234,0.1) !important; border-color: rgba(147,51,234,0.35) !important; }
+  .site-nav-link.ml-active { font-weight: 700; box-shadow: 0 2px 0 0 #9333ea; }
+  .site-nav-link.lc { color: rgba(15,122,58,0.75); }
+  .site-nav-link.lc:hover { color: #0f7a3a; background: rgba(15,122,58,0.1); border-color: rgba(15,122,58,0.35); }
+
+  header { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+  .brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet); line-height: 1.3; }
+  .brand span { color: var(--ink-dim); display: block; }
+  .title-block { text-align: center; }
+  .title-block h1 { font-family: var(--display); font-weight: 300; font-size: clamp(36px,6vw,64px); letter-spacing: -0.03em; line-height: 0.92; font-style: italic; }
+  .title-block h1 em { font-weight: 800; color: var(--violet); font-style: normal; }
+  .title-block .sub { margin-top: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--ink-dim); }
+  .status { font-family: var(--mono); font-size: 10px; text-align: right; color: var(--ink-dim); letter-spacing: 0.06em; }
+  .status .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); margin-right: 6px; vertical-align: middle; }
+  .status.live .dot { background: var(--emerald); box-shadow: 0 0 8px var(--emerald); animation: pulse 1.8s ease-in-out infinite; }
+  .status.warn .dot { background: var(--violet); }
+  .status.err .dot { background: var(--crimson); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .boot { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 80px 0; }
+  .boot .spinner { width: 56px; height: 56px; border: 1px solid var(--line); border-top-color: var(--violet); border-radius: 50%; animation: spin 1.2s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .boot p { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-dim); text-align: center; max-width: 520px; }
+
+  .app { display: none; }
+  .app.ready { display: block; animation: fadeIn 0.6s ease-out; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  .next-draw { border: 1px solid rgba(147,51,234,0.3); background: radial-gradient(ellipse at top right, rgba(147,51,234,0.12), transparent 70%), rgba(20,15,38,0.6); padding: 32px 40px; border-radius: 4px; margin-bottom: 40px; position: relative; overflow: hidden; }
+  .next-draw::before { content: ''; position: absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, var(--violet), transparent); }
+  .next-draw-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--violet); margin-bottom: 12px; }
+  .next-draw-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; align-items: end; }
+  .next-draw .prize { font-family: var(--display); font-weight: 300; font-style: italic; font-size: 22px; color: var(--ink-dim); line-height: 1.1; }
+  .next-draw .prize-value { display: block; font-family: var(--display); font-weight: 600; font-style: normal; font-size: clamp(36px,5.5vw,56px); color: var(--violet); letter-spacing: -0.025em; margin-top: 4px; }
+  .next-draw .info-block { text-align: left; }
+  .next-draw .info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 6px; }
+  .next-draw .info-value { font-family: var(--display); font-weight: 600; font-size: 24px; color: var(--ink); letter-spacing: -0.015em; }
+  .next-draw .info-meta { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 4px; }
+
+  .stats-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border: 1px solid var(--line); border-radius: 2px; margin-bottom: 40px; overflow: hidden; }
+  .stat { padding: 20px 24px; border-right: 1px solid var(--line); background: rgba(20,15,38,0.4); }
+  .stat:last-child { border-right: none; }
+  .stat .label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px; }
+  .stat .value { font-family: var(--display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; color: var(--violet); }
+  .stat .meta { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 4px; }
+
+  .caixa-banner { display: flex; align-items: center; gap: 20px; padding: 16px 22px; margin: 32px 0; border: 1.5px solid rgba(147,51,234,0.4); background: linear-gradient(135deg, rgba(147,51,234,0.1), rgba(100,30,180,0.05)); border-radius: 4px; text-decoration: none; color: inherit; transition: all 0.25s; position: relative; overflow: hidden; }
+  .caixa-banner::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, #9333ea, #6d28d9); }
+  .caixa-banner:hover { border-color: rgba(168,85,247,0.7); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(147,51,234,0.15); }
+  .caixa-banner-icon { flex-shrink: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #9333ea, #6d28d9); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .caixa-banner-text { flex: 1; }
+  .caixa-banner-title { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 3px; }
+  .caixa-banner-sub { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(147,51,234,0.85); }
+  .caixa-banner-arrow { font-size: 18px; color: rgba(147,51,234,0.6); flex-shrink: 0; transition: transform 0.2s; }
+  .caixa-banner:hover .caixa-banner-arrow { transform: translateX(4px); }
+
+  .strategy-section { margin-bottom: 32px; }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .strategies { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .strategy { border: 1px solid var(--line); background: rgba(20,15,38,0.3); padding: 20px 22px; cursor: pointer; border-radius: 2px; transition: all 0.25s; text-align: left; color: inherit; font-family: inherit; }
+  .strategy:hover { border-color: rgba(147,51,234,0.4); transform: translateY(-2px); }
+  .strategy.active { border-color: var(--violet); background: rgba(147,51,234,0.08); }
+  .strategy .strat-name { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.015em; }
+  .strategy.active .strat-name { color: var(--violet); }
+  .strategy .strat-desc { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); line-height: 1.6; }
+  .strategy .strat-tag { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet); border: 1px solid var(--line); padding: 3px 8px; border-radius: 999px; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 24px; align-items: end; padding: 28px 32px; border: 1px solid var(--line); background: rgba(20,15,38,0.3); margin-bottom: 32px; border-radius: 2px; }
+  .field { display: flex; flex-direction: column; gap: 10px; }
+  .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
+  .num-input { display: flex; align-items: center; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; transition: border-color 0.2s; }
+  .num-input:focus-within { border-color: var(--violet); }
+  .num-input button { width: 44px; height: 56px; background: transparent; border: none; color: var(--ink-dim); font-family: var(--display); font-size: 22px; cursor: pointer; transition: color 0.2s; }
+  .num-input button:hover { color: var(--violet); }
+  .num-input input { flex: 1; background: transparent; border: none; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 28px; text-align: center; outline: none; width: 100%; }
+  .num-input input::-webkit-outer-spin-button, .num-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .field .hint { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); margin-top: 2px; }
+
+  .generate { height: 58px; padding: 0 36px; background: var(--violet); color: #fff; border: none; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+  .generate:hover { background: var(--violet-bright); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(147,51,234,0.3); }
+  .generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .prob-panel { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border: 1px solid var(--line); border-radius: 2px; margin-bottom: 24px; overflow: hidden; background: rgba(20,15,38,0.35); }
+  .prob-cell { padding: 18px 22px; border-right: 1px solid var(--line); }
+  .prob-cell:last-child { border-right: none; }
+  .prob-cell .prob-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 6px; }
+  .prob-cell .prob-value { font-family: var(--display); font-weight: 600; font-size: 22px; letter-spacing: -0.015em; color: var(--ink); line-height: 1.15; }
+  .prob-cell .prob-value strong { color: var(--violet); }
+  .prob-cell .prob-meta { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 4px; line-height: 1.5; }
+  .prob-cell.highlight { background: rgba(147,51,234,0.05); }
+  .prob-cell.highlight .prob-label { color: var(--violet); }
+
+  .bolao-section { margin-bottom: 24px; border: 1px solid var(--line); border-radius: 2px; background: rgba(20,15,38,0.3); overflow: hidden; transition: border-color 0.25s; }
+  .bolao-section.active { border-color: rgba(147,51,234,0.35); }
+  .bolao-header { padding: 18px 24px; }
+  .bolao-toggle { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .bolao-toggle input { display: none; }
+  .bolao-toggle-track { position: relative; width: 38px; height: 22px; background: var(--line); border-radius: 999px; transition: background 0.2s; }
+  .bolao-toggle-dot { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: var(--ink); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+  .bolao-toggle input:checked + .bolao-toggle-track { background: var(--violet); }
+  .bolao-toggle input:checked + .bolao-toggle-track .bolao-toggle-dot { transform: translateX(16px); background: #fff; }
+  .bolao-toggle-label { font-family: var(--display); font-size: 17px; color: var(--ink); }
+  .bolao-toggle-label strong { color: var(--violet); font-weight: 600; }
+  .bolao-body { display: grid; grid-template-columns: minmax(220px,1fr) 2fr; gap: 28px; padding: 4px 24px 24px; border-top: 1px solid var(--line); align-items: start; }
+  .bolao-body[hidden] { display: none; }
+  .bolao-field { padding-top: 20px; }
+  .bolao-field label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 10px; }
+  .num-input.compact button { height: 44px; width: 36px; font-size: 18px; }
+  .num-input.compact input { font-size: 22px; height: 44px; }
+  .bolao-result { padding-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .bolao-line { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--mono); font-size: 12px; color: var(--ink-dim); letter-spacing: 0.02em; }
+  .bolao-line strong { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+  .bolao-line.total { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; }
+  .bolao-line.total strong { color: var(--ink); font-size: 14px; }
+  .bolao-cota-highlight { margin-top: 14px; padding: 16px 18px; background: rgba(147,51,234,0.08); border: 1px solid rgba(147,51,234,0.25); border-radius: 2px; }
+  .bolao-cota-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--violet); margin-bottom: 4px; }
+  .bolao-cota-value { font-family: var(--display); font-weight: 600; font-size: 32px; color: var(--violet); letter-spacing: -0.02em; line-height: 1.1; }
+  .bolao-cota-meta { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 4px; }
+  .bolao-note { margin-top: 16px; padding: 14px 16px; background: rgba(20,15,38,0.4); border: 1px solid var(--line); border-radius: 2px; display: flex; gap: 12px; align-items: flex-start; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); line-height: 1.65; letter-spacing: 0.01em; }
+  .bolao-note strong { color: var(--ink); font-weight: 600; }
+  .bolao-note-icon { color: var(--violet); font-size: 14px; flex-shrink: 0; line-height: 1.4; }
+
+  .cost-bar { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+  .cost-bar .breakdown { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); line-height: 1.75; }
+  .cost-bar .total { font-family: var(--display); font-style: italic; font-weight: 300; font-size: 14px; color: var(--ink-dim); text-align: right; }
+  .cost-bar .total strong { display: block; font-family: var(--display); font-weight: 600; font-style: normal; font-size: 32px; color: var(--violet); letter-spacing: -0.02em; margin-top: 2px; }
+
+  .results { margin-bottom: 40px; }
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .results-header h2 { font-family: var(--display); font-weight: 300; font-style: italic; font-size: 28px; letter-spacing: -0.02em; }
+  .results-header h2 em { font-style: normal; font-weight: 600; color: var(--violet); }
+  .results-actions { display: flex; gap: 8px; }
+  .btn-mini { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 8px 14px; background: transparent; border: 1px solid var(--line); color: var(--ink-dim); cursor: pointer; border-radius: 2px; transition: all 0.2s; }
+  .btn-mini:hover { border-color: var(--violet); color: var(--violet); }
+  .btn-mini.btn-download { border-color: rgba(147,51,234,0.4); color: var(--violet); }
+  .btn-mini.btn-download:hover { background: rgba(147,51,234,0.12); border-color: var(--violet); }
+  .btn-mini.btn-download.loading { opacity: 0.6; pointer-events: none; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap: 16px; }
+  .card { border: 1px solid var(--line); background: rgba(20,15,38,0.5); padding: 22px 24px; border-radius: 2px; transition: all 0.3s; animation: slideUp 0.5s ease-out both; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .card:hover { border-color: rgba(147,51,234,0.4); background: rgba(20,15,38,0.8); }
+  .card .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .card .idx { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+  .card .idx strong { color: var(--violet); }
+  .card .card-meta { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); letter-spacing: 0.08em; }
+  .balls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ball { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; font-size: 18px; background: var(--violet); color: #fff; transition: transform 0.3s; animation: pop 0.4s ease-out both; }
+  @keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .card:hover .ball { transform: translateY(-2px); }
+  .trevos-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-top: 12px; margin-bottom: 6px; }
+  .trevos { display: flex; gap: 8px; }
+  .trevo-ball { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 600; font-size: 16px; background: rgba(147,51,234,0.15); border: 2px solid rgba(147,51,234,0.6); color: var(--violet-bright); animation: pop 0.4s ease-out both; }
+  .card-stats { display: flex; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 10px; color: var(--ink-dim); }
+  .card-stats span strong { color: var(--ink); font-weight: 600; }
+
+  .report { border: 1px solid var(--line); background: rgba(20,15,38,0.3); padding: 36px 40px; border-radius: 2px; display: none; margin-bottom: 40px; }
+  .report.show { display: block; animation: fadeIn 0.6s; }
+  .report h3 { font-family: var(--display); font-weight: 300; font-style: italic; font-size: 28px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .report h3 em { font-style: normal; font-weight: 600; color: var(--violet); }
+  .report > .lead { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 24px; }
+  .report-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 28px; margin-bottom: 28px; }
+  .report-item h4 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--violet); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .report-item p { font-size: 15px; color: var(--ink-dim); line-height: 1.7; }
+  .report-item strong { color: var(--ink); font-weight: 600; }
+  .freq-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .freq-pill { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); }
+  .freq-pill.hot { border-color: var(--crimson); color: #ff8b73; }
+  .freq-pill.cold { border-color: rgba(157,205,227,0.4); color: var(--sky); }
+  .disclaimer { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--ink-dim); line-height: 1.75; }
+
+  .how-it-works { margin: 56px 0; padding: 40px; border: 1px solid var(--line); background: rgba(20,15,38,0.2); border-radius: 2px; }
+  .how-it-works h2 { font-family: var(--display); font-weight: 300; font-style: italic; font-size: 32px; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .how-it-works h2 em { font-style: normal; font-weight: 600; color: var(--violet); }
+  .hiw-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 32px; counter-reset: item; }
+  .hiw-item h3 { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--ink); margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+  .hiw-item h3::before { content: counter(item, decimal-leading-zero); counter-increment: item; font-family: var(--mono); font-size: 11px; color: var(--violet); font-weight: 400; }
+  .hiw-item p { color: var(--ink-dim); font-size: 15px; line-height: 1.7; }
+
+  .faq { margin: 56px 0; }
+  .faq-item { border-bottom: 1px solid var(--line); padding: 20px 0; }
+  .faq-q { font-family: var(--display); font-weight: 600; font-size: 17px; color: var(--ink); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+  .faq-q::after { content: '+'; font-family: var(--mono); color: var(--violet); font-size: 22px; }
+  .faq-item[open] .faq-q::after { content: '−'; }
+  .faq-a { padding-top: 14px; color: var(--ink-dim); font-size: 15px; line-height: 1.75; }
+
+  footer { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.08em; flex-wrap: wrap; gap: 12px; align-items: center; }
+  footer button { background: transparent; border: 1px solid var(--line); color: var(--ink-faint); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; cursor: pointer; border-radius: 2px; }
+  footer button:hover { color: var(--violet); border-color: var(--violet); }
+
+  .next-draw-footer { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(147,51,234,0.15); }
+  .nd-gen-btn { background: var(--violet); color: #fff; border: none; border-radius: 2px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .nd-gen-btn:hover { background: var(--violet-bright); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(147,51,234,0.3); }
+  .nd-stats-btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 18px; background: rgba(147,51,234,0.15); border: 1px solid rgba(147,51,234,0.55); color: var(--violet-bright); text-decoration: none; border-radius: 2px; transition: all 0.2s; }
+  .nd-stats-btn:hover { background: rgba(147,51,234,0.28); border-color: var(--violet); transform: translateY(-1px); }
+
+  .qg-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(2px); }
+  .qg-overlay.open { display: flex; align-items: flex-end; justify-content: center; }
+  .qg-sheet { background: #140f26; border: 1px solid rgba(147,51,234,0.3); border-bottom: none; border-radius: 16px 16px 0 0; padding: 12px 24px 36px; width: 100%; max-width: 520px; animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1); position: relative; }
+  .qg-handle { width: 40px; height: 4px; background: rgba(147,51,234,0.3); border-radius: 2px; margin: 0 auto 18px; }
+  .qg-title { font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--violet-bright); margin-bottom: 20px; text-align: center; }
+  .qg-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .qg-field { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .qg-field label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+  .qg-num { display: flex; align-items: center; border: 1px solid rgba(147,51,234,0.25); border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.2); }
+  .qg-num button { background: none; border: none; color: var(--violet-bright); font-size: 20px; font-weight: 300; width: 42px; height: 48px; cursor: pointer; transition: background 0.15s; }
+  .qg-num button:active { background: rgba(147,51,234,0.15); }
+  .qg-num span { flex: 1; text-align: center; font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--ink); }
+  .qg-btn { width: 100%; padding: 16px; background: var(--violet); color: #fff; border: none; border-radius: 6px; font-family: var(--display); font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+  .qg-btn:active { transform: scale(0.97); opacity: 0.9; }
+  .qg-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .qg-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--ink-dim); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+
+  .analise-overlay { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(13,10,26,0.85); backdrop-filter: blur(6px); align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
+  .analise-overlay.show { display: flex; }
+  .analise-box { width: min(480px,90vw); border: 1px solid rgba(147,51,234,0.4); border-radius: 4px; background: rgba(20,15,38,0.97); padding: 36px 40px; position: relative; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
+  .analise-box::before { content: ''; position: absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, transparent, var(--violet), transparent); animation: shimmer 1.8s ease-in-out infinite; }
+  @keyframes shimmer { 0%{opacity:0.4} 50%{opacity:1} 100%{opacity:0.4} }
+  .analise-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--violet); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .analise-tag::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 8px var(--violet); animation: pulse 1.2s ease-in-out infinite; }
+  .analise-titulo { font-family: var(--display); font-weight: 300; font-style: italic; font-size: 28px; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 28px; color: var(--ink); }
+  .analise-titulo em { font-style: normal; font-weight: 800; color: var(--violet); }
+  .analise-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .analise-step { display: flex; align-items: center; gap: 12px; opacity: 0.28; transition: opacity 0.3s, transform 0.3s; transform: translateX(-4px); }
+  .analise-step.done { opacity: 1; transform: translateX(0); }
+  .analise-step.active { opacity: 1; transform: translateX(0); }
+  .step-icon { width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(147,51,234,0.3); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.3s; background: transparent; color: var(--ink-faint); }
+  .analise-step.done .step-icon { background: rgba(147,51,234,0.15); border-color: var(--violet); color: var(--violet); }
+  .analise-step.active .step-icon { border-color: var(--violet); color: var(--violet); animation: spin 0.8s linear infinite; }
+  .step-text { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-dim); line-height: 1.4; }
+  .analise-step.active .step-text { color: var(--ink); }
+  .analise-progress-wrap { height: 2px; background: rgba(147,51,234,0.12); border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+  .analise-progress-bar { height: 100%; background: linear-gradient(90deg, var(--violet), var(--violet-bright)); border-radius: 2px; width: 0%; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px rgba(147,51,234,0.5); }
+  .analise-counter { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.08em; text-align: right; }
+
+  .cookie-banner { display: none; position: fixed; bottom:0; left:0; right:0; z-index:9998; background: rgba(13,10,26,0.97); border-top: 1px solid rgba(147,51,234,0.3); backdrop-filter: blur(8px); padding: 16px 24px; }
+  .cookie-banner.show { display: block; }
+  .cookie-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .cookie-text { flex: 1; font-family: var(--mono); font-size: 11px; color: rgba(244,235,208,.65); line-height: 1.6; min-width: 260px; }
+  .cookie-text a { color: var(--violet-bright); text-decoration: none; }
+  .cookie-btns { display: flex; gap: 10px; flex-shrink: 0; }
+  .cookie-accept { padding: 9px 20px; background: var(--violet); color: #fff; border: none; border-radius: 2px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+  .cookie-decline { padding: 9px 16px; background: transparent; border: 1px solid rgba(244,235,208,.2); color: rgba(244,235,208,.5); border-radius: 2px; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+
+  .print-header, .print-footer { display: none; }
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff !important; color: #111 !important; }
+    .site-nav, .boot, .next-draw, .stats-strip, .caixa-banner, .strategy-section, .controls, .prob-panel, .bolao-section, .cost-bar, .report, .how-it-works, .faq, footer, .cookie-banner, .analise-overlay, .results-actions { display: none !important; }
+    .wrap { padding: 0 !important; max-width: 100% !important; }
+    header { display: none !important; }
+    .results { display: block !important; }
+    .cards { grid-template-columns: repeat(2,1fr) !important; gap: 10px !important; }
+    .card { border: 1.5px solid #ccc !important; background: #fff !important; padding: 14px 16px !important; break-inside: avoid; }
+    .ball { background: #7c3aed !important; color: #fff !important; width: 34px !important; height: 34px !important; font-size: 13px !important; }
+    .trevo-ball { border-color: #7c3aed !important; color: #7c3aed !important; width: 30px !important; height: 30px !important; font-size: 12px !important; }
+    .print-header { display: block !important; text-align: center; padding: 12px 0 20px; border-bottom: 2px solid #7c3aed; margin-bottom: 18px; }
+    .print-footer { display: block !important; text-align: center; margin-top: 20px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 9px; color: #aaa; }
+  }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 12px 16px 60px; }
+    header { grid-template-columns: 1fr; text-align: center; gap: 16px; }
+    .site-nav { flex-direction: row; align-items: center; }
+    .site-nav-logo { display: none; }
+    .site-nav-links { flex-wrap: wrap; gap: 6px; }
+    .site-nav-link:not(.home-btn) { display: none; }
+    .site-nav-link.home-btn { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.22) !important; color: var(--ink) !important; font-weight: 700 !important; }
+    .status { text-align: center; }
+    .next-draw { padding: 24px; }
+    .next-draw-grid { grid-template-columns: 1fr; gap: 20px; text-align: center; }
+    .next-draw .info-block { text-align: center; }
+    .stats-strip { overflow-x: auto; }
+    .stat { padding: 12px 10px; }
+    .stat .value { font-size: 18px; }
+    .stat .label { font-size: 8px; }
+    .stat .meta { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prob-panel { grid-template-columns: 1fr; }
+    .prob-cell { border-right: none; border-bottom: 1px solid var(--line); }
+    .prob-cell:last-child { border-bottom: none; }
+    .bolao-body { grid-template-columns: 1fr; gap: 16px; padding: 4px 18px 18px; }
+    .bolao-header { padding: 16px 18px; }
+    .bolao-cota-value { font-size: 28px; }
+    .strategies { grid-template-columns: 1fr; }
+    .controls { grid-template-columns: 1fr; padding: 22px; }
+    .cards { grid-template-columns: 1fr; }
+    .ball { width: 38px; height: 38px; font-size: 15px; }
+    .report { padding: 24px; }
+    .how-it-works { padding: 24px; }
+    .cost-bar { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .cost-bar .total { text-align: left; }
+  }
+</style>
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#9333ea">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script src="/lotoia-db.js" defer></script>
+<script>
+  window.GA_ID      = 'G-M8Y0LMDHM4';
+  window.ADSENSE_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+</script>
+<script src="/cookies.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="site-nav">
+    <a class="site-nav-logo" href="index.html">
+      <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;color:var(--ink)">Palpit<em style="color:var(--violet);font-style:normal">ia</em>r</span>
+    </a>
+    <div class="site-nav-links">
+      <a class="site-nav-link home-btn" href="index.html">← INICIO</a>
+      <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
+      <a class="site-nav-link lf" href="lotofacil.html">Lotofácil</a>
+      <a class="site-nav-link qn" href="quina.html">Quina</a>
+      <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
+      <a class="site-nav-link ds" href="dupla-sena.html">Dupla Sena</a>
+      <a class="site-nav-link tm" href="timemania.html">Timemania</a>
+      <a class="site-nav-link dds" href="diadesorte.html">Dia de Sorte</a>
+      <a class="site-nav-link ml ml-active" href="milionaria.html">Milionária</a>
+      <a class="site-nav-link lc" href="loteca.html">Loteca</a>
+      <a class="site-nav-link" href="/analisar.html">Analisador</a>
+      <a class="site-nav-link" href="/blog.html">Blog</a>
+      <a class="site-nav-link" href="termos.html">Termos</a>
+    </div>
+  </nav>
+
+  <header>
+    <div class="brand">M·L<br><span>2022–HOJE</span></div>
+    <div class="title-block">
+      <h1>Loteria <em>Milionária</em></h1>
+      <div class="sub">Gerador Estatístico · 50 Dezenas + 2 Trevos</div>
+    </div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">Carregando…</span></div>
+  </header>
+
+  <div class="boot" id="boot">
+    <div class="spinner"></div>
+    <p id="bootMsg">Carregando série histórica</p>
+  </div>
+
+  <main class="app" id="app">
+
+    <div class="qg-overlay" id="qgOverlay" role="dialog" aria-modal="true">
+      <div class="qg-sheet" id="qgSheet">
+        <div class="qg-handle"></div>
+        <button class="qg-close" id="qgClose">✕</button>
+        <div class="qg-title">⚡ Milionária — Gerar</div>
+        <div class="qg-row">
+          <div class="qg-field">
+            <label>Cartões</label>
+            <div class="qg-num">
+              <button type="button" id="qgCombosDown">−</button>
+              <span id="qgCombosVal">5</span>
+              <button type="button" id="qgCombosUp">+</button>
+            </div>
+          </div>
+          <div class="qg-field">
+            <label>Dezenas por cartão</label>
+            <div class="qg-num">
+              <button type="button" id="qgDezenasDown">−</button>
+              <span id="qgDezenasVal">6</span>
+              <button type="button" id="qgDezenasUp">+</button>
+            </div>
+          </div>
+        </div>
+        <button class="qg-btn" id="qgConfirm">Gerar combinações</button>
+      </div>
+    </div>
+
+    <section class="next-draw" id="nextDraw">
+      <div class="next-draw-tag">⬢ Próximo Concurso</div>
+      <div class="next-draw-grid">
+        <div>
+          <div class="prize">Prêmio estimado<span class="prize-value" id="nextPrize">—</span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Concurso nº</div>
+          <div class="info-value" id="nextNumber">—</div>
+          <div class="info-meta">após o último sorteio</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Data do sorteio</div>
+          <div class="info-value" id="nextDate">—</div>
+          <div class="info-meta" id="nextDateRelative">—</div>
+        </div>
+      </div>
+      <div class="next-draw-footer">
+        <a class="nd-stats-btn" href="#">📊 Ver estatísticas</a>
+        <button class="nd-gen-btn" id="quickGenBar">⚡ Gerar combinações</button>
+      </div>
+    </section>
+
+    <section class="stats-strip" id="statsStrip"></section>
+
+    <a class="caixa-banner" href="https://loterias.caixa.gov.br/" target="_blank" rel="noopener noreferrer">
+      <div class="caixa-banner-icon">💎</div>
+      <div class="caixa-banner-text">
+        <div class="caixa-banner-title">Loterias Caixa · Site oficial</div>
+        <div class="caixa-banner-sub">Compre seu jogo em loterias.caixa.gov.br</div>
+      </div>
+      <div class="caixa-banner-arrow">→</div>
+    </a>
+
+    <section class="strategy-section">
+      <div class="section-label">Estratégia de geração</div>
+      <div class="strategies" id="strategies">
+        <button class="strategy active" data-strategy="equilibrada">
+          <div class="strat-name">Equilibrada</div>
+          <div class="strat-desc">Segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas. Cartões equilibrados e diversificados, com trevos ponderados por frequência.</div>
+          <div class="strat-tag">Recomendada</div>
+        </button>
+        <button class="strategy" data-strategy="contrarian">
+          <div class="strat-name">Arrojada</div>
+          <div class="strat-desc">Privilegia dezenas frias e atrasadas. Menos apostadores jogam nesses números — maior prêmio líquido em caso de vitória por menor rateio.</div>
+          <div class="strat-tag">Menos rateio</div>
+        </button>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="field">
+        <label for="combos">Quantas combinações (cartões)?</label>
+        <div class="num-input">
+          <button type="button" data-target="combos" data-step="-1">−</button>
+          <input type="number" id="combos" value="5" min="1" max="50">
+          <button type="button" data-target="combos" data-step="1">+</button>
+        </div>
+        <div class="hint">de 1 a 50 cartões</div>
+      </div>
+      <div class="field">
+        <label for="dezenas">Dezenas por cartão (1–50)</label>
+        <div class="num-input">
+          <button type="button" data-target="dezenas" data-step="-1">−</button>
+          <input type="number" id="dezenas" value="6" min="6" max="12">
+          <button type="button" data-target="dezenas" data-step="1">+</button>
+        </div>
+        <div class="hint">entre 6 e 12 dezenas + 2 trevos (1–6) gerados automaticamente</div>
+      </div>
+      <button class="generate" id="generateBtn">Gerar combinações</button>
+    </section>
+
+    <section class="prob-panel" id="probPanel">
+      <div class="prob-cell highlight">
+        <div class="prob-label">Chance de Sena</div>
+        <div class="prob-value" id="probSenaAll">—</div>
+        <div class="prob-meta" id="probSenaAllMeta">acertar as 6 dezenas</div>
+      </div>
+      <div class="prob-cell">
+        <div class="prob-label">Chance de Quina</div>
+        <div class="prob-value" id="probQuinaAll">—</div>
+        <div class="prob-meta" id="probQuinaAllMeta">acertar 5 das 6</div>
+      </div>
+      <div class="prob-cell">
+        <div class="prob-label">Chance de Quadra</div>
+        <div class="prob-value" id="probQuadraAll">—</div>
+        <div class="prob-meta" id="probQuadraAllMeta">acertar 4 das 6</div>
+      </div>
+    </section>
+
+    <section class="bolao-section" id="bolaoSection">
+      <div class="bolao-header">
+        <label class="bolao-toggle">
+          <input type="checkbox" id="bolaoToggle">
+          <span class="bolao-toggle-track"><span class="bolao-toggle-dot"></span></span>
+          <span class="bolao-toggle-label">Vou fazer um <strong>bolão</strong></span>
+        </label>
+      </div>
+      <div class="bolao-body" id="bolaoBody" hidden>
+        <div class="bolao-field">
+          <label for="cotas">Quantas pessoas no bolão?</label>
+          <div class="num-input compact">
+            <button type="button" data-target="cotas" data-step="-1">−</button>
+            <input type="number" id="cotas" value="2" min="2" max="100">
+            <button type="button" data-target="cotas" data-step="1">+</button>
+          </div>
+          <div class="hint">divisão entre os participantes</div>
+        </div>
+        <div class="bolao-result">
+          <div class="bolao-line total">
+            <span>Valor total da aposta</span>
+            <strong id="bolaoTotalVal">—</strong>
+          </div>
+          <div class="bolao-cota-highlight">
+            <div class="bolao-cota-label">Valor por pessoa</div>
+            <div class="bolao-cota-value" id="bolaoCotaVal">—</div>
+            <div class="bolao-cota-meta" id="bolaoCotaMeta">—</div>
+          </div>
+          <div class="bolao-note">
+            <span class="bolao-note-icon">ⓘ</span>
+            <div><strong>Como funciona aqui:</strong> um participante registra a aposta normalmente e os demais combinam o pagamento entre si — sem taxas extras.<br><br><strong>Sistema oficial de Bolão Caixa:</strong> cobra taxa de serviço de até 35% (mín. R$ 1,40 por bolão) mas registra legalmente a divisão do prêmio.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cost-bar" id="costBar">
+      <div class="breakdown" id="costBreakdown"></div>
+      <div class="total">Valor total da aposta<strong id="costTotal">R$ 0,00</strong></div>
+    </section>
+
+    <section class="results" id="results" style="display:none">
+      <div class="print-header" id="printHeader">
+        <div style="font-size:22px;font-weight:800">Palpit<em style="color:#7c3aed">ia</em>r</div>
+        <div id="printHeaderMeta" style="font-size:10px;color:#888;margin-top:3px"></div>
+      </div>
+      <div class="results-header">
+        <h2>Combinações <em>geradas</em></h2>
+        <div class="results-actions">
+          <button class="btn-mini" id="regenBtn">↻ Gerar novamente</button>
+          <button class="btn-mini" id="copyBtn">Copiar tudo</button>
+          <button class="btn-mini btn-download" id="downloadBtn">↓ Baixar PDF</button>
+        </div>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="print-footer" id="printFooter">palpitiar.com.br - Gerado em <span id="printDate"></span> - Aposte com responsabilidade - +18</div>
+    </section>
+
+    <section class="report" id="report">
+      <h3>Como estas <em>combinações</em> foram pensadas</h3>
+      <div class="lead">Metodologia · Estatística aplicada à série completa</div>
+      <div class="report-grid" id="reportGrid"></div>
+      <div class="disclaimer">
+        <strong>NOTA HONESTA.</strong> Cada sorteio é independente — as bolas não têm memória. Existem 15.890.700 combinações possíveis de 6 dezenas em 50, e qualquer combinação tem exatamente a mesma probabilidade de ser sorteada. O jackpot requer ainda acertar 2 trevos em 6 (C(6,2)=15 possibilidades). Esta ferramenta aplica métodos estatísticos legítimos para construir cartões <strong>equilibrados e diversificados</strong>. Aposte com responsabilidade.
+      </div>
+    </section>
+
+    <section class="how-it-works">
+      <h2>Como funciona o <em>gerador</em></h2>
+      <div class="hiw-grid">
+        <div class="hiw-item"><h3>Série histórica</h3><p>Carregamos todos os concursos da Milionária (desde junho de 2022) e buscamos novos sorteios diretamente da API oficial da Caixa após cada draw.</p></div>
+        <div class="hiw-item"><h3>Análise das 50 dezenas</h3><p>Frequência, atraso, distribuição em faixas, paridade e soma de cada dezena no universo 1–50. Trevos analisados separadamente (universo 1–6).</p></div>
+        <div class="hiw-item"><h3>Filtros de qualidade</h3><p>Cada cartão passa por validações adaptadas ao universo 1–50: quadrantes (1-16, 17-33, 34-50), paridade, soma no intervalo histórico e sem sequências longas.</p></div>
+        <div class="hiw-item"><h3>Trevos ponderados</h3><p>Os 2 trevos de cada cartão são escolhidos por amostragem ponderada pela frequência histórica — trevos mais sorteados têm ligeira vantagem estatística.</p></div>
+        <div class="hiw-item"><h3>Duas estratégias</h3><p>Equilibrada (padrões históricos) ou Arrojada (foge de combinações populares para reduzir rateio em caso de vitória).</p></div>
+        <div class="hiw-item"><h3>Transparência total</h3><p>Cada cartão exibe soma, paridade e distribuição por quadrantes para você apostar de forma informada.</p></div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <div class="section-label">Perguntas frequentes</div>
+      <details class="faq-item">
+        <summary class="faq-q">Como funciona a Loteria Milionária?</summary>
+        <div class="faq-a">Você escolhe 6 dezenas de 1 a 50 e 2 trevos de 1 a 6. Para ganhar o prêmio máximo, precisa acertar as 6 dezenas E os 2 trevos. Há prêmios menores para quem acerta apenas as dezenas (sem trevos), 5 dezenas, e combinações com 1 trevo.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Os trevos são gerados automaticamente?</summary>
+        <div class="faq-a">Sim. O gerador escolhe 2 trevos (de 1 a 6) por cartão com pesos baseados na frequência histórica. Você pode alterar os trevos manualmente ao preencher sua cartela na lotérica ou no app.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Qual a probabilidade de ganhar o jackpot?</summary>
+        <div class="faq-a">Com a aposta mínima (6 dezenas + 2 trevos específicos): 1 em C(50,6) × C(6,2) = 1 em 238.360.500. Com mais dezenas ou múltiplos cartões, a probabilidade combinada aumenta proporcionalmente.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Quando ocorrem os sorteios?</summary>
+        <div class="faq-a">A Milionária sorteia às terças e sábados, igual à Mega-Sena. O prêmio acumula quando não há ganhador do prêmio máximo.</div>
+      </details>
+    </section>
+
+    <footer>
+      <span>Dados · Caixa Econômica Federal</span>
+      <span id="lastUpdate"></span>
+      <button id="resetBtn">Limpar cache</button>
+      <span>Aposte com responsabilidade · +18</span>
+    </footer>
+
+  </main>
+</div>
+
+<div class="analise-overlay" id="analiseOverlay" role="dialog" aria-modal="true">
+  <div class="analise-box">
+    <div class="analise-tag">Análise estatística em andamento</div>
+    <div class="analise-titulo">Selecionando as melhores <em>combinações</em></div>
+    <div class="analise-steps" id="analiseSteps">
+      <div class="analise-step" id="step-0"><div class="step-icon">◌</div><div class="step-text" id="step-text-0">Carregando série histórica...</div></div>
+      <div class="analise-step" id="step-1"><div class="step-icon">◌</div><div class="step-text" id="step-text-1">Calculando frequência das 50 dezenas...</div></div>
+      <div class="analise-step" id="step-2"><div class="step-icon">◌</div><div class="step-text" id="step-text-2">Aplicando filtros de soma e paridade...</div></div>
+      <div class="analise-step" id="step-3"><div class="step-icon">◌</div><div class="step-text" id="step-text-3">Verificando distribuição por faixas...</div></div>
+      <div class="analise-step" id="step-4"><div class="step-icon">◌</div><div class="step-text" id="step-text-4">Selecionando combinações inéditas...</div></div>
+      <div class="analise-step" id="step-5"><div class="step-icon">◌</div><div class="step-text" id="step-text-5">Montando cartões com os trevos...</div></div>
+    </div>
+    <div class="analise-progress-wrap"><div class="analise-progress-bar" id="analiseProgressBar"></div></div>
+    <div class="analise-counter" id="analiseCounter">0 de 0 combinações</div>
+  </div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-inner">
+    <div class="cookie-text">Usamos cookies para análise de uso e publicidade personalizada. Ao aceitar, você concorda com nossa <a href="/privacidade.html">Política de Privacidade</a> conforme a <strong>LGPD</strong>.</div>
+    <div class="cookie-btns">
+      <button class="cookie-accept" id="cookieAccept">Aceitar cookies</button>
+      <button class="cookie-decline" id="cookieDecline">Só essenciais</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   LOTERIA MILIONÁRIA · Gerador Estatístico v1
+   Universo: 50 dezenas (1-50) + 2 trevos (1-6)
+   ============================================================ */
+
+const JSON_PATH  = 'milionaria-historico.json';
+const API_BASE   = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/milionaria';
+const CACHE_KEY  = 'milionaria_serie_v1';
+const CACHE_META = 'milionaria_meta_v1';
+
+const PRICE_TABLE = {
+  6:6.00, 7:42.00, 8:168.00, 9:504.00, 10:1260.00, 11:2772.00, 12:5544.00
+};
+
+const HISTORICAL_PROFILE = {
+  paridade_ideal: { pares_min: 2, pares_max: 4 },
+  soma_otima: { min: 100, max: 195 },
+  consecutivas_max: 3,
+};
+
+const C = (a, b) => {
+  if (b < 0 || b > a) return 0;
+  let r = 1;
+  for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1);
+  return Math.round(r);
+};
+const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function normalizarData(s) {
+  if (!s) return '—';
+  if (s.includes('/')) return s;
+  const [y, m, d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function diffDaysFromBR(brDate) {
+  if (!brDate || !brDate.includes('/')) return null;
+  const [d, m, y] = brDate.split('/').map(n => parseInt(n, 10));
+  const target = new Date(y, m - 1, d);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.round((target - today) / 86400000);
+  if (days === 0) return 'hoje';
+  if (days === 1) return 'amanhã';
+  if (days < 0) return `${Math.abs(days)} dias atrás`;
+  if (days < 7) return `em ${days} dias`;
+  return `em ${Math.floor(days/7)} semana${Math.floor(days/7)>1?'s':''}`;
+}
+
+async function carregarJSONBase() {
+  const r = await fetch(JSON_PATH + '?v=' + Date.now());
+  if (!r.ok) throw new Error('JSON não encontrado: ' + JSON_PATH);
+  return await r.json();
+}
+
+async function buscarConcurso(n) {
+  try {
+    const r = await fetch(`${API_BASE}/${n}`, { cache: 'no-store' });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+function extrairDraw(d) {
+  if (!d || !d.listaDezenas) return null;
+  const dezenas = d.listaDezenas.map(x => parseInt(x,10)).sort((a,b)=>a-b);
+  const trevos  = (d.listaTrevos || []).map(x => parseInt(x,10)).sort((a,b)=>a-b);
+  const ganhadores = (d.listaRateioPremio && d.listaRateioPremio[0])
+    ? d.listaRateioPremio[0].numeroDeGanhadores : 0;
+  return [d.numero, d.dataApuracao, dezenas, trevos, ganhadores];
+}
+
+async function atualizarDeAPI(serie, setMsg) {
+  try {
+    setMsg('Verificando novos sorteios na Caixa…');
+    const r = await fetch(API_BASE + '/', { cache: 'no-store' });
+    if (!r.ok) return { ultimo: null, novos: [], proximoInfo: null };
+    const latest = await r.json();
+    const N = latest.numero;
+    const ultimoNoJSON = serie.draws.length > 0 ? serie.draws[serie.draws.length-1][0] : 0;
+    const novos = [];
+    if (N > ultimoNoJSON) {
+      for (let i = ultimoNoJSON + 1; i <= N; i++) {
+        setMsg(`Baixando concurso ${i} de ${N}…`);
+        const d = (i === N) ? latest : await buscarConcurso(i);
+        const draw = extrairDraw(d);
+        if (draw) novos.push(draw);
+        await new Promise(res => setTimeout(res, 200));
+      }
+    }
+    return {
+      ultimo: latest,
+      novos,
+      proximoInfo: {
+        numero: latest.numeroConcursoProximo || (latest.numero + 1),
+        data: latest.dataProximoConcurso,
+        valor: latest.valorEstimadoProximoConcurso
+      }
+    };
+  } catch(e) {
+    console.warn('Falha API:', e);
+    return { ultimo: null, novos: [], proximoInfo: null };
+  }
+}
+
+function analisar(draws) {
+  const N = draws.length;
+  const freq = new Array(51).fill(0);
+  const freqTrevo = new Array(7).fill(0);
+
+  if (N === 0) return {
+    freq: new Array(51).fill(1), freqTrevo: new Array(7).fill(1),
+    atraso: new Array(51).fill(0),
+    quentes:[1,2,3,4,5,6,7,8,9,10], frias:[41,42,43,44,45,46,47,48,49,50],
+    mediaPares:3, somaMedia:153, somaMin:21, somaMax:285,
+    top10: new Set([1,2,3,4,5,6,7,8,9,10]),
+    sorteadas6: new Set(), comAcertadores:0, semAcertadores:0, totalAnalisado:0
+  };
+
+  draws.forEach(d => {
+    d[2].forEach(x => freq[x]++);
+    if (d[3]) d[3].forEach(x => freqTrevo[x]++);
+  });
+
+  const ultimaApar = new Array(51).fill(-1);
+  draws.forEach((d, idx) => d[2].forEach(x => ultimaApar[x] = idx));
+  const atraso = new Array(51).fill(0);
+  for (let i = 1; i <= 50; i++) atraso[i] = ultimaApar[i] === -1 ? N : N - 1 - ultimaApar[i];
+
+  const ranking = [];
+  for (let i = 1; i <= 50; i++) ranking.push({ n:i, freq:freq[i], atraso:atraso[i] });
+  const porFreq = [...ranking].sort((a,b) => b.freq - a.freq);
+  const quentes = porFreq.slice(0,10).map(x=>x.n);
+  const frias   = porFreq.slice(-10).map(x=>x.n);
+
+  let totalPares = 0; const somas = [];
+  draws.forEach(d => {
+    d[2].forEach(x => { if (x%2===0) totalPares++; });
+    somas.push(d[2].reduce((a,b)=>a+b,0));
+  });
+  const mediaPares = totalPares / N;
+  const somaMedia  = somas.reduce((a,b)=>a+b,0) / somas.length;
+  const sorteadas6 = new Set(draws.map(d => d[2].join('-')));
+  const comAcertadores = draws.filter(d => d[4] > 0).length;
+
+  return {
+    freq, freqTrevo, atraso, quentes, frias, mediaPares, somaMedia,
+    somaMin: Math.min(...somas), somaMax: Math.max(...somas),
+    top10: new Set(ranking.slice(0,10).map(x=>x.n)),
+    sorteadas6, comAcertadores, semAcertadores: N - comAcertadores,
+    totalAnalisado: N
+  };
+}
+
+function analisarCartao(dz) {
+  const k = dz.length;
+  const sorted = [...dz].sort((a,b)=>a-b);
+  const q1 = sorted.filter(x=>x<=16).length;
+  const q2 = sorted.filter(x=>x>16&&x<=33).length;
+  const q3 = sorted.filter(x=>x>33).length;
+  const pares = sorted.filter(x=>x%2===0).length;
+  const soma  = sorted.reduce((a,b)=>a+b,0);
+  let maxSeq=1, seq=1;
+  for (let i=1; i<sorted.length; i++) {
+    if (sorted[i]===sorted[i-1]+1) { seq++; maxSeq=Math.max(maxSeq,seq); } else seq=1;
+  }
+  const faixas10=[0,0,0,0,0];
+  sorted.forEach(x => { const idx=Math.min(Math.floor((x-1)/10),4); faixas10[idx]++; });
+  return { q1,q2,q3,pares,impares:k-pares,soma,maxSeq,maxFaixa10:Math.max(...faixas10),sorted };
+}
+
+function qualidadeCartao(dz, estrategia) {
+  const k = dz.length;
+  const a = analisarCartao(dz);
+  const fator = k / 6;
+
+  const quadrantesUsados = [a.q1,a.q2,a.q3].filter(x=>x>0).length;
+  if (quadrantesUsados < (k>=9?3:2)) return false;
+
+  const paresMin = Math.max(0, Math.floor(HISTORICAL_PROFILE.paridade_ideal.pares_min*fator)-1);
+  const paresMax = Math.min(k, Math.ceil(HISTORICAL_PROFILE.paridade_ideal.pares_max*fator)+1);
+  if (a.pares<paresMin || a.pares>paresMax) return false;
+
+  const somaMinExp = HISTORICAL_PROFILE.soma_otima.min * fator;
+  const somaMaxExp = HISTORICAL_PROFILE.soma_otima.max * fator;
+  const margem = estrategia==='equilibrada' ? 5*fator : 20*fator;
+  if (a.soma<somaMinExp-margem || a.soma>somaMaxExp+margem) return false;
+
+  if (a.maxSeq > Math.max(3, Math.ceil(k/4))) return false;
+  if (a.maxFaixa10 > Math.max(3, Math.ceil(k/5)+2)) return false;
+
+  const sorted = a.sorted;
+  const span = sorted[sorted.length-1] - sorted[0];
+  if (span < 15) return false;
+
+  const uCount = {};
+  for (const n of sorted) { const u=n%10; uCount[u]=(uCount[u]||0)+1; }
+  if (Math.max(...Object.values(uCount)) >= 4) return false;
+
+  const diffs = sorted.slice(1).map((v,i)=>v-sorted[i]);
+  if (Math.max(...diffs) > 29) return false;
+
+  const nBaixas = sorted.filter(n=>n<=25).length;
+  if (nBaixas===0 || nBaixas===k) return false;
+
+  const diffMean = diffs.reduce((s,x)=>s+x,0)/diffs.length;
+  const diffVar  = diffs.reduce((s,x)=>s+(x-diffMean)**2,0)/diffs.length;
+  if (diffVar<=1.0) return false;
+
+  if (STATS?.top10) {
+    if (sorted.filter(n=>STATS.top10.has(n)).length>=5) return false;
+  }
+  return true;
+}
+
+function pesoDezena(stats, i, perfil) {
+  const f = stats.freq[i];
+  const a = stats.atraso[i];
+  const fNorm = (f+1)/(stats.totalAnalisado+1);
+  const aNorm = (a+1)/(stats.totalAnalisado+1);
+  switch(perfil) {
+    case 'quente':   return Math.pow(fNorm,1.6);
+    case 'frio':     return Math.pow(1-fNorm+0.01,1.4);
+    case 'atrasado': return Math.pow(aNorm,1.4);
+    default:         return fNorm*0.55+aNorm*0.45;
+  }
+}
+
+function sampleSemReposicao(pesos, k, max) {
+  const pool = [];
+  for (let i=1; i<=max; i++) pool.push({n:i, w:pesos[i]||1});
+  const escolhidas = [];
+  for (let i=0; i<k; i++) {
+    const total = pool.reduce((s,x)=>s+x.w,0);
+    let r = Math.random()*total; let idx=0;
+    for (; idx<pool.length; idx++) { r-=pool[idx].w; if (r<=0) break; }
+    idx = Math.min(idx, pool.length-1);
+    escolhidas.push(pool[idx].n);
+    pool.splice(idx,1);
+  }
+  return escolhidas.sort((a,b)=>a-b);
+}
+
+function gerarTrevos() {
+  const pesos = new Array(7).fill(0);
+  const total = STATS.freqTrevo.reduce((s,x)=>s+x,0);
+  for (let i=1; i<=6; i++) pesos[i] = total>0 ? (STATS.freqTrevo[i]+1)/(total+6) : 1/6;
+  return sampleSemReposicao(pesos, 2, 6);
+}
+
+function escolherPerfil(estrategia) {
+  const r = Math.random();
+  if (estrategia==='contrarian') {
+    if (r<0.35) return 'frio';
+    if (r<0.65) return 'atrasado';
+    if (r<0.85) return 'equilibrado';
+    return 'quente';
+  } else {
+    if (r<0.45) return 'equilibrado';
+    if (r<0.65) return 'quente';
+    if (r<0.80) return 'frio';
+    return 'atrasado';
+  }
+}
+
+function gerarCartoes(qtd, dezPorCartao, stats, estrategia) {
+  const cartoes = [], chaves = new Set();
+  let tent=0; const MAX=qtd*500;
+  while (cartoes.length<qtd && tent<MAX) {
+    tent++;
+    const perfil = escolherPerfil(estrategia);
+    const pesos = new Array(51);
+    for (let i=1; i<=50; i++) pesos[i]=pesoDezena(stats,i,perfil);
+    const dz = sampleSemReposicao(pesos, dezPorCartao, 50);
+    if (!qualidadeCartao(dz,estrategia)) continue;
+    const chave = dz.join('-');
+    if (chaves.has(chave)) continue;
+    if (dezPorCartao===6 && stats.sorteadas6.has(chave)) continue;
+    chaves.add(chave);
+    cartoes.push({ dezenas:dz, trevos:gerarTrevos(), perfil, analise:analisarCartao(dz) });
+  }
+  while (cartoes.length<qtd) {
+    const pesos = new Array(51);
+    for (let i=1; i<=50; i++) pesos[i]=pesoDezena(stats,i,'equilibrado');
+    const dz = sampleSemReposicao(pesos, dezPorCartao, 50);
+    const chave = dz.join('-');
+    if (chaves.has(chave)) continue;
+    chaves.add(chave);
+    cartoes.push({ dezenas:dz, trevos:gerarTrevos(), perfil:'equilibrado', analise:analisarCartao(dz) });
+  }
+  return cartoes;
+}
+
+let STATS=null, SERIE=null, PROXIMO=null, ESTRATEGIA='equilibrada';
+
+function setStatus(state, text) {
+  const el = document.getElementById('status');
+  el.className = 'status '+state;
+  document.getElementById('statusText').textContent = text;
+}
+
+function renderNextDraw() {
+  if (PROXIMO) {
+    document.getElementById('nextPrize').textContent = PROXIMO.valor ? fmtBRL(PROXIMO.valor) : '—';
+    document.getElementById('nextNumber').textContent = PROXIMO.numero;
+    document.getElementById('nextDate').textContent   = PROXIMO.data || '—';
+    document.getElementById('nextDateRelative').textContent = diffDaysFromBR(PROXIMO.data)||'';
+  } else if (SERIE.draws.length>0) {
+    const ult = SERIE.draws[SERIE.draws.length-1];
+    document.getElementById('nextPrize').textContent  = 'consulte na Caixa';
+    document.getElementById('nextNumber').textContent = ult[0]+1;
+    document.getElementById('nextDate').textContent   = 'a definir';
+    document.getElementById('nextDateRelative').textContent = '';
+  }
+}
+
+function renderStatsStrip() {
+  if (SERIE.draws.length===0) {
+    document.getElementById('statsStrip').innerHTML = `
+      <div class="stat"><div class="label">Concursos analisados</div><div class="value">—</div><div class="meta">aguardando dados da API</div></div>
+      <div class="stat"><div class="label">Último sorteio</div><div class="value">—</div><div class="meta">—</div></div>
+      <div class="stat"><div class="label">Status do prêmio</div><div class="value" style="font-size:18px">—</div><div class="meta">—</div></div>`;
+    return;
+  }
+  const ult = SERIE.draws[SERIE.draws.length-1];
+  const ultDez = ult[2].map(d=>String(d).padStart(2,'0')).join(' · ');
+
+  let acumuladoQtd=0;
+  for (let i=SERIE.draws.length-1; i>=0; i--) {
+    if (SERIE.draws[i][4]===0) acumuladoQtd++; else break;
+  }
+  const statusHTML = acumuladoQtd>0
+    ? `<div class="stat"><div class="label">Status do prêmio</div><div class="value" style="color:var(--violet)">Acumulada</div><div class="meta">há ${acumuladoQtd} concurso${acumuladoQtd!==1?'s':''} sem ganhador</div></div>`
+    : `<div class="stat"><div class="label">Status do prêmio</div><div class="value" style="font-size:22px;color:var(--emerald)">Saiu para ganhador</div><div class="meta">${ult[4]} ganhador${ult[4]!==1?'es':''} no concurso ${ult[0]}</div></div>`;
+
+  document.getElementById('statsStrip').innerHTML = `
+    <div class="stat"><div class="label">Concursos analisados</div><div class="value">${STATS.totalAnalisado.toLocaleString('pt-BR')}</div><div class="meta">série histórica completa</div></div>
+    <div class="stat"><div class="label">Último sorteio</div><div class="value" style="font-size:18px;letter-spacing:0">${ultDez}</div><div class="meta">concurso ${ult[0]} · ${normalizarData(ult[1])}</div></div>
+    ${statusHTML}`;
+  document.getElementById('lastUpdate').textContent = `Atualizado · ${normalizarData(ult[1])}`;
+}
+
+function fmtChance(d) {
+  if (!isFinite(d)||d<=0) return '—';
+  if (d<10000) return `1 em ${Math.round(d).toLocaleString('pt-BR')}`;
+  if (d<1e6)   return `1 em ${Math.round(d).toLocaleString('pt-BR')}`;
+  if (d<1e9)   return `1 em ${(d/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})} mi`;
+  return `1 em ${(d/1e9).toLocaleString('pt-BR',{maximumFractionDigits:1})} bi`;
+}
+
+function updateProb(combos, dezenas) {
+  const universo = C(50,6); // 15.890.700
+  const senaCob   = C(dezenas,6);
+  const quinaCob  = C(dezenas,5)*C(50-dezenas,1);
+  const quadraCob = C(dezenas,4)*C(50-dezenas,2);
+  const pSena1=senaCob/universo, pQuina1=quinaCob/universo, pQuadra1=quadraCob/universo;
+  const pSena=1-Math.pow(1-pSena1,combos), pQuina=1-Math.pow(1-pQuina1,combos), pQuadra=1-Math.pow(1-pQuadra1,combos);
+  const meta = `${combos} cartão${combos!==1?'ões':''} de ${dezenas} dezena${dezenas!==1?'s':''}`;
+  document.getElementById('probSenaAll').innerHTML = `<strong>${fmtChance(1/pSena)}</strong>`;
+  document.getElementById('probSenaAllMeta').textContent = `acertar 6 das 6 dezenas · ${meta}`;
+  document.getElementById('probQuinaAll').textContent = fmtChance(1/pQuina);
+  document.getElementById('probQuinaAllMeta').textContent = `acertar 5 das 6 · ${meta}`;
+  document.getElementById('probQuadraAll').textContent = fmtChance(1/pQuadra);
+  document.getElementById('probQuadraAllMeta').textContent = `acertar 4 das 6 · ${meta}`;
+}
+
+function updateCost() {
+  const combos=parseInt(document.getElementById('combos').value,10)||0;
+  const dezenas=parseInt(document.getElementById('dezenas').value,10)||6;
+  const preco=PRICE_TABLE[dezenas]||0;
+  const total=combos*preco;
+  const poss=C(dezenas,6);
+  document.getElementById('costBreakdown').innerHTML=
+    `${combos} × cartão de ${dezenas} dezenas + 2 trevos · ${fmtBRL(preco)} cada<br>` +
+    `cada cartão equivale a ${poss.toLocaleString('pt-BR')} jogos simples de 6 dezenas`;
+  document.getElementById('costTotal').textContent=fmtBRL(total);
+  updateProb(combos,dezenas);
+  updateBolao();
+}
+
+function updateBolao() {
+  const ativo=document.getElementById('bolaoToggle').checked;
+  const body=document.getElementById('bolaoBody');
+  document.getElementById('bolaoBody').hidden=!ativo;
+  document.getElementById('bolaoSection').classList.toggle('active',ativo);
+  if (!ativo) return;
+  const pessoas=parseInt(document.getElementById('cotas').value,10)||2;
+  const totalStr=document.getElementById('costTotal').textContent||'R$ 0,00';
+  const totalAposta=parseFloat(totalStr.replace(/[^\d,]/g,'').replace(',','.'))||0;
+  document.getElementById('bolaoTotalVal').textContent=fmtBRL(totalAposta);
+  document.getElementById('bolaoCotaVal').textContent=fmtBRL(totalAposta/pessoas);
+  document.getElementById('bolaoCotaMeta').textContent=`${pessoas} pessoa${pessoas!==1?'s':''} · divisão em partes iguais`;
+}
+
+function renderCartoes(cartoes) {
+  const root=document.getElementById('cards');
+  root.innerHTML='';
+  cartoes.forEach((c,idx) => {
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.animationDelay=`${idx*40}ms`;
+    const ballsHtml=c.dezenas.map((d,j)=>
+      `<span class="ball" style="animation-delay:${idx*40+j*30}ms">${String(d).padStart(2,'0')}</span>`
+    ).join('');
+    const trevosHtml=c.trevos.map((t,j)=>
+      `<span class="trevo-ball" style="animation-delay:${idx*40+j*50+200}ms">${t}</span>`
+    ).join('');
+    const a=c.analise;
+    card.innerHTML=`
+      <div class="card-head">
+        <div class="idx">Cartão · <strong>${String(idx+1).padStart(2,'0')}</strong></div>
+        <div class="card-meta">perfil ${c.perfil}</div>
+      </div>
+      <div class="balls">${ballsHtml}</div>
+      <div class="trevos-label">Trevos</div>
+      <div class="trevos">${trevosHtml}</div>
+      <div class="card-stats">
+        <span>Soma <strong>${a.soma}</strong></span>
+        <span><strong>${a.pares}</strong> P · <strong>${a.impares}</strong> I</span>
+        <span>Q <strong>${a.q1}-${a.q2}-${a.q3}</strong></span>
+      </div>`;
+    root.appendChild(card);
+  });
+  document.getElementById('results').style.display='block';
+}
+
+function renderReport(cartoes, dezenasPorCartao, estrategia) {
+  const perfis=cartoes.reduce((acc,c)=>(acc[c.perfil]=(acc[c.perfil]||0)+1,acc),{});
+  const perfilTxt=Object.entries(perfis).map(([k,v])=>`${v} ${k}`).join(' · ');
+  const quentesHtml=STATS.quentes.map(n=>`<span class="freq-pill hot">${String(n).padStart(2,'0')} · ${STATS.freq[n]}×</span>`).join('');
+  const friasHtml=STATS.frias.map(n=>`<span class="freq-pill cold">${String(n).padStart(2,'0')} · ${STATS.freq[n]}×</span>`).join('');
+  const desc={
+    'equilibrada':'segue os padrões da série histórica combinando dezenas quentes, frias e atrasadas para máxima diversificação',
+    'contrarian':'aposta de forma arrojada, privilegiando dezenas frias e atrasadas para reduzir rateio'
+  }[estrategia];
+
+  const trevosTop=[1,2,3,4,5,6].sort((a,b)=>STATS.freqTrevo[b]-STATS.freqTrevo[a]);
+  const trevosHtml=trevosTop.map(n=>`<span class="freq-pill ${STATS.freqTrevo[n]>0?'hot':''}">${n} · ${STATS.freqTrevo[n]}×</span>`).join('');
+
+  document.getElementById('reportGrid').innerHTML=`
+    <div class="report-item"><h4>1 · Base analisada</h4><p>Foram analisados <strong>${STATS.totalAnalisado.toLocaleString('pt-BR')} concursos</strong> da série histórica completa da Milionária desde junho de 2022.</p></div>
+    <div class="report-item"><h4>2 · Estratégia</h4><p>Estratégia <strong>${estrategia}</strong>: ${desc}.</p></div>
+    <div class="report-item"><h4>3 · Dezenas quentes</h4><p>As 10 dezenas mais sorteadas:</p><div class="freq-list">${quentesHtml}</div></div>
+    <div class="report-item"><h4>4 · Dezenas frias</h4><p>As 10 dezenas menos sorteadas:</p><div class="freq-list">${friasHtml}</div></div>
+    <div class="report-item"><h4>5 · Trevos por frequência</h4><p>Ranking dos 6 trevos por sorteios em que apareceram:</p><div class="freq-list">${trevosHtml}</div></div>
+    <div class="report-item"><h4>6 · Distribuição</h4><p>Foram gerados <strong>${cartoes.length} cartões</strong>: <strong>${perfilTxt}</strong>. ${dezenasPorCartao===6?' Verificados contra o histórico — nenhuma combinação que já saiu.':` Cada cartão de ${dezenasPorCartao} dezenas equivale a ${C(dezenasPorCartao,6).toLocaleString('pt-BR')} jogos simples.`}</p></div>`;
+  document.getElementById('report').classList.add('show');
+}
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+document.querySelectorAll('.num-input button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    const step=parseInt(btn.dataset.step,10);
+    target.value=clamp(parseInt(target.value,10)+step,parseInt(target.min,10),parseInt(target.max,10));
+    if (btn.dataset.target==='cotas') updateBolao(); else updateCost();
+  });
+});
+['combos','dezenas'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',e=>{
+    const el=e.target;
+    if (el.value==='') return;
+    el.value=clamp(parseInt(el.value,10)||parseInt(el.min,10),parseInt(el.min,10),parseInt(el.max,10));
+    updateCost();
+  });
+});
+document.getElementById('cotas').addEventListener('input',e=>{
+  const el=e.target;
+  if (el.value==='') return;
+  el.value=clamp(parseInt(el.value,10)||2,2,100);
+  updateBolao();
+});
+document.getElementById('bolaoToggle').addEventListener('change',updateBolao);
+document.querySelectorAll('.strategy').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.strategy').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ESTRATEGIA=btn.dataset.strategy;
+  });
+});
+
+const STEPS_MS=[
+  n=>`Carregando ${STATS.totalAnalisado.toLocaleString('pt-BR')} concursos históricos da Milionária...`,
+  n=>`Calculando frequência histórica das 50 dezenas...`,
+  n=>`Aplicando filtros: soma ${HISTORICAL_PROFILE.soma_otima.min}–${HISTORICAL_PROFILE.soma_otima.max}, paridade ${HISTORICAL_PROFILE.paridade_ideal.pares_min}–${HISTORICAL_PROFILE.paridade_ideal.pares_max} pares...`,
+  n=>`Verificando distribuição nas 3 faixas (1-16, 17-33, 34-50)...`,
+  n=>`Selecionando ${n} combinaç${n!==1?'ões':'ão'} inéditas...`,
+  n=>`Adicionando os 2 trevos a cada cartão...`,
+];
+
+function setOverlayStep(idx,total) {
+  for (let i=0; i<6; i++) {
+    const el=document.getElementById('step-'+i); if (!el) continue;
+    if (i<idx) { el.className='analise-step done'; el.querySelector('.step-icon').textContent='✓'; }
+    else if (i===idx) {
+      el.className='analise-step active';
+      el.querySelector('.step-icon').textContent='◌';
+      document.getElementById('step-text-'+i).textContent=STEPS_MS[i](total);
+    } else { el.className='analise-step'; el.querySelector('.step-icon').textContent='◌'; }
+  }
+  const pct=Math.round((idx/5)*100);
+  document.getElementById('analiseProgressBar').style.width=pct+'%';
+  document.getElementById('analiseCounter').textContent=idx>=5?`${total} combinaç${total!==1?'ões':'ão'} prontas`:`Etapa ${idx+1} de 6`;
+}
+
+async function gerarComProgresso(combos,dezenas) {
+  const delay=Math.ceil(combos/10)*1000/5;
+  document.getElementById('analiseProgressBar').style.width='0%';
+  document.getElementById('analiseCounter').textContent=`0 de ${combos} combinações`;
+  document.getElementById('analiseOverlay').classList.add('show');
+  for (let i=0; i<5; i++) { setOverlayStep(i,combos); await new Promise(r=>setTimeout(r,delay)); }
+  const cartoes=gerarCartoes(combos,dezenas,STATS,ESTRATEGIA);
+  setOverlayStep(5,combos);
+  await new Promise(r=>setTimeout(r,320));
+  document.getElementById('analiseOverlay').classList.remove('show');
+  return cartoes;
+}
+
+document.getElementById('generateBtn').addEventListener('click',async()=>{
+  const combos=parseInt(document.getElementById('combos').value,10);
+  const dezenas=parseInt(document.getElementById('dezenas').value,10);
+  const btn=document.getElementById('generateBtn');
+  btn.disabled=true; btn.textContent='Analisando...';
+  try {
+    const cartoes=await gerarComProgresso(combos,dezenas);
+    renderCartoes(cartoes);
+    renderReport(cartoes,dezenas,ESTRATEGIA);
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+  } finally { btn.disabled=false; btn.textContent='Gerar combinações'; }
+});
+document.getElementById('regenBtn').addEventListener('click',()=>document.getElementById('generateBtn').click());
+
+document.getElementById('copyBtn').addEventListener('click',()=>{
+  const cards=document.querySelectorAll('.card');
+  const text=Array.from(cards).map((card,idx)=>{
+    const balls=Array.from(card.querySelectorAll('.ball')).map(b=>b.textContent).join(' - ');
+    const trevos=Array.from(card.querySelectorAll('.trevo-ball')).map(b=>b.textContent).join(' - ');
+    return `Cartão ${String(idx+1).padStart(2,'0')}: ${balls} | Trevos: ${trevos}`;
+  }).join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    const orig=btn.textContent; btn.textContent='✓ Copiado!';
+    setTimeout(()=>btn.textContent=orig,2000);
+  });
+});
+
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  const meta=document.getElementById('printHeaderMeta');
+  const dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  if (meta) meta.textContent='Milionária'+(PROXIMO?` - Concurso ${PROXIMO.numero}`:'')+` - ${ESTRATEGIA} - ${dataHoje}`;
+  const pd=document.getElementById('printDate'); if (pd) pd.textContent=dataHoje;
+  document.getElementById('downloadBtn').classList.add('loading');
+  window.print();
+  document.getElementById('downloadBtn').classList.remove('loading');
+});
+
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  localStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_META); location.reload();
+});
+
+(async function boot() {
+  const setMsg=m=>document.getElementById('bootMsg').textContent=m;
+  setStatus('','Carregando base…');
+  try {
+    let serie=null;
+    try {
+      const cached=localStorage.getItem(CACHE_KEY);
+      const meta=localStorage.getItem(CACHE_META);
+      if (cached&&meta) {
+        const parsed=JSON.parse(cached);
+        const m=JSON.parse(meta);
+        if (parsed.draws) { serie=parsed; PROXIMO=m.proximo||null; setMsg(`Cache local · ${serie.draws.length} concursos`); }
+      }
+    } catch(e){}
+
+    if (!serie) {
+      setMsg('Baixando série histórica…');
+      try { serie=await carregarJSONBase(); setMsg(`Base carregada: ${serie.draws.length} concursos`); }
+      catch(e) { serie={draws:[]}; setMsg('JSON não encontrado — buscando da API…'); }
+    }
+
+    SERIE=serie;
+    const update=await atualizarDeAPI(serie,setMsg);
+    if (update.novos.length>0) {
+      SERIE.draws.push(...update.novos);
+      SERIE.draws.sort((a,b)=>a[0]-b[0]);
+      setMsg(`${update.novos.length} novo(s) sorteio(s) incorporado(s)`);
+    }
+    if (update.proximoInfo) PROXIMO=update.proximoInfo;
+
+    try {
+      localStorage.setItem(CACHE_KEY,JSON.stringify(SERIE));
+      localStorage.setItem(CACHE_META,JSON.stringify({savedAt:new Date().toISOString(),proximo:PROXIMO}));
+    } catch(e){}
+
+    STATS=analisar(SERIE.draws);
+    renderNextDraw();
+    renderStatsStrip();
+    updateCost();
+    document.getElementById('boot').style.display='none';
+    document.getElementById('app').classList.add('ready');
+    setStatus('live', STATS.totalAnalisado>0 ? `${STATS.totalAnalisado.toLocaleString('pt-BR')} concursos` : 'carregado da API');
+
+  } catch(err) {
+    console.error(err);
+    setStatus('err','Falha ao carregar');
+    document.getElementById('bootMsg').innerHTML=
+      `<strong style="color:var(--violet)">Não foi possível carregar a série histórica</strong><br><br>`+
+      `<span style="color:var(--ink-faint);font-size:10px">Detalhe: ${err.message}</span>`;
+  }
+})();
+
+/* AUTO-GERAR VIA URL PARAMS */
+(function(){
+  const p=new URLSearchParams(location.search);
+  if (!p.get('autogerar')) return;
+  const combos=Math.max(1,Math.min(50,parseInt(p.get('combos')||'5',10)));
+  const dezenas=Math.max(6,Math.min(12,parseInt(p.get('dezenas')||'6',10)));
+  const app=document.getElementById('app');
+  const obs=new MutationObserver(()=>{
+    if (!app.classList.contains('ready')) return;
+    obs.disconnect();
+    setTimeout(()=>{
+      const ci=document.getElementById('combos'); const di=document.getElementById('dezenas');
+      if (ci) ci.value=combos; if (di) di.value=dezenas;
+      const btn=document.getElementById('generateBtn');
+      if (btn&&!btn.disabled) btn.click();
+    },400);
+  });
+  obs.observe(app,{attributes:true,attributeFilter:['class']});
+})();
+
+/* QUICK-GENERATE BOTTOM SHEET */
+(function(){
+  const overlay=document.getElementById('qgOverlay');
+  const bar=document.getElementById('quickGenBar');
+  const closeBtn=document.getElementById('qgClose');
+  const confirmBtn=document.getElementById('qgConfirm');
+  let qCombos=5, qDezenas=6;
+  const MIN_C=1,MAX_C=50,MIN_D=6,MAX_D=12;
+  function renderVals(){document.getElementById('qgCombosVal').textContent=qCombos;document.getElementById('qgDezenasVal').textContent=qDezenas;}
+  function openSheet(){
+    qCombos=parseInt(document.getElementById('combos')?.value||'5',10)||5;
+    qDezenas=parseInt(document.getElementById('dezenas')?.value||'6',10)||6;
+    renderVals(); overlay.classList.add('open'); document.body.style.overflow='hidden';
+    confirmBtn.disabled=false; confirmBtn.textContent='Gerar combinações';
+  }
+  function closeSheet(){overlay.classList.remove('open');document.body.style.overflow='';}
+  bar.addEventListener('click',openSheet);
+  closeBtn.addEventListener('click',closeSheet);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeSheet();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+  document.getElementById('qgCombosDown').addEventListener('click',()=>{if(qCombos>MIN_C){qCombos--;renderVals();}});
+  document.getElementById('qgCombosUp').addEventListener('click',()=>{if(qCombos<MAX_C){qCombos++;renderVals();}});
+  document.getElementById('qgDezenasDown').addEventListener('click',()=>{if(qDezenas>MIN_D){qDezenas--;renderVals();}});
+  document.getElementById('qgDezenasUp').addEventListener('click',()=>{if(qDezenas<MAX_D){qDezenas++;renderVals();}});
+  confirmBtn.addEventListener('click',()=>{
+    document.getElementById('combos').value=qCombos;
+    document.getElementById('dezenas').value=qDezenas;
+    closeSheet();
+    setTimeout(()=>document.getElementById('generateBtn').click(),120);
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const consent=localStorage.getItem('cookie_consent');
+  const banner=document.getElementById('cookieBanner');
+  if (!banner) return;
+  if (consent) return;
+  setTimeout(()=>banner.classList.add('show'),800);
+  document.getElementById('cookieAccept').addEventListener('click',()=>{
+    localStorage.setItem('cookie_consent','accepted'); banner.classList.remove('show');
+  });
+  document.getElementById('cookieDecline').addEventListener('click',()=>{
+    localStorage.setItem('cookie_consent','declined'); banner.classList.remove('show');
+  });
+})();
+</script>
+
+</body>
+</html>

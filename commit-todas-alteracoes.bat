@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0"
-git add dupla-sena.html lotoia-db.js index.html lotomania.html timemania.html diadesorte.html netlify/functions/resultado.js scripts/criar-historico-timemania.js scripts/criar-historico-diadesorte.js timemania-historico.json diadesorte-historico.json stats-engine.js stats-mega-sena.html stats-lotofacil.html stats-quina.html stats-lotomania.html stats-dupla-sena.html stats-timemania.html stats-diadesorte.html mega-sena.html lotofacil.html quina.html
+git add dupla-sena.html lotoia-db.js index.html lotomania.html timemania.html diadesorte.html netlify/functions/resultado.js scripts/criar-historico-timemania.js scripts/criar-historico-diadesorte.js timemania-historico.json diadesorte-historico.json stats-engine.js stats-mega-sena.html stats-lotofacil.html stats-quina.html stats-lotomania.html stats-dupla-sena.html stats-timemania.html stats-diadesorte.html mega-sena.html lotofacil.html quina.html termos.html privacidade.html blog.html
 git commit -m "feat: implementa Timemania, Dia de Sorte e paginas de estatisticas
 
 TIMEMANIA
