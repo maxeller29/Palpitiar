@@ -1294,37 +1294,11 @@ async function onCartõesGerados(cartoes, loteria, concurso, dezPorCartao, estra
 }
 </script>
 
-<!-- Banner de consentimento de cookies (LGPD) -->
-<div class="cookie-banner" id="cookieBanner">
-  <div class="cookie-inner">
-    <div class="cookie-text">
-      Usamos cookies para análise de uso e publicidade personalizada (Google AdSense).
-      Ao aceitar, você concorda com nossa <a href="/privacidade.html">Política de Privacidade</a>
-      e com o uso de cookies de terceiros conforme a <strong>LGPD</strong>.
-    </div>
-    <div class="cookie-btns">
-      <button class="cookie-accept" id="cookieAccept">Aceitar cookies</button>
-      <button class="cookie-decline" id="cookieDecline">Só essenciais</button>
-    </div>
-  </div>
-</div>
-
+<!-- Consentimento de cookies (LGPD): banner exibido apenas no index. Aqui, respeita a escolha já feita. -->
 <script>
 (function() {
   const consent = localStorage.getItem('cookie_consent');
-  const banner  = document.getElementById('cookieBanner');
-  if (!banner) return;
-  if (consent) { if (consent === 'accepted') loadAnalytics(); return; }
-  setTimeout(() => banner.classList.add('show'), 800);
-  document.getElementById('cookieAccept').addEventListener('click', () => {
-    localStorage.setItem('cookie_consent', 'accepted');
-    banner.classList.remove('show');
-    loadAnalytics();
-  });
-  document.getElementById('cookieDecline').addEventListener('click', () => {
-    localStorage.setItem('cookie_consent', 'declined');
-    banner.classList.remove('show');
-  });
+  if (consent === 'accepted') loadAnalytics();
   function loadAnalytics() {
     const ga = document.createElement('script');
     ga.async = true; ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-M8Y0LMDHM4';
