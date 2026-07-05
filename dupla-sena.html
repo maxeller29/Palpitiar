@@ -1332,4 +1332,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const qgCombosDown = $('qgCombosDown'), qgCombosUp = $('qgCombosUp');
   const qgDezDown = $('qgDezDown'), qgDezUp = $('qgDezUp');
-  qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } })
+  qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
+  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 20) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
+  qgDezDown.addEventListener('click',    () => { if (qgDez > DEZ_MIN) { qgDez--; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
+  qgDezUp.addEventListener('click',      () => { if (qgDez < DEZ_MAX) { qgDez++; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
+
+  $('qgConfirm').addEventListener('click', () => {
+    $('combos').value  = qgCombos;
+    $('combosHint').textContent = `${qgCombos} cartão${qgCombos > 1 ? 's' : ''}`;
+    $('dezenas').value = qgDez;
+    dezPorCartao = qgDez;
+    atualizarHintDezenas(qgDez);
+    atualizarProbabilidades();
+    fecharSheet();
+    $('generateBtn').click();
+  });
+
+  // cache
+  $('btnLimparCache').addEventListener('click', () => {
+    localStorage.removeItem(CACHE_KEY);
+    location.reload();
+  });
+
+  // inicia tudo
+  carregarDados();
+});
+</script>
+</body>
+</html>
