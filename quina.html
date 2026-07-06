@@ -1256,7 +1256,7 @@
       </details>
       <details class="faq-item">
         <summary class="faq-q">Quantas dezenas devo apostar?</summary>
-        <div class="faq-a">A aposta minima e 5 dezenas (R$ 2,00). Cada dezena adicional aumenta o custo e a cobertura: 6 dezenas (R$ 12,00) equivale a 6 jogos simples; 15 dezenas (R$ 6.006,00) equivale a 3.003 jogos. Aposte conforme seu orcamento.</div>
+        <div class="faq-a">A aposta minima e 5 dezenas (R$ 3,00). Cada dezena adicional aumenta o custo e a cobertura: 6 dezenas (R$ 18,00) equivale a 6 jogos simples; 15 dezenas (R$ 9.009,00) equivale a 3.003 jogos. Aposte conforme seu orcamento.</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">Com que frequencia a Quina acumula?</summary>
@@ -1292,10 +1292,11 @@ const API_BASE   = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina'
 const CACHE_KEY  = 'quina_serie_v1';
 const CACHE_META = 'quina_meta_v1';
 
+/* Precos oficiais Caixa = C(k,5) × R$ 3,00 */
 const PRICE_TABLE = {
-   5: 2.00,    6: 12.00,    7: 42.00,    8: 112.00,
-   9: 252.00, 10: 504.00,  11: 924.00,  12: 1584.00,
-  13: 2574.00, 14: 4004.00, 15: 6006.00,
+   5:    3.00,   6:   18.00,   7:   63.00,   8:  168.00,
+   9:  378.00,  10:  756.00,  11: 1386.00,  12: 2376.00,
+  13: 3861.00,  14: 6006.00,  15: 9009.00,
 };
 
 /* Parametros calibrados pela analise dos 7.031 sorteios */
