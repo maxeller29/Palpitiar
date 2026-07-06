@@ -467,8 +467,16 @@
               <button type="button" id="qgCombosUp">+</button>
             </div>
           </div>
+          <div class="qg-field" style="flex:1">
+            <label>Dezenas</label>
+            <div class="qg-num">
+              <button type="button" id="qgDezDown">−</button>
+              <span id="qgDezVal">7</span>
+              <button type="button" id="qgDezUp">+</button>
+            </div>
+          </div>
         </div>
-        <div class="qg-fixed-note">7 dezenas por cartão (1–31) · R$ 2,50 cada</div>
+        <div class="qg-note" id="qgNote">7 dezenas · R$ 2,50 por cartão</div>
         <button class="qg-btn" id="qgConfirm">Gerar combinações</button>
       </div>
     </div>
@@ -529,13 +537,22 @@
 
     <section class="controls">
       <div class="field">
-        <label for="combos">Quantos cartoes?</label>
+        <label for="combos">Quantos cartões?</label>
         <div class="num-input">
           <button type="button" data-target="combos" data-step="-1">-</button>
           <input type="number" id="combos" value="5" min="1" max="50">
           <button type="button" data-target="combos" data-step="1">+</button>
         </div>
-        <div class="hint">de 1 a 50 cartoes · 7 dezenas fixas cada (1–31) · R$ 2,50 por cartao</div>
+        <div class="hint">de 1 a 50 cartoes</div>
+      </div>
+      <div class="field">
+        <label for="dezenas">Dezenas por cartão</label>
+        <div class="num-input">
+          <button type="button" data-target="dezenas" data-step="-1">-</button>
+          <input type="number" id="dezenas" value="7" min="7" max="15">
+          <button type="button" data-target="dezenas" data-step="1">+</button>
+        </div>
+        <div class="hint" id="dezenasHint">7 dezenas · R$ 2,50 por cartão</div>
       </div>
       <button class="generate" id="generateBtn">Gerar combinacoes</button>
     </section>
@@ -700,10 +717,15 @@ const API_BASE_DIRECT = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/d
 const CACHE_KEY       = 'diadesorte_serie_v1';
 const CACHE_META      = 'diadesorte_meta_v1';
 
-const PRICE_TICKET   = 2.50;
-const DEZ_POR_CARTAO = 7;
-const UNIVERSO       = 31;
-const SORTEADAS      = 7;
+/* Precos oficiais Caixa = C(k,7) × R$ 2,50 */
+const PRICE_TABLE = {
+   7:    2.50,   8:   20.00,   9:   90.00,  10:  300.00,
+  11:  825.00,  12: 1980.00,  13: 4290.00,  14: 8580.00,
+  15: 16087.50,
+};
+let dezPorCartao   = 7;
+const UNIVERSO     = 31;
+const SORTEADAS    = 7;
 
 const HIST = {
   soma_min: 85, soma_max: 145,
@@ -852,16 +874,25 @@ function analisar(draws) {
 
 /* ===== QUALIDADE DO CARTÃO ===== */
 function qualidadeCartao(dz, estrategia) {
+  const k = dz.length;
+  const sc = k / SORTEADAS;
+  const soma_min    = Math.round(HIST.soma_min * sc);
+  const soma_max    = Math.round(HIST.soma_max * sc);
+  const pares_min   = Math.max(0, Math.round(HIST.pares_min * sc));
+  const pares_max   = Math.min(k, Math.round(HIST.pares_max * sc) + 1);
+  const metade_min  = Math.max(1, Math.round(HIST.metade_min * sc));
+  const metade_max  = Math.min(k - 1, Math.round(HIST.metade_max * sc) + 1);
+
   const soma   = dz.reduce((s,n) => s+n, 0);
   const pares  = dz.filter(n => n%2===0).length;
   const baixos = dz.filter(n => n <= 15).length;
   const altos  = dz.filter(n => n >= 16).length;
 
-  const margem = estrategia === 'equilibrada' ? 15 : 25;
-  if (soma < HIST.soma_min - margem || soma > HIST.soma_max + margem) return false;
-  if (pares < HIST.pares_min || pares > HIST.pares_max) return false;
-  if (baixos < HIST.metade_min || baixos > HIST.metade_max) return false;
-  if (altos  < HIST.metade_min || altos  > HIST.metade_max) return false;
+  const margem = estrategia === 'equilibrada' ? Math.round(15 * sc) : Math.round(25 * sc);
+  if (soma < soma_min - margem || soma > soma_max + margem) return false;
+  if (pares < pares_min || pares > pares_max) return false;
+  if (baixos < metade_min || baixos > metade_max) return false;
+  if (altos  < metade_min || altos  > metade_max) return false;
   return true;
 }
 
@@ -914,7 +945,7 @@ function gerarCartoes(qtd, stats, estrategia) {
     const pesos = new Array(UNIVERSO + 1);
     for (let i = 1; i <= UNIVERSO; i++)
       pesos[i] = pesoDezena(stats.freq, stats.atraso, i, perfil, stats.totalAnalisado);
-    const dz = sampleSemReposicao(pesos, DEZ_POR_CARTAO);
+    const dz = sampleSemReposicao(pesos, dezPorCartao);
     if (!qualidadeCartao(dz, estrategia)) continue;
     const chave = dz.join('-');
     if (chaves.has(chave)) continue;
@@ -924,7 +955,7 @@ function gerarCartoes(qtd, stats, estrategia) {
       dezenas: dz, perfil,
       soma: dz.reduce((s,n) => s+n, 0),
       pares: dz.filter(n => n%2===0).length,
-      baixos, altos: DEZ_POR_CARTAO - baixos
+      baixos, altos: dezPorCartao - baixos
     });
   }
   // Fallback
@@ -932,12 +963,12 @@ function gerarCartoes(qtd, stats, estrategia) {
     const pesos = new Array(UNIVERSO + 1);
     for (let i = 1; i <= UNIVERSO; i++)
       pesos[i] = pesoDezena(stats.freq, stats.atraso, i, 'equilibrado', stats.totalAnalisado);
-    const dz = sampleSemReposicao(pesos, DEZ_POR_CARTAO);
+    const dz = sampleSemReposicao(pesos, dezPorCartao);
     const chave = dz.join('-');
     if (chaves.has(chave)) continue;
     chaves.add(chave);
     const baixos = dz.filter(n => n <= 15).length;
-    cartoes.push({ dezenas: dz, perfil: 'equilibrado', soma: dz.reduce((s,n)=>s+n,0), pares: dz.filter(n=>n%2===0).length, baixos, altos: DEZ_POR_CARTAO - baixos });
+    cartoes.push({ dezenas: dz, perfil: 'equilibrado', soma: dz.reduce((s,n)=>s+n,0), pares: dz.filter(n=>n%2===0).length, baixos, altos: dezPorCartao - baixos });
   }
   return cartoes;
 }
@@ -984,11 +1015,16 @@ function renderStatsStrip() {
 }
 
 function updateCost() {
+  dezPorCartao = clamp(parseInt(document.getElementById('dezenas').value, 10) || 7, 7, 15);
+  document.getElementById('dezenas').value = dezPorCartao;
+  const preco  = PRICE_TABLE[dezPorCartao] || 2.50;
   const combos = parseInt(document.getElementById('combos').value, 10) || 0;
-  const total  = combos * PRICE_TICKET;
+  const total  = combos * preco;
   document.getElementById('costBreakdown').innerHTML =
-    `${combos} × cartao de ${DEZ_POR_CARTAO} dezenas · ${fmtBRL(PRICE_TICKET)} cada`;
+    `${combos} × cartao de ${dezPorCartao} dezenas · ${fmtBRL(preco)} cada`;
   document.getElementById('costTotal').textContent = fmtBRL(total);
+  document.getElementById('dezenasHint').textContent =
+    `${dezPorCartao} dezenas · ${fmtBRL(preco)} por cartao`;
   updateProb(combos);
   updateBolao();
 }
@@ -1043,7 +1079,7 @@ function renderCartoes(cartoes) {
       <div class="mes-badge"><span class="mes-badge-icon">📅</span> Escolha seu Mês da Sorte na lotérica</div>
       <div class="card-stats">
         <span>Soma <strong>${c.soma}</strong></span>
-        <span><strong>${c.pares}</strong>P · <strong>${DEZ_POR_CARTAO-c.pares}</strong>I</span>
+        <span><strong>${c.pares}</strong>P · <strong>${c.dezenas.length-c.pares}</strong>I</span>
         <span>Bloco: <strong>${c.baixos}</strong>·<strong>${c.altos}</strong></span>
       </div>`;
     root.appendChild(card);
@@ -1080,7 +1116,7 @@ const STEPS_DDS = [
   n => `Calculando frequencia historica dos ${UNIVERSO} numeros (01-31)...`,
   n => `Aplicando filtros: soma ${HIST.soma_min}–${HIST.soma_max}, paridade...`,
   n => `Verificando distribuicao nos 2 blocos (1-15 e 16-31)...`,
-  n => `Selecionando ${n} conjunto${n!==1?'s':''} de ${DEZ_POR_CARTAO} dezenas...`,
+  n => `Selecionando ${n} conjunto${n!==1?'s':''} de ${dezPorCartao} dezenas...`,
   n => `Finalizando ${n} cartao${n!==1?'es':''} para impressao...`,
 ];
 
@@ -1141,6 +1177,11 @@ document.getElementById('combos').addEventListener('input', e => {
   el.value = clamp(parseInt(el.value,10)||1, 1, 50);
   updateCost();
 });
+document.getElementById('dezenas').addEventListener('input', e => {
+  const el = e.target; if (el.value === '') return;
+  el.value = clamp(parseInt(el.value,10)||7, 7, 15);
+  updateCost();
+});
 document.getElementById('cotas').addEventListener('input', e => {
   const el = e.target; if (el.value === '') return;
   el.value = clamp(parseInt(el.value,10)||2, 2, 100);
@@ -1165,7 +1206,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     renderReport(cartoes, ESTRATEGIA);
     aguardarDB(() => {
       const numConcurso = PROXIMO ? PROXIMO.numero : (SERIE.draws[SERIE.draws.length-1][0] + 1);
-      onCartõesGerados(cartoes, 'dia-de-sorte', numConcurso, DEZ_POR_CARTAO, ESTRATEGIA);
+      onCartõesGerados(cartoes, 'dia-de-sorte', numConcurso, dezPorCartao, ESTRATEGIA);
     });
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (typeof gtag === 'function') gtag('event', 'generate_diadesorte', { strategy: ESTRATEGIA, combos });
@@ -1202,17 +1243,33 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 });
 
 /* ===== BOTTOM SHEET ===== */
-let qgCombos = 5;
-const QG_MIN = 1, QG_MAX = 50;
+let qgCombos = 5, qgDez = 7;
+const QG_MIN = 1, QG_MAX = 50, QG_DEZ_MIN = 7, QG_DEZ_MAX = 15;
+
 function qgUpdateVal() { document.getElementById('qgCombosVal').textContent = qgCombos; }
+function qgUpdateDez() {
+  document.getElementById('qgDezVal').textContent = qgDez;
+  const preco = PRICE_TABLE[qgDez] || 2.50;
+  document.getElementById('qgNote').textContent = `${qgDez} dezenas · ${fmtBRL(preco)} por cartao`;
+}
+
 document.getElementById('qgCombosDown').addEventListener('click', () => { if (qgCombos > QG_MIN) { qgCombos--; qgUpdateVal(); } });
 document.getElementById('qgCombosUp').addEventListener('click',   () => { if (qgCombos < QG_MAX) { qgCombos++; qgUpdateVal(); } });
-document.getElementById('quickGenBar').addEventListener('click',  () => { qgCombos = parseInt(document.getElementById('combos').value,10)||5; qgUpdateVal(); document.getElementById('qgOverlay').classList.add('open'); });
+document.getElementById('qgDezDown').addEventListener('click',    () => { if (qgDez > QG_DEZ_MIN) { qgDez--; qgUpdateDez(); } });
+document.getElementById('qgDezUp').addEventListener('click',      () => { if (qgDez < QG_DEZ_MAX) { qgDez++; qgUpdateDez(); } });
+
+document.getElementById('quickGenBar').addEventListener('click', () => {
+  qgCombos = parseInt(document.getElementById('combos').value,10)||5;
+  qgDez = dezPorCartao;
+  qgUpdateVal(); qgUpdateDez();
+  document.getElementById('qgOverlay').classList.add('open');
+});
 document.getElementById('qgClose').addEventListener('click', () => document.getElementById('qgOverlay').classList.remove('open'));
 document.getElementById('qgOverlay').addEventListener('click', e => { if (e.target === document.getElementById('qgOverlay')) document.getElementById('qgOverlay').classList.remove('open'); });
 document.getElementById('qgConfirm').addEventListener('click', () => {
   document.getElementById('qgOverlay').classList.remove('open');
   document.getElementById('combos').value = qgCombos;
+  document.getElementById('dezenas').value = qgDez;
   updateCost();
   document.getElementById('generateBtn').click();
 });

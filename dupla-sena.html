@@ -763,7 +763,7 @@
       </details>
       <details class="faq-item">
         <summary class="faq-q">Quanto custa apostar na Dupla Sena?</summary>
-        <p class="faq-a">A aposta mínima com 6 dezenas custa R$ 2,50. Ao marcar mais números, o sistema gera automaticamente todas as combinações possíveis de 6: 7 dezenas = 7 jogos (R$ 17,50), 8 dezenas = 28 jogos (R$ 70,00), e assim por diante.</p>
+        <p class="faq-a">A aposta mínima com 6 dezenas custa R$ 3,00 (bilhete com 2 sorteios). Ao marcar mais números, o sistema gera automaticamente todas as combinações possíveis de 6: 7 dezenas = 7 bilhetes (R$ 21,00), 8 dezenas = 28 bilhetes (R$ 84,00), e assim por diante.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-q">O gerador garante que vou ganhar?</summary>
@@ -809,7 +809,8 @@
 /* ===== CONSTANTES ===== */
 const CACHE_KEY     = 'ds-hist-v2';
 const DATA_URL      = '/dupla-sena-historico.json';
-const PRICE_TICKET  = 2.50;
+/* R$ 1,50 por sorteio × 2 sorteios/bilhete = R$ 3,00 por bilhete de 6 dezenas */
+const PRICE_TICKET  = 1.50;
 const DEZ_MIN       = 6;
 const DEZ_MAX       = 15;
 const C50_6         = 15890700; // C(50,6)
