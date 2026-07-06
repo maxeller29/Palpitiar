@@ -1413,7 +1413,13 @@
     <a class="mhg-tile mhg-ml" href="milionaria.html">
       <div class="mhg-name">MILIONÁRIA</div>
       <div class="mhg-concurso" id="mhg-ml-concurso">Concurso —</div>
-      <div class="mhg-premio" id="mhg-ml-premio">6+2 dezenas · R$ 6,00</div>
+      <div class="mhg-premio" id="mhg-ml-premio">—</div>
+      <button class="mobile-gen-btn"
+        data-lottery="ml" data-url="milionaria.html" data-name="Milionária"
+        data-color="#9333ea" data-combos="5" data-dez="6"
+        data-dez-min="6" data-dez-max="12" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar
+      </button>
     </a>
     <a class="mhg-tile mhg-ds" href="dupla-sena.html">
       <div class="mhg-name">DUPLA SENA</div>
@@ -1967,11 +1973,22 @@
           <div class="cs-value">01&ndash;50</div>
         </div>
       </div>
+      <div class="card-premio" id="ml-premio" style="display:none">
+        <div class="card-premio-label">Próximo concurso · estimativa</div>
+        <div id="ml-premio-badge" class="card-premio-badge" style="display:none">Acumulado</div>
+        <div class="card-premio-valor" id="ml-premio-valor">—</div>
+      </div>
       <div class="card-balls" id="ml-balls">
         <span class="cb">08</span><span class="cb">15</span><span class="cb">27</span>
         <span class="cb">33</span><span class="cb">44</span>
       </div>
-      <span class="card-cta">Ver combinacoes <span class="arrow">&rarr;</span></span>
+      <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
+      <button class="idx-gen-btn"
+        data-lottery="ml" data-url="milionaria.html" data-name="Milionária"
+        data-color="#9333ea" data-combos="5" data-dez="6"
+        data-dez-min="6" data-dez-max="12" data-combos-min="1" data-combos-max="50">
+        ⚡ Gerar agora
+      </button>
     </a>
 
   </div>
@@ -2223,7 +2240,8 @@
       lm: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotomania/',
       ds: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/duplasena/',
       tm: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/timemania/',
-      dds: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/diadesorte/'
+      dds: 'https://servicebus2.caixa.gov.br/portaldeloterias/api/diadesorte/',
+      ml:  'https://servicebus2.caixa.gov.br/portaldeloterias/api/maismilionaria/'
     };
 
     function fmt(n) { return n.toLocaleString('pt-BR'); }
@@ -2232,7 +2250,7 @@
       return fetch(url, { cache: 'no-cache' }).then(function(r) { return r.json(); });
     }
 
-    Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn), fetchJSON(APIS.lm), fetchJSON(APIS.ds), fetchJSON(APIS.tm), fetchJSON(APIS.dds)])
+    Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn), fetchJSON(APIS.lm), fetchJSON(APIS.ds), fetchJSON(APIS.tm), fetchJSON(APIS.dds), fetchJSON(APIS.ml)])
       .then(function(resultados) {
         var numMS = parseInt(resultados[0].numero) || 0;
         var numLF = parseInt(resultados[1].numero) || 0;
@@ -2333,6 +2351,11 @@
         aplicarPremio('ds', resultados[4]);
         aplicarPremio('tm', resultados[5]);
         aplicarPremio('dds', resultados[6]);
+        if (resultados[7]) {
+          aplicarPremio('ml', resultados[7]);
+          var numML = parseInt(resultados[7].numero) || 0;
+          if (numML) { var elML = document.getElementById('ml-card-sub'); if (elML) elML.textContent = '2022–hoje · ' + fmt(numML) + ' concursos'; }
+        }
       })
       .catch(function() { /* falha silenciosa — mantém bolas e valores hardcoded */ });
   })();
