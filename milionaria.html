@@ -762,12 +762,14 @@ async function atualizarDeAPI(serie, setMsg) {
     const ultimoNoJSON = serie.draws.length > 0 ? serie.draws[serie.draws.length-1][0] : 0;
     const novos = [];
     if (N > ultimoNoJSON) {
-      for (let i = ultimoNoJSON + 1; i <= N; i++) {
+      // Busca no máximo 5 concursos novos da API; o histórico completo vem do JSON
+      const inicio = Math.max(ultimoNoJSON + 1, N - 4);
+      for (let i = inicio; i <= N; i++) {
         setMsg(`Baixando concurso ${i} de ${N}…`);
         const d = (i === N) ? latest : await buscarConcurso(i);
         const draw = extrairDraw(d);
         if (draw) novos.push(draw);
-        await new Promise(res => setTimeout(res, 200));
+        if (i < N) await new Promise(res => setTimeout(res, 200));
       }
     }
     return {
@@ -991,6 +993,11 @@ function renderNextDraw() {
     const ult = SERIE.draws[SERIE.draws.length-1];
     document.getElementById('nextPrize').textContent  = 'consulte na Caixa';
     document.getElementById('nextNumber').textContent = ult[0]+1;
+    document.getElementById('nextDate').textContent   = 'a definir';
+    document.getElementById('nextDateRelative').textContent = '';
+  } else {
+    document.getElementById('nextPrize').textContent  = 'consulte na Caixa';
+    document.getElementById('nextNumber').textContent = '—';
     document.getElementById('nextDate').textContent   = 'a definir';
     document.getElementById('nextDateRelative').textContent = '';
   }
