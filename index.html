@@ -1081,22 +1081,27 @@
     align-items: center;
     justify-content: center;
     background: #0f404e;
-    padding: 14px 20px;
-    position: sticky;
+    padding: 10px 20px;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
     z-index: 100;
   }
   .mhg-logo-bar img {
     display: block;
-    width: 100%;
-    max-width: 480px;
-    height: auto;
+    width: auto;
+    height: 100%;
+    max-width: 90%;
+    object-fit: contain;
   }
   #mobile-home-grid {
     display: none;
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100dvh;
+    padding-top: 64px;
   }
   .mhg-tile {
     display: flex;
