@@ -746,7 +746,7 @@ async function buscarConcurso(n) {
 function extrairDraw(d) {
   if (!d || !d.listaDezenas) return null;
   const dezenas = d.listaDezenas.map(x => parseInt(x,10)).sort((a,b)=>a-b);
-  const trevos  = (d.listaTrevos || []).map(x => parseInt(x,10)).sort((a,b)=>a-b);
+  const trevos  = (d.trevosSorteados || d.listaTrevos || []).map(x => parseInt(x,10)).sort((a,b)=>a-b);
   const ganhadores = (d.listaRateioPremio && d.listaRateioPremio[0])
     ? d.listaRateioPremio[0].numeroDeGanhadores : 0;
   return [d.numero, d.dataApuracao, dezenas, trevos, ganhadores];

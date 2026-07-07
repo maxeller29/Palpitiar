@@ -106,7 +106,7 @@ const LOTERIAS = [
   },
   {
     id:      'milionaria',
-    slug:    'milionaria',
+    slug:    'maismilionaria',
     arquivo: 'milionaria-historico.json',
     qtdDez:  6,
     range:   { min: 1, max: 50 },
@@ -232,7 +232,7 @@ async function atualizarLoteria(cfg) {
 
     if (cfg.milionaria) {
       const dezenas=(resultado.listaDezenas||[]).map(Number).sort((a,b)=>a-b);
-      const trevos=(resultado.listaTrevos||[]).map(Number).sort((a,b)=>a-b);
+      const trevos=(resultado.trevosSorteados||resultado.listaTrevos||[]).map(Number).sort((a,b)=>a-b);
       if (dezenas.length !== 6) { console.log('dezenas invalidas ('+dezenas.length+'). Abortando.'); break; }
       const ganhadores=parseInt(resultado.listaRateioPremio?.[0]?.numeroDeGanhadores)||0;
       draws.push([proximo, data, dezenas, trevos, ganhadores, cfg.premios(resultado)]);
