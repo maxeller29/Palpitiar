@@ -15,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://palpitiar.com.br/">
   <meta property="og:title" content="Palpitiar · Gerador de Loteria com IA Grátis">
-  <meta property="og:description" content="Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 13.800+ concursos. Grátis e sem cadastro.">
+  <meta property="og:description" content="Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 23.300+ concursos. Grátis e sem cadastro.">
   <meta property="og:image" content="https://palpitiar.com.br/icon-512.png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
@@ -25,7 +25,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Palpitiar · Gerador de Loteria com IA Grátis">
-  <meta name="twitter:description" content="Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 13.800+ concursos. Grátis e sem cadastro.">
+  <meta name="twitter:description" content="Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 23.300+ concursos. Grátis e sem cadastro.">
   <meta name="twitter:image" content="https://palpitiar.com.br/icon-512.png">
 
   <!-- Schema.org JSON-LD -->
@@ -35,7 +35,7 @@
   "@type": "WebSite",
   "name": "Palpitiar",
   "url": "https://palpitiar.com.br",
-  "description": "Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 13.800+ concursos. Grátis e sem cadastro.",
+  "description": "Combinações inteligentes para Mega-Sena, Lotofácil e Quina baseadas em análise estatística de 23.300+ concursos. Grátis e sem cadastro.",
   "potentialAction": {
     "@type": "SearchAction",
     "target": "https://palpitiar.com.br/?q={search_term_string}",
@@ -1407,7 +1407,7 @@
     <h1 style="display:none;" aria-hidden="false">Palpit<em>ia</em>r</h1>
     <div class="hero-desc">Combinações geradas por <strong>Inteligência Artificial</strong> com base na análise estatística da série histórica completa de cada loteria — padrões, frequências, paridade e distribuição calculados sobre toda a série histórica das loterias.</div>
     <div class="hero-stats">
-      <span><strong id="stat-total-concursos">13.800+</strong> concursos analisados</span>
+      <span><strong id="stat-total-concursos">23.300+</strong> concursos analisados</span>
       <span><strong>100%</strong> gratuito</span>
     </div>
   </section>
@@ -2274,10 +2274,15 @@
 
     Promise.all([fetchJSON(APIS.ms), fetchJSON(APIS.lf), fetchJSON(APIS.qn), fetchJSON(APIS.lm), fetchJSON(APIS.ds), fetchJSON(APIS.tm), fetchJSON(APIS.dds), fetchJSON(APIS.ml)])
       .then(function(resultados) {
-        var numMS = parseInt(resultados[0].numero) || 0;
-        var numLF = parseInt(resultados[1].numero) || 0;
-        var numQN = parseInt(resultados[2].numero) || 0;
-        var total = numMS + numLF + numQN;
+        var numMS  = parseInt(resultados[0].numero) || 0;
+        var numLF  = parseInt(resultados[1].numero) || 0;
+        var numQN  = parseInt(resultados[2].numero) || 0;
+        var numLM  = parseInt(resultados[3].numero) || 0;
+        var numDS  = parseInt(resultados[4].numero) || 0;
+        var numTM  = parseInt(resultados[5].numero) || 0;
+        var numDDS = parseInt(resultados[6].numero) || 0;
+        var numML  = parseInt(resultados[7].numero) || 0;
+        var total = numMS + numLF + numQN + numLM + numDS + numTM + numDDS + numML;
 
         /* Cards individuais */
         if (numMS) {
@@ -2308,7 +2313,7 @@
           metas.forEach(function(m) {
             var c = m.getAttribute('content') || '';
             m.setAttribute('content',
-              c.replace(/13[\.\d]+\+?\s*concursos/g, totalStr + ' concursos')
+              c.replace(/[\d\.]+\+?\s*concursos/g, totalStr + ' concursos')
             );
           });
         }
