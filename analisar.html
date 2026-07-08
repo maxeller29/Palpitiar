@@ -1624,6 +1624,16 @@ function construirPremiosJson(loteriaId, rateio) {
       '4 acertos': { f: '4', g: 'g4' }, '4acertos': { f: '4', g: 'g4' },
       'mes da sorte': { f: 'mes', g: 'gmes' }, 'mes': { f: 'mes', g: 'gmes' },
     },
+    dupla: {
+      '1 sorteio - 6 acertos': { f: 's1', g: 'gs1' }, '1o sorteio - sena': { f: 's1', g: 'gs1' },
+      '1 sorteio - 5 acertos': { f: 'q1', g: 'gq1' }, '1o sorteio - quina': { f: 'q1', g: 'gq1' },
+      '1 sorteio - 4 acertos': { f: 'qt1', g: 'gqt1' }, '1o sorteio - quadra': { f: 'qt1', g: 'gqt1' },
+      '1 sorteio - 3 acertos': { f: 't1', g: 'gt1' }, '1o sorteio - terno': { f: 't1', g: 'gt1' },
+      '2 sorteio - 6 acertos': { f: 's2', g: 'gs2' }, '2o sorteio - sena': { f: 's2', g: 'gs2' },
+      '2 sorteio - 5 acertos': { f: 'q2', g: 'gq2' }, '2o sorteio - quina': { f: 'q2', g: 'gq2' },
+      '2 sorteio - 4 acertos': { f: 'qt2', g: 'gqt2' }, '2o sorteio - quadra': { f: 'qt2', g: 'gqt2' },
+      '2 sorteio - 3 acertos': { f: 't2', g: 'gt2' }, '2o sorteio - terno': { f: 't2', g: 'gt2' },
+    },
     milionaria: {
       '6 acertos + 2 trevos': { f: 's2t', g: 'gs2t' },
       '6 acertos + 1 trevo':  { f: 's1t', g: 'gs1t' },
@@ -2356,7 +2366,7 @@ function renderListaPremiados(modo) {
         <div class="award-top">
           <div class="award-concurso">Concurso ${p.concurso}</div>
           <div class="award-date">${formatarData(p.data)}</div>
-          <div class="award-faixa ${faixaClass}">${p.acertos} acertos · ${faixaNome}${drawLabel}</div>
+          <div class="award-faixa ${faixaClass}">${faixaNome.toLowerCase().includes('acertos') ? faixaNome : `${p.acertos} acertos · ${faixaNome}`}${drawLabel}</div>
         </div>
         ${rateioHtml}
       </div>`;
@@ -2472,10 +2482,17 @@ function getNomeFaixa(acertos, cfg) {
 }
 
 function getFaixaColor(acertos, cfg) {
+  // Lotomania: 16–20 e 0 acertos são todos prêmios — usa range de faixas do jogo
+  if (cfg.isLotomania) {
+    if (acertos === 0) return 'award-faixa badge-warn'; // 0 acertos é raro mas paga pouco
+    if (acertos >= 19) return 'award-faixa badge-ok';
+    if (acertos >= 17) return 'award-faixa badge-warn';
+    return 'award-faixa badge-bad';
+  }
   const total = cfg.qtd;
   const ratio = acertos / total;
-  if (ratio >= 0.9) return 'award-faixa' + ' badge-ok';
-  if (ratio >= 0.7) return 'award-faixa' + ' badge-warn';
+  if (ratio >= 0.9) return 'award-faixa badge-ok';
+  if (ratio >= 0.7) return 'award-faixa badge-warn';
   return 'award-faixa badge-bad';
 }
 
