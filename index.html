@@ -946,6 +946,30 @@
   .idx-gen-btn:hover { opacity: 0.85; transform: translateY(-1px); }
   .idx-gen-btn:active { transform: scale(0.96); }
 
+  /* Último sorteio — substitui o botão "Gerar agora" nos cards desktop */
+  .card-last-draw {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 3px;
+    pointer-events: none;
+    position: relative; z-index: 1;
+  }
+  .cld-label {
+    font-family: var(--mono); font-size: 8.5px;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(244,235,208,0.4); margin-bottom: 6px;
+  }
+  .cld-nums {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--ink); letter-spacing: 0.06em; line-height: 1.55;
+  }
+  .cld-meta {
+    font-family: var(--mono); font-size: 9.5px;
+    color: rgba(244,235,208,0.38); margin-top: 5px;
+  }
+
   /* ===== BOTTOM SHEET COMPARTILHADO (INDEX) ===== */
   .qg-overlay {
     display: none;
@@ -1715,12 +1739,11 @@
         <span class="cb">38</span><span class="cb">42</span><span class="cb">57</span>
       </div>
       <span class="card-cta">Gerar combinações <span class="arrow">→</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="ms" data-url="mega-sena.html" data-name="Mega-Sena"
-        data-color="#d4a84b" data-combos="5" data-dez="6"
-        data-dez-min="6" data-dez-max="20" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="ms-cld-nums">· · · · · ·</div>
+        <div class="cld-meta" id="ms-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- LOTOFÁCIL -->
@@ -1754,12 +1777,11 @@
         <span class="cb">25</span>
       </div>
       <span class="card-cta">Gerar combinações <span class="arrow">→</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="lf" data-url="lotofacil.html" data-name="Lotofácil"
-        data-color="#4caf7d" data-combos="5" data-dez="15"
-        data-dez-min="15" data-dez-max="20" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="lf-cld-nums">· · · · · · ·</div>
+        <div class="cld-meta" id="lf-cld-meta">carregando...</div>
+      </div>
     </a>
 
 
@@ -1793,12 +1815,11 @@
         <span class="cb">52</span><span class="cb">63</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="qn" data-url="quina.html" data-name="Quina"
-        data-color="#6b8cda" data-combos="5" data-dez="5"
-        data-dez-min="5" data-dez-max="15" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="qn-cld-nums">· · · · ·</div>
+        <div class="cld-meta" id="qn-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- LOTOMANIA -->
@@ -1831,12 +1852,11 @@
         <span class="cb">51</span><span class="cb">74</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="lm" data-url="lotomania.html" data-name="Lotomania"
-        data-color="#e87722" data-combos="5" data-dez="50"
-        data-dez-min="50" data-dez-max="50" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="lm-cld-nums">· · · · · · ···</div>
+        <div class="cld-meta" id="lm-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- DUPLA SENA -->
@@ -1869,12 +1889,11 @@
         <span class="cb">42</span><span class="cb">47</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="ds" data-url="dupla-sena.html" data-name="Dupla Sena"
-        data-color="#00b4cc" data-combos="5" data-dez="6"
-        data-dez-min="6" data-dez-max="15" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="ds-cld-nums">· · · · · ·</div>
+        <div class="cld-meta" id="ds-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- TIMEMANIA -->
@@ -1907,12 +1926,11 @@
         <span class="cb">56</span><span class="cb">73</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="tm" data-url="timemania.html" data-name="Timemania"
-        data-color="#7cb300" data-combos="5" data-dez="10"
-        data-dez-min="10" data-dez-max="10" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="tm-cld-nums">· · · · · · ·</div>
+        <div class="cld-meta" id="tm-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- DIA DE SORTE -->
@@ -1945,12 +1963,11 @@
         <span class="cb">22</span><span class="cb">29</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="dds" data-url="diadesorte.html" data-name="Dia de Sorte"
-        data-color="#c4406e" data-combos="5" data-dez="7"
-        data-dez-min="7" data-dez-max="7" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="dds-cld-nums">· · · · · · ·</div>
+        <div class="cld-meta" id="dds-cld-meta">carregando...</div>
+      </div>
     </a>
 
     <!-- MILIONÁRIA -->
@@ -1983,12 +2000,11 @@
         <span class="cb">33</span><span class="cb">44</span>
       </div>
       <span class="card-cta">Gerar combinacoes <span class="arrow">&rarr;</span></span>
-      <button class="idx-gen-btn"
-        data-lottery="ml" data-url="milionaria.html" data-name="Milionária"
-        data-color="#9333ea" data-combos="5" data-dez="6"
-        data-dez-min="6" data-dez-max="12" data-combos-min="1" data-combos-max="50">
-        ⚡ Gerar agora
-      </button>
+      <div class="card-last-draw">
+        <div class="cld-label">Último sorteio</div>
+        <div class="cld-nums" id="ml-cld-nums">· · · · · ·</div>
+        <div class="cld-meta" id="ml-cld-meta">carregando...</div>
+      </div>
     </a>
 
   </div>
@@ -2317,9 +2333,33 @@
             elGPremio.textContent = (acumulado ? '★ ' : '') + valor;
           }
 
+          // Desktop — último sorteio
+          var elCldNums = document.getElementById(prefix + '-cld-nums');
+          var elCldMeta = document.getElementById(prefix + '-cld-meta');
+          if (elCldNums && dados.listaDezenas && dados.listaDezenas.length > 0) {
+            var dez = dados.listaDezenas;
+            var MAX_SHOW = 8;
+            var numsStr = dez.slice(0, MAX_SHOW).map(function(n) {
+              return String(parseInt(n, 10)).padStart(2, '0');
+            }).join(' · ');
+            if (dez.length > MAX_SHOW) numsStr += '\n···';
+            // Para Milionária: adiciona trevos
+            if (dados.trevosSorteados && dados.trevosSorteados.length > 0) {
+              var t = dados.trevosSorteados.map(function(n) {
+                return String(parseInt(n, 10)).padStart(2, '0');
+              }).join(' · ');
+              numsStr += '\nTrevos: ' + t;
+            }
+            elCldNums.textContent = numsStr;
+          }
+          if (elCldMeta && dados.numero) {
+            var dataStr = dados.dataApuracao || '';
+            elCldMeta.textContent = 'Concurso ' + dados.numero + (dataStr ? ' · ' + dataStr : '');
+          }
+
           if (!valor) return;
 
-          // Desktop
+          // Desktop prêmio
           var elPremio = document.getElementById(prefix + '-premio');
           var elValor  = document.getElementById(prefix + '-premio-valor');
           var elBadge  = document.getElementById(prefix + '-premio-badge');

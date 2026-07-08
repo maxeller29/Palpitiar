@@ -560,17 +560,17 @@
       <div class="stat">
         <div class="label">Concursos analisados</div>
         <div class="value" id="statTotal">—</div>
-        <div class="meta">série histórica completa</div>
+        <div class="meta" id="statTotalMeta">série histórica</div>
       </div>
       <div class="stat">
-        <div class="label">Último concurso</div>
-        <div class="value" id="statLastNum">—</div>
+        <div class="label">Último sorteio</div>
+        <div class="value" id="statLastNum" style="font-size:13px;letter-spacing:0;line-height:1.6">—</div>
         <div class="meta" id="statLastData">—</div>
       </div>
       <div class="stat">
-        <div class="label">Formato</div>
-        <div class="value">2 sorteios</div>
-        <div class="meta">6 dezenas cada (1–50)</div>
+        <div class="label">Status do Prêmio</div>
+        <div class="value" id="statStatus" style="font-size:20px">—</div>
+        <div class="meta" id="statStatusMeta">—</div>
       </div>
     </div>
 
@@ -595,27 +595,17 @@
     </div>
 
     <div class="strategy-section">
-      <div class="section-label">Estratégia</div>
+      <div class="section-label">Estratégia de geração</div>
       <div class="strategies">
         <button class="strategy active" data-strat="equilibrado" type="button">
-          <div class="strat-name">Equilibrado</div>
-          <div class="strat-desc">Mescla números quentes e frios respeitando paridade e distribuição. Ideal para jogadores que buscam equilíbrio estatístico.</div>
-          <div class="strat-tag">Recomendado</div>
+          <div class="strat-name">Equilibrada</div>
+          <div class="strat-desc">Mescla números quentes e frios respeitando paridade e distribuição histórica dos dois sorteios. Cartões balanceados e diversificados.</div>
+          <div class="strat-tag">Recomendada</div>
         </button>
-        <button class="strategy" data-strat="quente" type="button">
-          <div class="strat-name">Quentes</div>
-          <div class="strat-desc">Favorece os números com maior frequência histórica nos dois sorteios combinados.</div>
-          <div class="strat-tag">Alta frequência</div>
-        </button>
-        <button class="strategy" data-strat="frio" type="button">
-          <div class="strat-name">Frios</div>
-          <div class="strat-desc">Prioriza dezenas em longa ausência, apostando na regressão à média.</div>
-          <div class="strat-tag">Maior atraso</div>
-        </button>
-        <button class="strategy" data-strat="aleatorio" type="button">
-          <div class="strat-name">Aleatório</div>
-          <div class="strat-desc">Seleção puramente aleatória sem viés estatístico. Para quem prefere o acaso puro.</div>
-          <div class="strat-tag">Sem filtros</div>
+        <button class="strategy" data-strat="contrarian" type="button">
+          <div class="strat-name">Arrojada</div>
+          <div class="strat-desc">Privilegia dezenas frias e atrasadas nos últimos concursos. Menos apostadores jogam esses números — reduz rateio caso acerte.</div>
+          <div class="strat-tag">Menos rateio</div>
         </button>
       </div>
     </div>
@@ -899,12 +889,32 @@ function iniciarApp(json) {
   statusEl.classList.add('live');
   statusTx.textContent = `${json.meta.totalConcursos} concursos · até ${fmtData(json.meta.ultimaData)}`;
 
-  $('statTotal').textContent = json.meta.totalConcursos.toLocaleString('pt-BR');
+  $('statTotal').textContent = json.meta.ultimoConcurso.toLocaleString('pt-BR');
+  $('statTotalMeta').textContent = `até o concurso ${json.meta.ultimoConcurso}`;
   $('footerConcurso').textContent = `Última série: concurso ${json.meta.ultimoConcurso}`;
   const ultDraw = draws[draws.length - 1];
   if (ultDraw) {
-    $('statLastNum').textContent = `#${ultDraw[0]}`;
-    $('statLastData').textContent = fmtData(ultDraw[1]);
+    const dez1 = (ultDraw[2] || []).map(n => String(n).padStart(2,'0')).join(' · ');
+    const dez2 = (ultDraw[3] || []).map(n => String(n).padStart(2,'0')).join(' · ');
+    $('statLastNum').innerHTML = `<span style="opacity:.7;font-size:9px;letter-spacing:.12em;text-transform:uppercase">1.º</span> ${dez1}<br><span style="opacity:.7;font-size:9px;letter-spacing:.12em;text-transform:uppercase">2.º</span> ${dez2}`;
+    $('statLastData').textContent = `concurso ${ultDraw[0]} · ${fmtData(ultDraw[1])}`;
+    // Status do prêmio
+    const ganhadores = ultDraw[4] ?? 0;
+    if (ganhadores > 0) {
+      $('statStatus').textContent = 'Teve ganhador';
+      $('statStatus').style.color = 'var(--cyan)';
+      $('statStatus').style.fontSize = '18px';
+      $('statStatusMeta').textContent = `${ganhadores} ganhador${ganhadores !== 1 ? 'es' : ''} no concurso ${ultDraw[0]}`;
+    } else {
+      // Conta concursos acumulados consecutivos
+      let acum = 0;
+      for (let i = draws.length - 1; i >= 0; i--) {
+        if ((draws[i][4] ?? 0) === 0) acum++; else break;
+      }
+      $('statStatus').textContent = 'Acumulada';
+      $('statStatus').style.color = 'var(--gold)';
+      $('statStatusMeta').textContent = `há ${acum} concurso${acum !== 1 ? 's' : ''} sem ganhador`;
+    }
   }
 
   // Pré-preenche o card do próximo concurso com dados do JSON (API atualiza em seguida)
@@ -1023,8 +1033,8 @@ function gerarCartoes(qtd, analiseData, strat) {
     const pesos = [];
     for (let n = 1; n <= 50; n++) {
       let w;
-      if (strat === 'quente')    w = Math.max(1, freq[n]);
-      else if (strat === 'frio') w = Math.max(1, atraso[n]);
+      if (strat === 'quente')         w = Math.max(1, freq[n]);
+      else if (strat === 'frio' || strat === 'contrarian') w = Math.max(1, atraso[n]);
       else if (strat === 'aleatorio') w = 1;
       else {
         const fNorm = freq[n] / (Math.max(...Object.values(freq)) || 1);

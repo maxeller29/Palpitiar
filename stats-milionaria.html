@@ -3,30 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dupla Sena · Relatório Estatístico Completo | Palpitiar</title>
-<meta name="description" content="Análise estatística completa da série histórica do Dupla Sena: frequência, atraso, distribuição de soma, paridade e conclusões. 2.500+ concursos analisados.">
+<title>Milionária · Relatório Estatístico Completo | Palpitiar</title>
+<meta name="description" content="Análise estatística completa da série histórica do Milionária: frequência, atraso, distribuição de soma, paridade e conclusões. 350+ concursos analisados.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://palpitiar.com.br/stats-dupla-sena.html">
+<link rel="canonical" href="https://palpitiar.com.br/stats-milionaria.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #001014;
-  --bg-2: #00181e;
+  --bg: #060900;
+  --bg-2: #0d1200;
   --ink: #f5ebe0;
   --ink-dim: rgba(245,235,224,0.62);
   --ink-faint: rgba(245,235,224,0.28);
-  --accent: #00b4cc;
-  --accent-dim: rgba(0,180,204,0.35);
-  --gold: #d4a84b;
+  --accent: #9333ea;
+  --accent-dim: rgba(147,51,234,0.35);
+  --gold: #9333ea;
   --line: rgba(245,235,224,0.11);
   --display: 'Fraunces', Georgia, serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
 html,body { background:var(--bg); color:var(--ink); font-family:var(--display); line-height:1.55; min-height:100vh; overflow-x:hidden; }
-body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 900px 600px at 80% 5%, rgba(0,180,204,0.09), transparent 60%); pointer-events:none; z-index:0; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 900px 600px at 80% 5%, rgba(147,51,234,0.09), transparent 60%); pointer-events:none; z-index:0; }
 .wrap { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:16px 24px 96px; }
 
 /* NAV */
@@ -34,7 +34,7 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 .nav-logo { font-family:var(--display); font-weight:800; font-style:italic; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
 .nav-logo em { color:var(--gold); font-style:normal; }
 .nav-back { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; padding:8px 16px; border:1px solid var(--accent-dim); color:var(--accent); text-decoration:none; border-radius:2px; transition:all 0.2s; }
-.nav-back:hover { background:rgba(0,180,204,0.1); }
+.nav-back:hover { background:rgba(147,51,234,0.1); }
 
 /* BOOT */
 .boot { display:flex; flex-direction:column; align-items:center; gap:20px; padding:80px 0; }
@@ -116,7 +116,7 @@ body::before { content:''; position:fixed; inset:0; background:radial-gradient(e
 /* FOOTER */
 footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:10px; }
 .btn-back { display:inline-flex; align-items:center; gap:8px; padding:12px 24px; background:var(--accent); color:#111; border:none; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; text-decoration:none; border-radius:2px; margin-top:24px; transition:all 0.2s; }
-.btn-back:hover { opacity:0.88; transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,180,204,0.3); }
+.btn-back:hover { opacity:0.88; transform:translateY(-1px); box-shadow:0 8px 24px rgba(147,51,234,0.3); }
 
 @media(max-width:640px) {
   .two-col { grid-template-columns:1fr; }
@@ -126,7 +126,7 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
 }
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#00b4cc">
+<meta name="theme-color" content="#9333ea">
 <script src="/stats-engine.js" defer></script>
 </head>
 <body>
@@ -134,7 +134,7 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
 
   <nav class="site-nav">
     <a class="nav-logo" href="index.html">Palpit<em>ia</em>r</a>
-    <a class="nav-back" href="dupla-sena.html">← Voltar ao gerador de Dupla Sena</a>
+    <a class="nav-back" href="milionaria.html">← Voltar ao gerador de Milionária</a>
   </nav>
 
   <div class="boot" id="boot">
@@ -146,8 +146,8 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
 
     <header class="report-header">
       <div class="report-tag">Relatório Estatístico · Série Histórica Completa</div>
-      <h1 class="report-title">Dupla <em>Sena</em></h1>
-      <div class="report-sub">2.500+ concursos · 1–50 · 6 dezenas sorteadas</div>
+      <h1 class="report-title">Mega <em>Sena</em></h1>
+      <div class="report-sub">350+ concursos · 1–60 · 6 dezenas sorteadas</div>
     </header>
 
     <!-- RESUMO -->
@@ -194,7 +194,7 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
         <div id="heatmap" style="grid-template-columns:repeat(10,1fr)"></div>
         <div style="margin-top:14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--ink-faint)">
           <span>Frio (menos sorteado)</span>
-          <div style="flex:1;height:6px;background:linear-gradient(90deg,#1e1e28,#00b4cc);border-radius:3px"></div>
+          <div style="flex:1;height:6px;background:linear-gradient(90deg,#1e1e28,#9333ea);border-radius:3px"></div>
           <span>Quente (mais sorteado)</span>
         </div>
       </div>
@@ -293,7 +293,7 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
       </div>
     </section>
 
-    <a class="btn-back" href="dupla-sena.html">⚡ Gerar combinações para Dupla Sena</a>
+    <a class="btn-back" href="milionaria.html">⚡ Gerar combinações para Milionária</a>
 
     <footer>
       <span>Dados · API oficial Caixa Econômica Federal</span>
@@ -305,19 +305,19 @@ footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); di
 
 <script>
 const CFG = {
-  name:       'Dupla Sena',
-  slug:       'dupla-sena',
-  jsonFile:   'dupla-sena-historico.json',
-  pageFile:   'dupla-sena.html',
-  accentColor:'#00b4cc',
-  accentRGB:  '0,180,204',
+  name:       'Milionária',
+  slug:       'milionaria',
+  jsonFile:   'milionaria-historico.json',
+  pageFile:   'milionaria.html',
+  accentColor:'#9333ea',
+  accentRGB:  '147,51,234',
   uMin:       1,
-  uMax:       50,
-  universo:   50,
-  sorteadas:  6,
-  groupSize:  10,
-  heatCols:   10,
-  isDupla:    true,
+  uMax: 50,
+  universo: 50,
+  sorteadas: 6,
+  groupSize: 10,
+  heatCols: 10,
+  isDupla:    false,
 };
 document.addEventListener('DOMContentLoaded', () => StatsEngine.init(CFG));
 </script>

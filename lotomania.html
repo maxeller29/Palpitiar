@@ -1027,7 +1027,7 @@ function renderNextDraw() {
 
 function renderStatsStrip() {
   const ult = SERIE.draws[SERIE.draws.length - 1];
-  const ultDez = ult[2].slice(0, 6).map(d => String(d).padStart(2,'0')).join(' · ') + ' ...';
+  const ultDez = ult[2].map(d => String(d).padStart(2,'0')).join(' · ');
   let statusHTML;
   if (STATS.acumuladoQtd > 0) {
     statusHTML = `<div class="stat"><div class="label">Status do premio</div><div class="value" style="color:var(--gold)">Acumulada</div><div class="meta">ha ${STATS.acumuladoQtd} concurso${STATS.acumuladoQtd!==1?'s':''} sem ganhador</div></div>`;
@@ -1037,7 +1037,7 @@ function renderStatsStrip() {
   }
   document.getElementById('statsStrip').innerHTML = `
     <div class="stat"><div class="label">Concursos analisados</div><div class="value">${STATS.totalAnalisado.toLocaleString('pt-BR')}</div><div class="meta">serie historica completa</div></div>
-    <div class="stat"><div class="label">Ultimo sorteio</div><div class="value" style="font-size:15px;letter-spacing:0">${ultDez}</div><div class="meta">concurso ${ult[0]} · ${normalizarData(ult[1])}</div></div>
+    <div class="stat"><div class="label">Ultimo sorteio</div><div class="value" style="font-size:12px;letter-spacing:0;line-height:1.7;word-break:break-all">${ultDez}</div><div class="meta">concurso ${ult[0]} · ${normalizarData(ult[1])}</div></div>
     ${statusHTML}`;
   document.getElementById('lastUpdate').textContent = `Atualizado · ${normalizarData(ult[1])}`;
 }

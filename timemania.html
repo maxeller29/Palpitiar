@@ -176,7 +176,7 @@
   .strategy .strat-tag { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--lime); border: 1px solid var(--line); padding: 3px 8px; border-radius: 999px; }
 
   /* CONTROLS */
-  .controls { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 28px 32px; border: 1px solid var(--line); background: rgba(13,25,0,0.3); margin-bottom: 0; border-radius: 2px; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 24px; align-items: end; padding: 28px 32px; border: 1px solid var(--line); background: rgba(13,25,0,0.3); margin-bottom: 0; border-radius: 2px; }
   .field { display: flex; flex-direction: column; gap: 10px; }
   .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); font-weight: 500; }
   .num-input { display: flex; align-items: center; border: 1px solid var(--line); background: var(--bg); border-radius: 2px; transition: border-color 0.2s; }
@@ -529,15 +529,24 @@
 
     <section class="controls">
       <div class="field">
-        <label for="combos">Quantos cartoes?</label>
+        <label for="combos">Quantas combinações (cartões)?</label>
         <div class="num-input">
-          <button type="button" data-target="combos" data-step="-1">-</button>
+          <button type="button" data-target="combos" data-step="-1">−</button>
           <input type="number" id="combos" value="5" min="1" max="50">
           <button type="button" data-target="combos" data-step="1">+</button>
         </div>
-        <div class="hint">de 1 a 50 cartoes · 10 dezenas fixas cada (1–80)</div>
+        <div class="hint">de 1 a 50 cartões</div>
       </div>
-      <button class="generate" id="generateBtn">Gerar combinacoes</button>
+      <div class="field">
+        <label>Dezenas por cartão</label>
+        <div class="num-input" style="opacity:0.55;pointer-events:none">
+          <button type="button" disabled>−</button>
+          <input type="number" value="10" readonly style="color:var(--ink-dim)">
+          <button type="button" disabled>+</button>
+        </div>
+        <div class="hint">10 dezenas fixas (1–80)</div>
+      </div>
+      <button class="generate" id="generateBtn">Gerar combinações</button>
     </section>
 
     <section class="prob-panel" id="probPanel">
@@ -971,7 +980,7 @@ function renderNextDraw() {
 
 function renderStatsStrip() {
   const ult = SERIE.draws[SERIE.draws.length - 1];
-  const ultDez = ult[2].slice(0, 6).map(d => String(d).padStart(2,'0')).join(' · ') + ' ...';
+  const ultDez = ult[2].map(d => String(d).padStart(2,'0')).join(' · ');
   let statusHTML;
   if (STATS.acumuladoQtd > 0) {
     statusHTML = `<div class="stat"><div class="label">Status do premio</div><div class="value" style="color:var(--gold)">Acumulada</div><div class="meta">ha ${STATS.acumuladoQtd} concurso${STATS.acumuladoQtd!==1?'s':''} sem ganhador</div></div>`;
@@ -981,7 +990,7 @@ function renderStatsStrip() {
   }
   document.getElementById('statsStrip').innerHTML = `
     <div class="stat"><div class="label">Concursos analisados</div><div class="value">${STATS.totalAnalisado.toLocaleString('pt-BR')}</div><div class="meta">serie historica completa</div></div>
-    <div class="stat"><div class="label">Ultimo sorteio</div><div class="value" style="font-size:15px;letter-spacing:0">${ultDez}</div><div class="meta">concurso ${ult[0]} · ${normalizarData(ult[1])}</div></div>
+    <div class="stat"><div class="label">Último sorteio</div><div class="value" style="font-size:14px;letter-spacing:0">${ultDez}</div><div class="meta">concurso ${ult[0]} · ${normalizarData(ult[1])}</div></div>
     ${statusHTML}`;
   document.getElementById('lastUpdate').textContent = `Atualizado · ${normalizarData(ult[1])}`;
 }
