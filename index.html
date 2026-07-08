@@ -1077,31 +1077,27 @@
 
   /* ===== MOBILE HOME GRID ===== */
   .mhg-logo-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     background: #0f404e;
-    padding: 8px 16px;
+    padding: 0;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 128px;
+    line-height: 0;
     z-index: 100;
   }
   .mhg-logo-bar img {
     display: block;
-    width: auto;
-    height: 100%;
-    max-width: 96%;
-    object-fit: contain;
+    width: 100%;
+    height: auto;
   }
   #mobile-home-grid {
     display: none;
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100dvh;
-    padding-top: 128px;
+    padding-top: 54.55vw;
   }
   .mhg-tile {
     display: flex;
