@@ -985,6 +985,7 @@
   .cld-nums {
     font-family: var(--mono); font-size: 12px; font-weight: 600;
     color: var(--ink); letter-spacing: 0.06em; line-height: 1.55;
+    white-space: pre-wrap;
   }
   .cld-meta {
     font-family: var(--mono); font-size: 9.5px;
@@ -1536,8 +1537,6 @@
 
   <!-- MOBILE LOTERIA BUTTONS -->
   <div class="mobile-loterias">
-    <div class="mobile-loterias-label">Outras loterias</div>
-
     <a class="mobile-btn ms" href="mega-sena.html">
       <div class="mobile-btn-left">
         <div class="mobile-btn-name">Mega-Sena</div>
@@ -1727,7 +1726,6 @@
   </div>
 
 
-  <div class="loterias-label desktop-only">Outras loterias</div>
   <div class="loterias-grid desktop-only">
 
     <!-- MEGA-SENA -->
@@ -2349,17 +2347,33 @@
           var elCldMeta = document.getElementById(prefix + '-cld-meta');
           if (elCldNums && dados.listaDezenas && dados.listaDezenas.length > 0) {
             var dez = dados.listaDezenas;
-            var MAX_SHOW = 8;
-            var numsStr = dez.slice(0, MAX_SHOW).map(function(n) {
-              return String(parseInt(n, 10)).padStart(2, '0');
-            }).join(' · ');
-            if (dez.length > MAX_SHOW) numsStr += '\n···';
-            // Para Milionária: adiciona trevos
-            if (dados.trevosSorteados && dados.trevosSorteados.length > 0) {
-              var t = dados.trevosSorteados.map(function(n) {
+            var numsStr;
+            if (prefix === 'lf' || prefix === 'lm') {
+              var rows = [];
+              for (var ri = 0; ri < dez.length; ri += 10) {
+                rows.push(dez.slice(ri, ri + 10).map(function(n) {
+                  return String(parseInt(n, 10)).padStart(2, '0');
+                }).join(' · '));
+              }
+              numsStr = rows.join('\n');
+            } else {
+              var MAX_SHOW = 8;
+              numsStr = dez.slice(0, MAX_SHOW).map(function(n) {
                 return String(parseInt(n, 10)).padStart(2, '0');
               }).join(' · ');
-              numsStr += '\nTrevos: ' + t;
+              if (dez.length > MAX_SHOW) numsStr += '\n···';
+              if (dados.trevosSorteados && dados.trevosSorteados.length > 0) {
+                var t = dados.trevosSorteados.map(function(n) {
+                  return String(parseInt(n, 10)).padStart(2, '0');
+                }).join(' · ');
+                numsStr += '\nTrevos: ' + t;
+              }
+            }
+            if (prefix === 'ds' && dados.listaDezenasSegundoSorteio && dados.listaDezenasSegundoSorteio.length > 0) {
+              var dez2 = dados.listaDezenasSegundoSorteio;
+              numsStr = 'S1 ' + numsStr + '\nS2 ' + dez2.map(function(n) {
+                return String(parseInt(n, 10)).padStart(2, '0');
+              }).join(' · ');
             }
             elCldNums.textContent = numsStr;
           }
