@@ -1168,6 +1168,8 @@ async function gerarComOverlay(qtd, strat) {
     renderReport(seqs, analiseData, qtd);
     renderCostBar(seqs, qtd);
     $('saveSection').style.display = '';
+    // Salvamento automático (mesmo padrão das demais loterias): não depende mais do clique manual.
+    aguardarDB(() => salvarCombinacoes());
   } catch (e) {
     overlay.classList.remove('show');
     console.error('Erro ao gerar:', e);
@@ -1207,6 +1209,11 @@ function atualizarBolao() {
 }
 
 /* ===== SAVE / SUPABASE ===== */
+function aguardarDB(fn, t = 40) {
+  if (window.LotoiaDB?.configurado()) { fn(); return; }
+  if (t <= 0) return;
+  setTimeout(() => aguardarDB(fn, t - 1), 300);
+}
 async function salvarCombinacoes() {
   if (!window.LotoiaDB) return;
   const btn = $('btnSave');

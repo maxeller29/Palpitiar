@@ -152,6 +152,11 @@ async function salvarCombinacoes(cartoes, loteria, concurso, dezenasPorCartao, e
           },
           `?loteria=eq.${loteria}`
         );
+      } else {
+        // Loteria ainda não tem linha em contadores_gerados (primeira geração dela) — cria agora.
+        await sb.insert('contadores_gerados', [{
+          loteria, total: rows.length, atualizado_em: new Date().toISOString()
+        }]);
       }
     } catch(e) {
       console.warn('Erro ao incrementar contador:', e.message);
@@ -274,6 +279,14 @@ async function atualizarResumoPorFaixa(detalhes, loteria) {
           valor_total: parseFloat(atual[0].valor_total||0) + dados.valor,
           atualizado_em: new Date().toISOString(),
         }, `?loteria=eq.${loteria}&faixa=eq.${encodeURIComponent(faixa)}`);
+      } else {
+        // Faixa/loteria ainda não tem linha em resumo_por_faixa (primeira premiação dela) — cria agora.
+        await sb.insert('resumo_por_faixa', [{
+          loteria, faixa,
+          total_premiadas: dados.count,
+          valor_total: dados.valor,
+          atualizado_em: new Date().toISOString(),
+        }]);
       }
     } catch(e) { console.warn('Faixa update err:', e.message); }
   }
