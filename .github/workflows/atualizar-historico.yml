@@ -40,12 +40,12 @@ jobs:
       - name: Verificar mudancas
         id: check
         run: |
-          if git diff --quiet -- mega-sena-historico.json lotofacil-historico.json quina-historico.json; then
+          if git diff --quiet -- mega-sena-historico.json lotofacil-historico.json quina-historico.json lotomania-historico.json timemania-historico.json dupla-sena-historico.json diadesorte-historico.json milionaria-historico.json; then
             echo "mudancas=false" >> $GITHUB_OUTPUT
             echo "Nenhum JSON alterado."
           else
             echo "mudancas=true" >> $GITHUB_OUTPUT
-            git diff --stat -- mega-sena-historico.json lotofacil-historico.json quina-historico.json
+            git diff --stat -- mega-sena-historico.json lotofacil-historico.json quina-historico.json lotomania-historico.json timemania-historico.json dupla-sena-historico.json diadesorte-historico.json milionaria-historico.json
           fi
 
       - name: Commit e push
@@ -53,14 +53,19 @@ jobs:
         run: |
           git config user.name  "palpitiar-bot"
           git config user.email "bot@palpitiar.com.br"
-          git add mega-sena-historico.json lotofacil-historico.json quina-historico.json
+          git add mega-sena-historico.json lotofacil-historico.json quina-historico.json lotomania-historico.json timemania-historico.json dupla-sena-historico.json diadesorte-historico.json milionaria-historico.json
           git diff --cached --quiet && echo "Nada a commitar." && exit 0
 
           MEGA=$(node -e "const d=JSON.parse(require('fs').readFileSync('mega-sena-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
           LOTO=$(node -e "const d=JSON.parse(require('fs').readFileSync('lotofacil-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
           QUIN=$(node -e "const d=JSON.parse(require('fs').readFileSync('quina-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
+          LOTM=$(node -e "const d=JSON.parse(require('fs').readFileSync('lotomania-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
+          TIME=$(node -e "const d=JSON.parse(require('fs').readFileSync('timemania-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
+          DUPS=$(node -e "const d=JSON.parse(require('fs').readFileSync('dupla-sena-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
+          DIAS=$(node -e "const d=JSON.parse(require('fs').readFileSync('diadesorte-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
+          MILI=$(node -e "const d=JSON.parse(require('fs').readFileSync('milionaria-historico.json'));console.log(d.meta.ultimoConcurso+'('+d.meta.totalConcursos+')')")
 
-          git commit -m "chore: historico $(date -u '+%Y-%m-%d') | MS:$MEGA LF:$LOTO QN:$QUIN"
+          git commit -m "chore: historico $(date -u '+%Y-%m-%d') | MS:$MEGA LF:$LOTO QN:$QUIN LM:$LOTM TM:$TIME DS:$DUPS DDS:$DIAS MM:$MILI"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,7 +86,7 @@ jobs:
         if: always()
         run: |
           node -e "
-            ['mega-sena','lotofacil','quina'].forEach(n => {
+            ['mega-sena','lotofacil','quina','lotomania','timemania','dupla-sena','diadesorte','milionaria'].forEach(n => {
               try {
                 const d = JSON.parse(require('fs').readFileSync(n+'-historico.json'));
                 console.log(n+': concurso '+d.meta.ultimoConcurso+' | '+d.meta.totalConcursos+' draws | '+d.meta.ultimaData);

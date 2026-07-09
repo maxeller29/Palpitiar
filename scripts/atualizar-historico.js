@@ -145,6 +145,50 @@ const LOTERIAS = [
       });
       return p;
     }
+  },
+  {
+    id:      'timemania',
+    slug:    'timemania',
+    arquivo: 'timemania-historico.json',
+    qtdDez:  7,
+    range:   { min: 1, max: 80 },
+    // Ordem do listaRateioPremio assumida como: 7,6,5,4,3 acertos + Time do Coração por último.
+    // Validar contra uma resposta real da API antes de confiar no detalhamento por faixa (dezenas/ganhadores principais não dependem disso).
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'7',1:'6',2:'5',3:'4',4:'3',5:'tc' };
+      const mG = { 0:'g7',1:'g6',2:'g5',3:'g4',4:'g3',5:'gtc' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
+  },
+  {
+    id:      'dia-de-sorte',
+    slug:    'diadesorte',
+    arquivo: 'diadesorte-historico.json',
+    qtdDez:  7,
+    range:   { min: 1, max: 31 },
+    // Ordem do listaRateioPremio assumida como: 7,6,5,4 acertos + Mês da Sorte por último.
+    // Validar contra uma resposta real da API antes de confiar no detalhamento por faixa (dezenas/ganhadores principais não dependem disso).
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'7',1:'6',2:'5',3:'4',4:'ms' };
+      const mG = { 0:'g7',1:'g6',2:'g5',3:'g4',4:'gms' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
   }
 ];
 
