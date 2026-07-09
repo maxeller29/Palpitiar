@@ -1,0 +1,69 @@
+name: Gerar Cards para Redes Sociais
+
+on:
+  schedule:
+    # 12h UTC = 9h BRT — antes de qualquer sorteio do dia (todos ocorrem ~20h BRT)
+    - cron: '0 12 * * 1-6'
+  workflow_dispatch:
+
+jobs:
+  gerar:
+    name: Gerar cards das loterias com sorteio hoje
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Gerar cards
+        run: node scripts/gerar-cards.js
+
+      - name: Verificar arquivo gerado
+        id: check
+        run: |
+          TODAY=$(date -u '+%Y-%m-%d')
+          FILE="cards/cards-${TODAY}.html"
+          if [ -f "$FILE" ]; then
+            echo "gerou=true"   >> $GITHUB_OUTPUT
+            echo "arquivo=$FILE" >> $GITHUB_OUTPUT
+            echo "data=$TODAY"  >> $GITHUB_OUTPUT
+            echo "✅ Gerado: $FILE"
+          else
+            echo "gerou=false" >> $GITHUB_OUTPUT
+            echo "⬜ Nenhum arquivo gerado"
+          fi
+
+      - name: Upload como artefato
+        if: steps.check.outputs.gerou == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cards-${{ steps.check.outputs.data }}
+          path: ${{ steps.check.outputs.arquivo }}
+          retention-days: 14
+
+      - name: Commit e push
+        if: steps.check.outputs.gerou == 'true'
+        run: |
+          git config user.name  "palpitiar-bot"
+          git config user.email "bot@palpitiar.com.br"
+          git add cards/
+          git diff --cached --quiet && echo "Nada a commitar." && exit 0
+          git commit -m "cards: $(date -u '+%Y-%m-%d') — cards para redes sociais"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resumo
+        if: always()
+        run: |
+          echo "=== Cards gerados ==="
+          ls -lh cards/ 2>/dev/null || echo "Pasta cards/ vazia ou não criada"
