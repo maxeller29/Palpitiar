@@ -742,9 +742,9 @@ function logC(n, k) {
 }
 const LOG_C31_7 = logC(UNIVERSO, SORTEADAS);
 
-function probDDS(k) {
-  if (k < 0 || k > SORTEADAS) return 0;
-  return Math.exp(logC(SORTEADAS, k) + logC(UNIVERSO - SORTEADAS, SORTEADAS - k) - LOG_C31_7);
+function probDDS(playerK, matches) {
+  if (matches < 0 || matches > SORTEADAS || matches > playerK) return 0;
+  return Math.exp(logC(playerK, matches) + logC(UNIVERSO - playerK, SORTEADAS - matches) - LOG_C31_7);
 }
 
 const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -1030,9 +1030,9 @@ function updateCost() {
 }
 
 function updateProb(combos) {
-  const p7 = probDDS(7);
-  const p6 = probDDS(6);
-  const p5 = probDDS(5);
+  const p7 = probDDS(dezPorCartao, 7);
+  const p6 = probDDS(dezPorCartao, 6);
+  const p5 = probDDS(dezPorCartao, 5);
   const pAll7 = 1 - Math.pow(1 - p7, combos);
   const pAll6 = 1 - Math.pow(1 - p6, combos);
   const pAll5 = 1 - Math.pow(1 - p5, combos);
