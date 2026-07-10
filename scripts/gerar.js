@@ -28,6 +28,7 @@ const META_LOTOMANIA  = 1000;
 const META_TIMEMANIA  = 1000;
 const META_DUPLASENA  = 1000;
 const META_DIADESORTE = 1000;
+const META_MILIONARIA = 1000;
 const LOTE            = 50;   // inserções por vez no Supabase (igual ao site)
 
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
@@ -75,6 +76,8 @@ async function salvarCombinacoes(cartoes, loteria, concurso, dezenasPorCartao, e
     .map(c => ({
       loteria, concurso,
       dezenas: c.dezenas,
+      // Trevos só existem na +Milionária; nas demais loterias c.trevos é undefined -> null.
+      trevos: c.trevos || null,
       dezenas_por_cartao: dezenasPorCartao,
       estrategia,
       status: 'pendente',
@@ -862,6 +865,165 @@ function ds_gerarCartoes(qtd, analiseData, strat) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// +MILIONÁRIA — algoritmo idêntico ao milionaria.html
+// Universo: 1–50, aposta mínima 6 dezenas + 2 trevos (1–6)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ML = {
+  UNIVERSO: 50,
+  DEZ_MIN: 6,
+  PERFIL: { pares_min: 2, pares_max: 4, soma_min: 100, soma_max: 195 },
+};
+
+function ml_analisar(draws) {
+  const N = draws.length;
+  const freq = new Array(51).fill(0);
+  const freqTrevo = new Array(7).fill(0);
+  draws.forEach(d => {
+    d[2].forEach(x => freq[x]++);
+    if (d[3]) d[3].forEach(x => freqTrevo[x]++);
+  });
+  const ultimaApar = new Array(51).fill(-1);
+  draws.forEach((d, idx) => d[2].forEach(x => ultimaApar[x] = idx));
+  const atraso = new Array(51).fill(0);
+  for (let i=1; i<=50; i++) atraso[i] = ultimaApar[i]===-1 ? N : N-1-ultimaApar[i];
+  const sorteadas6 = new Set(draws.map(d => d[2].join('-')));
+  let top10ranking = [];
+  for (let i=1;i<=50;i++) top10ranking.push({n:i, freq:freq[i]});
+  top10ranking.sort((a,b)=>b.freq-a.freq);
+  const top10 = new Set(top10ranking.slice(0,10).map(x=>x.n));
+  return { freq, freqTrevo, atraso, sorteadas6, top10, totalAnalisado: N };
+}
+
+function ml_analisarCartao(dz) {
+  const k = dz.length;
+  const sorted = [...dz].sort((a,b)=>a-b);
+  const q1 = sorted.filter(x=>x<=16).length;
+  const q2 = sorted.filter(x=>x>16&&x<=33).length;
+  const q3 = sorted.filter(x=>x>33).length;
+  const pares = sorted.filter(x=>x%2===0).length;
+  const soma  = sorted.reduce((a,b)=>a+b,0);
+  let maxSeq=1, seq=1;
+  for (let i=1; i<sorted.length; i++) {
+    if (sorted[i]===sorted[i-1]+1) { seq++; maxSeq=Math.max(maxSeq,seq); } else seq=1;
+  }
+  const faixas10=[0,0,0,0,0];
+  sorted.forEach(x => { const idx=Math.min(Math.floor((x-1)/10),4); faixas10[idx]++; });
+  return { q1,q2,q3,pares,soma,maxSeq,maxFaixa10:Math.max(...faixas10),sorted };
+}
+
+function ml_qualidade(dz, estrategia, stats) {
+  const k = dz.length;
+  const a = ml_analisarCartao(dz);
+  const fator = k/6;
+
+  const quadrantesUsados = [a.q1,a.q2,a.q3].filter(x=>x>0).length;
+  if (quadrantesUsados < (k>=9?3:2)) return false;
+
+  const paresMin = Math.max(0, Math.floor(ML.PERFIL.pares_min*fator)-1);
+  const paresMax = Math.min(k, Math.ceil(ML.PERFIL.pares_max*fator)+1);
+  if (a.pares<paresMin || a.pares>paresMax) return false;
+
+  const somaMinExp = ML.PERFIL.soma_min*fator, somaMaxExp = ML.PERFIL.soma_max*fator;
+  const margem = estrategia==='equilibrada' ? 5*fator : 20*fator;
+  if (a.soma<somaMinExp-margem || a.soma>somaMaxExp+margem) return false;
+
+  if (a.maxSeq > Math.max(3, Math.ceil(k/4))) return false;
+  if (a.maxFaixa10 > Math.max(3, Math.ceil(k/5)+2)) return false;
+
+  const sorted = a.sorted;
+  const span = sorted[sorted.length-1] - sorted[0];
+  if (span < 15) return false;
+
+  const uCount = {};
+  for (const n of sorted) { const u=n%10; uCount[u]=(uCount[u]||0)+1; }
+  if (Math.max(...Object.values(uCount)) >= 4) return false;
+
+  const diffs = sorted.slice(1).map((v,i)=>v-sorted[i]);
+  if (Math.max(...diffs) > 29) return false;
+
+  const nBaixas = sorted.filter(n=>n<=25).length;
+  if (nBaixas===0 || nBaixas===k) return false;
+
+  const diffMean = diffs.reduce((s,x)=>s+x,0)/diffs.length;
+  const diffVar  = diffs.reduce((s,x)=>s+(x-diffMean)**2,0)/diffs.length;
+  if (diffVar<=1.0) return false;
+
+  if (stats?.top10) {
+    if (sorted.filter(n=>stats.top10.has(n)).length>=5) return false;
+  }
+  return true;
+}
+
+function ml_pesoDezena(stats, i, perfil) {
+  const f = stats.freq[i], a = stats.atraso[i];
+  const fNorm = (f+1)/(stats.totalAnalisado+1), aNorm = (a+1)/(stats.totalAnalisado+1);
+  switch (perfil) {
+    case 'quente':   return Math.pow(fNorm, 1.6);
+    case 'frio':     return Math.pow(1-fNorm+0.01, 1.4);
+    case 'atrasado': return Math.pow(aNorm, 1.4);
+    default:         return fNorm*0.55 + aNorm*0.45;
+  }
+}
+
+function ml_sample(pesos, k, max) {
+  const pool = [];
+  for (let i=1; i<=max; i++) pool.push({n:i, w:pesos[i]||1});
+  const escolhidas = [];
+  for (let i=0; i<k; i++) {
+    const total = pool.reduce((s,x)=>s+x.w,0);
+    let r = Math.random()*total, idx=0;
+    for (; idx<pool.length; idx++) { r-=pool[idx].w; if (r<=0) break; }
+    idx = Math.min(idx, pool.length-1);
+    escolhidas.push(pool[idx].n); pool.splice(idx,1);
+  }
+  return escolhidas.sort((a,b)=>a-b);
+}
+
+function ml_gerarTrevos(stats) {
+  const pesos = new Array(7).fill(0);
+  const total = stats.freqTrevo.reduce((s,x)=>s+x,0);
+  for (let i=1; i<=6; i++) pesos[i] = total>0 ? (stats.freqTrevo[i]+1)/(total+6) : 1/6;
+  return ml_sample(pesos, 2, 6);
+}
+
+function ml_escolherPerfil(estrategia) {
+  const r = Math.random();
+  if (estrategia === 'contrarian') {
+    if (r<0.35) return 'frio'; if (r<0.65) return 'atrasado'; if (r<0.85) return 'equilibrado'; return 'quente';
+  } else {
+    if (r<0.45) return 'equilibrado'; if (r<0.65) return 'quente'; if (r<0.80) return 'frio'; return 'atrasado';
+  }
+}
+
+function ml_gerarCartoes(qtd, dezPorCartao, stats, estrategia) {
+  const cartoes=[]; const chaves=new Set(); let tent=0; const MAX=qtd*500;
+  while (cartoes.length<qtd && tent<MAX) {
+    tent++;
+    const perfil = ml_escolherPerfil(estrategia);
+    const pesos = new Array(51);
+    for (let i=1; i<=50; i++) pesos[i] = ml_pesoDezena(stats, i, perfil);
+    const dz = ml_sample(pesos, dezPorCartao, 50);
+    if (!ml_qualidade(dz, estrategia, stats)) continue;
+    const chave = dz.join('-');
+    if (chaves.has(chave)) continue;
+    if (dezPorCartao===6 && stats.sorteadas6.has(chave)) continue;
+    chaves.add(chave);
+    cartoes.push({ dezenas: dz, trevos: ml_gerarTrevos(stats), perfil });
+  }
+  while (cartoes.length<qtd) {
+    const pesos = new Array(51);
+    for (let i=1; i<=50; i++) pesos[i] = ml_pesoDezena(stats, i, 'equilibrado');
+    const dz = ml_sample(pesos, dezPorCartao, 50);
+    const chave = dz.join('-');
+    if (chaves.has(chave)) continue;
+    chaves.add(chave);
+    cartoes.push({ dezenas: dz, trevos: ml_gerarTrevos(stats), perfil: 'equilibrado' });
+  }
+  return cartoes;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // LÓGICA DE GERAÇÃO POR LOTERIA
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1159,6 +1321,83 @@ async function carregarHistoricoRecenteDual(slug, latest, n) {
   return draws.sort((a,b)=>a[0]-b[0]);
 }
 
+async function gerarMilionaria() {
+  log('\n▶ +Milionária — verificando se há sorteio hoje...');
+  const latest = await buscarUltimoConcurso('maismilionaria');
+  const dataProximo = latest.dataProximoConcurso;
+  const concurso    = latest.numeroConcursoProximo || (latest.numero + 1);
+  const hoje = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  log(`  Hoje (BRT): ${hoje} | Próximo sorteio: ${dataProximo} (concurso ${concurso})`);
+
+  if (dataProximo !== hoje) {
+    log(`  ⏭ Sem sorteio da +Milionária hoje. Pulando.`);
+    return 0;
+  }
+
+  log('  ✓ Há sorteio hoje! Gerando combinações...');
+  const draws = await carregarHistoricoRecenteMilionaria('maismilionaria', latest, 500);
+  log(`  ${draws.length} sorteios carregados para análise.`);
+
+  const stats = ml_analisar(draws);
+  const estrategia = 'equilibrada';
+  let totalSalvos = 0;
+
+  log(`  Gerando ${META_MILIONARIA} combinações...`);
+  while (totalSalvos < META_MILIONARIA) {
+    const faltam  = META_MILIONARIA - totalSalvos;
+    const qtdLote = Math.min(LOTE, faltam);
+    const cartoes = ml_gerarCartoes(qtdLote, ML.DEZ_MIN, stats, estrategia);
+    const salvos  = await salvarCombinacoes(cartoes, 'milionaria', concurso, ML.DEZ_MIN, estrategia);
+    totalSalvos  += salvos;
+    log(`  → ${totalSalvos}/${META_MILIONARIA} salvas`);
+    if (salvos === 0 && totalSalvos < META_MILIONARIA) {
+      log('  ⚠ Sem novas combinações (todas duplicadas). Encerrando lote.');
+      break;
+    }
+    await sleep(300);
+  }
+  return totalSalvos;
+}
+
+// Carrega histórico incluindo trevos (d[3]) — usado só pela +Milionária
+async function carregarHistoricoRecenteMilionaria(slug, latest, n) {
+  const draws = [];
+  const ultimo = latest.numero;
+  const inicio = Math.max(1, ultimo - n + 1);
+
+  if (latest.listaDezenas) {
+    const trevos = (latest.trevosSorteados || latest.listaTrevos || []).map(x=>parseInt(x,10)).sort((a,b)=>a-b);
+    const g = latest.listaRateioPremio?.[0]?.numeroDeGanhadores || 0;
+    draws.unshift([
+      latest.numero, latest.dataApuracao,
+      latest.listaDezenas.map(x=>parseInt(x,10)).sort((a,b)=>a-b),
+      trevos, parseInt(g,10)||0
+    ]);
+  }
+
+  for (let i = ultimo - 1; i >= inicio; i--) {
+    try {
+      const r = await fetch(
+        `https://servicebus2.caixa.gov.br/portaldeloterias/api/${slug}/${i}`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (!d.listaDezenas) continue;
+      const trevos = (d.trevosSorteados || d.listaTrevos || []).map(x=>parseInt(x,10)).sort((a,b)=>a-b);
+      const g = d.listaRateioPremio?.[0]?.numeroDeGanhadores || 0;
+      draws.unshift([
+        d.numero, d.dataApuracao,
+        d.listaDezenas.map(x=>parseInt(x,10)).sort((a,b)=>a-b),
+        trevos, parseInt(g,10)||0
+      ]);
+      await sleep(120);
+    } catch(e) { /* ignora erros individuais */ }
+  }
+
+  return draws.sort((a,b)=>a[0]-b[0]);
+}
+
 // Carrega os últimos N sorteios de uma loteria via API da Caixa para análise estatística
 async function carregarHistoricoRecente(slug, latest, n) {
   const draws = [];
@@ -1268,6 +1507,14 @@ async function main() {
   } catch(e) {
     log(`\n✗ Erro em Dia de Sorte: ${e.message}`);
     resultados['dia-de-sorte'] = `ERRO: ${e.message}`;
+  }
+
+  // +Milionária — somente se sorteio hoje
+  try {
+    resultados['milionaria'] = await gerarMilionaria();
+  } catch(e) {
+    log(`\n✗ Erro em +Milionária: ${e.message}`);
+    resultados['milionaria'] = `ERRO: ${e.message}`;
   }
 
   const duracao = ((Date.now()-inicio)/1000).toFixed(0);

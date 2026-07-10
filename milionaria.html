@@ -977,6 +977,21 @@ function gerarCartoes(qtd, dezPorCartao, stats, estrategia) {
 
 let STATS=null, SERIE=null, PROXIMO=null, ESTRATEGIA='equilibrada';
 
+/* ===== SALVAMENTO AUTOMÁTICO (mesmo padrão das demais loterias) ===== */
+function aguardarDB(fn, t = 40) {
+  if (window.LotoiaDB?.configurado()) { fn(); return; }
+  if (t <= 0) return;
+  setTimeout(() => aguardarDB(fn, t - 1), 300);
+}
+async function onCartoesGerados(cartoes, dezPorCartao) {
+  if (!window.LotoiaDB) return;
+  const concurso = PROXIMO ? PROXIMO.numero : (SERIE?.draws?.length ? SERIE.draws[SERIE.draws.length-1][0] + 1 : null);
+  if (!concurso) return;
+  // cartoes vem de gerarCartoes() com {dezenas, trevos, perfil, analise} — passamos direto,
+  // pois salvarCombinacoes já sabe extrair dezenas e trevos.
+  await window.LotoiaDB.salvarCombinacoes(cartoes, 'milionaria', concurso, dezPorCartao, ESTRATEGIA);
+}
+
 function setStatus(state, text) {
   const el = document.getElementById('status');
   el.className = 'status '+state;
@@ -1216,6 +1231,8 @@ document.getElementById('generateBtn').addEventListener('click',async()=>{
     renderCartoes(cartoes);
     renderReport(cartoes,dezenas,ESTRATEGIA);
     document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+    // Salvamento automático (silencioso, sem feedback visual — mesma decisão de produto das outras loterias)
+    aguardarDB(() => onCartoesGerados(cartoes, dezenas));
   } finally { btn.disabled=false; btn.textContent='Gerar combinações'; }
 });
 document.getElementById('regenBtn').addEventListener('click',()=>document.getElementById('generateBtn').click());

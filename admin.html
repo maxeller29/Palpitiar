@@ -407,6 +407,25 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-fa
     </div>
   </div>
 
+  <!-- +MILIONÁRIA -->
+  <div class="loteria-card-admin ml">
+    <div class="lca-header">
+      <span class="lca-nome">+Milionária</span>
+      <span class="lca-pendentes" id="pendML">— pendentes</span>
+    </div>
+    <div class="lca-body">
+      <div class="lca-input-row">
+        <div class="lca-field">
+          <label>Concurso (opcional)</label>
+          <input type="number" id="concML" placeholder="automático" min="1">
+        </div>
+        <button class="btn btn-ml" id="btnML">Conferir</button>
+        <button class="btn btn-outline btn-sm" id="btnTodosML" title="Confere todos os concursos pendentes">Todos</button>
+      </div>
+      <div class="lca-log" id="logML">Aguardando...</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- RESUMO POR FAIXA -->
@@ -440,6 +459,10 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-fa
     <div class="resumo-card dds">
       <div class="rc-header">Dia de Sorte <span class="rc-header-total" id="totalDDS"></span></div>
       <div class="rc-body" id="resumoDDS"><div class="empty">Carregando...</div></div>
+    </div>
+    <div class="resumo-card ml">
+      <div class="rc-header">+Milionária <span class="rc-header-total" id="totalML"></span></div>
+      <div class="rc-body" id="resumoML"><div class="empty">Carregando...</div></div>
     </div>
   </div>
 </div>
@@ -590,7 +613,7 @@ async function carregarTotais() {
       return match ? parseInt(match[1], 10) : 0;
     }
 
-    const [cntMS, cntLF, cntQN, cntLM, cntTM, cntDS, cntDDS] = await Promise.all([
+    const [cntMS, cntLF, cntQN, cntLM, cntTM, cntDS, cntDDS, cntML] = await Promise.all([
       contarPendentes('mega-sena'),
       contarPendentes('lotofacil'),
       contarPendentes('quina'),
@@ -598,8 +621,9 @@ async function carregarTotais() {
       contarPendentes('timemania'),
       contarPendentes('dupla-sena'),
       contarPendentes('dia-de-sorte'),
+      contarPendentes('milionaria'),
     ]);
-    const totalPend = cntMS + cntLF + cntQN + cntLM + cntTM + cntDS + cntDDS;
+    const totalPend = cntMS + cntLF + cntQN + cntLM + cntTM + cntDS + cntDDS + cntML;
     document.getElementById('tcPendentes').textContent = totalPend.toLocaleString('pt-BR');
     document.getElementById('pendMS').textContent  = `${cntMS.toLocaleString('pt-BR')} pendente${cntMS!==1?'s':''}`;
     document.getElementById('pendLF').textContent  = `${cntLF.toLocaleString('pt-BR')} pendente${cntLF!==1?'s':''}`;
@@ -608,6 +632,7 @@ async function carregarTotais() {
     document.getElementById('pendTM').textContent  = `${cntTM.toLocaleString('pt-BR')} pendente${cntTM!==1?'s':''}`;
     document.getElementById('pendDS').textContent  = `${cntDS.toLocaleString('pt-BR')} pendente${cntDS!==1?'s':''}`;
     document.getElementById('pendDDS').textContent = `${cntDDS.toLocaleString('pt-BR')} pendente${cntDDS!==1?'s':''}`;
+    document.getElementById('pendML').textContent  = `${cntML.toLocaleString('pt-BR')} pendente${cntML!==1?'s':''}`;
   } catch(e) { console.warn('Totais err:', e); }
 }
 
@@ -654,20 +679,21 @@ async function carregarResumo() {
       'mega-sena':   ['sena', 'quina', 'quadra'],
       'lotofacil':   ['15 acertos', '14 acertos', '13 acertos', '12 acertos', '11 acertos'],
       'quina':       ['quina', 'quadra', 'terno', 'duque'],
-      'lotomania':   ['vinte', 'dezenove', 'dezoito', 'zero'],
+      'lotomania':   ['vinte', 'dezenove', 'dezoito', 'dezessete', 'dezesseis', 'zero'],
       'timemania':   ['7 acertos', '6 acertos', '5 acertos', '4 acertos', '3 acertos', 'time do coração'],
       'dupla-sena':  ['sena', 'quina', 'quadra', 'terno', 'duque'],
       'dia-de-sorte':['7 acertos', '6 acertos', '5 acertos', '4 acertos', 'mes da sorte'],
+      'milionaria':  ['sena+2trevos', 'sena+1trevo', 'sena+0trevo', 'quina+2trevos', 'quina+1trevo', 'quadra+2trevos', 'quadra+1trevo'],
     };
     const ids = {
       'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN',
       'lotomania': 'resumoLM', 'timemania': 'resumoTM', 'dupla-sena': 'resumoDS',
-      'dia-de-sorte': 'resumoDDS',
+      'dia-de-sorte': 'resumoDDS', 'milionaria': 'resumoML',
     };
     const totalIds = {
       'mega-sena': 'totalMS', 'lotofacil': 'totalLF', 'quina': 'totalQN',
       'lotomania': 'totalLM', 'timemania': 'totalTM', 'dupla-sena': 'totalDS',
-      'dia-de-sorte': 'totalDDS',
+      'dia-de-sorte': 'totalDDS', 'milionaria': 'totalML',
     };
 
     for (const [lot, elId] of Object.entries(ids)) {
@@ -734,7 +760,7 @@ async function carregarResumo() {
       const ids = {
         'mega-sena': 'resumoMS', 'lotofacil': 'resumoLF', 'quina': 'resumoQN',
         'lotomania': 'resumoLM', 'timemania': 'resumoTM', 'dupla-sena': 'resumoDS',
-        'dia-de-sorte': 'resumoDDS',
+        'dia-de-sorte': 'resumoDDS', 'milionaria': 'resumoML',
       };
       for (const [lot, faixas] of Object.entries(resumo)) {
         const el = document.getElementById(ids[lot]);
@@ -937,6 +963,7 @@ aguardar(() => {
     { lot:'timemania',   log:'logTM',  conc:'concTM',  btn:'btnTM',  todos:'btnTodosTM'  },
     { lot:'dupla-sena',  log:'logDS',  conc:'concDS',  btn:'btnDS',  todos:'btnTodosDS'  },
     { lot:'dia-de-sorte',log:'logDDS', conc:'concDDS', btn:'btnDDS', todos:'btnTodosDDS' },
+    { lot:'milionaria',  log:'logML',  conc:'concML',  btn:'btnML',  todos:'btnTodosML'  },
   ];
   for (const c of conferencias) {
     const btn  = document.getElementById(c.btn);
