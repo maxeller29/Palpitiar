@@ -321,8 +321,13 @@
     position: relative; z-index: 1;
     font-family: var(--mono); font-size: 10px;
     letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--ink-dim); margin-bottom: 48px;
+    color: var(--ink-dim); margin-bottom: 12px;
   }
+  .card-days { display:flex; gap:4px; margin-bottom:28px; align-items:center; }
+  .cd { font-family:var(--mono); font-size:9px; letter-spacing:0.06em; text-transform:uppercase; padding:3px 7px; border-radius:2px; border:1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.2); }
+  .ms .cd.on { color:var(--gold); border-color:rgba(212,168,75,0.4); background:rgba(212,168,75,0.07); }
+  .lf .cd.on { color:var(--green); border-color:rgba(76,175,125,0.4); background:rgba(76,175,125,0.07); }
+  .qn .cd.on { color:var(--blue); border-color:rgba(107,140,218,0.4); background:rgba(107,140,218,0.07); }
 
   .card-stats-row {
     position: relative; z-index: 1;
@@ -578,6 +583,16 @@
     color: var(--ink-dim);
     letter-spacing: 0.04em;
   }
+  .mobile-btn-days {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+  .mobile-btn.ms .mobile-btn-days { color: rgba(212,168,75,0.7); }
+  .mobile-btn.lf .mobile-btn-days { color: rgba(76,175,125,0.7); }
+  .mobile-btn.qn .mobile-btn-days { color: rgba(107,140,218,0.7); }
   .mobile-btn-right {
     display: flex;
     flex-direction: column;
@@ -1541,6 +1556,7 @@
       <div class="mobile-btn-left">
         <div class="mobile-btn-name">Mega-Sena</div>
         <div class="mobile-btn-desc">1–60 · aposta mínima R$ 6,00</div>
+        <div class="mobile-btn-days">Ter · Qui · Sáb</div>
       </div>
       <div class="mobile-btn-right">
         <div class="mobile-premio" id="ms-mobile-premio" style="display:none">
@@ -1566,6 +1582,7 @@
       <div class="mobile-btn-left">
         <div class="mobile-btn-name">Lotofácil</div>
         <div class="mobile-btn-desc">1–25 · aposta mínima R$ 3,00</div>
+        <div class="mobile-btn-days">Seg · Ter · Qua · Qui · Sex · Sáb</div>
       </div>
       <div class="mobile-btn-right">
         <div class="mobile-premio" id="lf-mobile-premio" style="display:none">
@@ -1591,6 +1608,7 @@
       <div class="mobile-btn-left">
         <div class="mobile-btn-name">Quina</div>
         <div class="mobile-btn-desc">1–80 · aposta mínima R$ 2,00</div>
+        <div class="mobile-btn-days">Seg · Ter · Qua · Qui · Sex · Sáb</div>
       </div>
       <div class="mobile-btn-right">
         <div class="mobile-premio" id="qn-mobile-premio" style="display:none">
@@ -1734,6 +1752,10 @@
       <div class="card-tag">⬡ Mega-Sena</div>
       <h2 class="card-title">Mega <em>·</em><br>Sena</h2>
       <div class="card-sub" id="ms-card-sub">1996–hoje · 3.009 concursos</div>
+      <div class="card-days">
+        <span class="cd">Seg</span><span class="cd on">Ter</span><span class="cd">Qua</span>
+        <span class="cd on">Qui</span><span class="cd">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinações</div>
@@ -1771,6 +1793,10 @@
       <div class="card-tag">⬡ Lotofácil</div>
       <h2 class="card-title">Loto<em>fácil</em></h2>
       <div class="card-sub" id="lf-card-sub">2003–hoje · 3.690 concursos</div>
+      <div class="card-days">
+        <span class="cd on">Seg</span><span class="cd on">Ter</span><span class="cd on">Qua</span>
+        <span class="cd on">Qui</span><span class="cd on">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinações</div>
@@ -1810,6 +1836,10 @@
       <div class="card-tag">&#x2B21; Quina</div>
       <h2 class="card-title">Qui<em>na</em></h2>
       <div class="card-sub" id="qn-card-sub">1994&ndash;hoje &middot; 7.031 concursos</div>
+      <div class="card-days">
+        <span class="cd on">Seg</span><span class="cd on">Ter</span><span class="cd on">Qua</span>
+        <span class="cd on">Qui</span><span class="cd on">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinacoes</div>
