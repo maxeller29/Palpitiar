@@ -45,12 +45,13 @@ const LOTERIAS = [
 // ─── SUPABASE (idêntico ao lotoia-db.js) ─────────────────────────────────────
 
 const sb = {
-  async req(method, table, body = null, params = '') {
+  async req(method, table, body = null, params = '', extraHeaders = {}) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${params}`;
     const h = {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
+      ...extraHeaders,
     };
     if (method === 'POST' || method === 'PATCH') h['Prefer'] = 'return=representation';
     const res = await fetch(url, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
@@ -62,6 +63,28 @@ const sb = {
   select: (t, p='') => sb.req('GET',    t, null, p),
   update: (t, d, p) => sb.req('PATCH',  t, d, p),
   delete: (t, p)    => sb.req('DELETE', t, null, p),
+
+  // O Supabase REST (PostgREST) retorna no máximo 1000 linhas por padrão, mesmo sem LIMIT
+  // explícito. Sempre que uma consulta pode ter mais de 1000 linhas (como pendentes de um
+  // concurso com alto volume), é preciso paginar com o header Range — do contrário, o
+  // restante fica invisível para o script silenciosamente (sem erro, só menos linhas).
+  async selectAll(table, params = '') {
+    const PAGE = 1000;
+    let all = [];
+    let from = 0;
+    while (true) {
+      const to = from + PAGE - 1;
+      const page = await sb.req('GET', table, null, params, {
+        'Range-Unit': 'items',
+        'Range': `${from}-${to}`,
+      });
+      if (!Array.isArray(page) || page.length === 0) break;
+      all = all.concat(page);
+      if (page.length < PAGE) break; // última página
+      from += PAGE;
+    }
+    return all;
+  },
 };
 
 // ─── BUSCAR RESULTADO (idêntico ao lotoia-db.js — acesso direto à Caixa) ─────
@@ -192,42 +215,51 @@ async function conferirConcurso(loteria, concurso) {
     }]).catch(() => {});
   }
 
-  // Busca pendentes deste concurso
-  const pendentes = await sb.select('combinacoes',
-    `?loteria=eq.${loteria}&concurso=eq.${concurso}&status=eq.pendente`
-  );
-  if (!pendentes?.length) {
-    return { concurso: resultado.concurso || concurso, dezenas: resultado.dezenas,
-             conferidas: 0, premiadas: 0, deletadas: 0, detalhes: [] };
-  }
-
-  let premiadas = 0, deletadas = 0;
+  // Confere em blocos: busca uma leva de pendentes (o Supabase REST limita a 1000 por
+  // consulta), confere e apaga/premia essa leva, e volta a buscar — repetindo até não
+  // haver mais pendentes deste concurso. Assim não há limite prático de quantas
+  // combinações um único concurso pode ter.
+  let totalConferidas = 0, premiadas = 0, deletadas = 0;
   const detalhes = [];
+  let rodada = 0;
 
-  for (const comb of pendentes) {
-    const { acertos, faixa, premiado } = calcularFaixa(loteria, comb.dezenas, resultado.dezenas);
-    if (premiado) {
-      const valor = obterValorPremio(loteria, faixa, resultado.rateio);
-      await sb.update('combinacoes', {
-        status: 'premiada',
-        faixa_premiada: faixa,
-        acertos,
-        valor_premio: valor,
-        concurso_sorteado: resultado.concurso || concurso,
-        resultado_sorteio: resultado.dezenas,
-        conferido_em: new Date().toISOString(),
-      }, `?id=eq.${comb.id}`);
-      premiadas++;
-      detalhes.push({ id: comb.id, faixa, acertos, valor });
-    } else {
-      await sb.delete('combinacoes', `?id=eq.${comb.id}`);
-      deletadas++;
+  while (true) {
+    const pendentes = await sb.select('combinacoes',
+      `?loteria=eq.${loteria}&concurso=eq.${concurso}&status=eq.pendente`
+    );
+    if (!pendentes?.length) break;
+    rodada++;
+
+    for (const comb of pendentes) {
+      const { acertos, faixa, premiado } = calcularFaixa(loteria, comb.dezenas, resultado.dezenas);
+      if (premiado) {
+        const valor = obterValorPremio(loteria, faixa, resultado.rateio);
+        await sb.update('combinacoes', {
+          status: 'premiada',
+          faixa_premiada: faixa,
+          acertos,
+          valor_premio: valor,
+          concurso_sorteado: resultado.concurso || concurso,
+          resultado_sorteio: resultado.dezenas,
+          conferido_em: new Date().toISOString(),
+        }, `?id=eq.${comb.id}`);
+        premiadas++;
+        detalhes.push({ id: comb.id, faixa, acertos, valor });
+      } else {
+        await sb.delete('combinacoes', `?id=eq.${comb.id}`);
+        deletadas++;
+      }
     }
+
+    totalConferidas += pendentes.length;
+    log(`      bloco ${rodada}: ${pendentes.length} conferidas nesta leva (total até agora: ${totalConferidas})`);
+
+    if (pendentes.length < 1000) break; // leva incompleta = última leva
   }
 
   // Atualiza totais no sorteio_conferido
   await sb.update('sorteios_conferidos',
-    { total_combinacoes: pendentes.length, total_premiadas: premiadas, total_deletadas: deletadas },
+    { total_combinacoes: totalConferidas, total_premiadas: premiadas, total_deletadas: deletadas },
     `?loteria=eq.${loteria}&concurso=eq.${concurso}`
   ).catch(() => {});
 
@@ -237,7 +269,7 @@ async function conferirConcurso(loteria, concurso) {
   return {
     concurso: resultado.concurso || concurso,
     dezenas: resultado.dezenas,
-    conferidas: pendentes.length,
+    conferidas: totalConferidas,
     premiadas,
     deletadas,
     detalhes,
@@ -264,66 +296,74 @@ async function conferirConcursoDuplaSena(concurso) {
     }]).catch(() => {});
   }
 
-  const pendentes = await sb.select('combinacoes',
-    `?loteria=eq.dupla-sena&concurso=eq.${concurso}&status=eq.pendente`
-  );
-  if (!pendentes?.length) {
-    return { concurso: resultado.concurso || concurso, dezenas: resultado.dezenas1,
-             conferidas: 0, premiadas: 0, deletadas: 0, detalhes: [] };
-  }
-
-  let premiadas = 0, deletadas = 0;
+  // Confere em blocos (mesmo motivo do conferirConcurso): repete até não haver mais
+  // pendentes deste concurso, sem depender de trazer tudo de uma vez.
+  let totalConferidas = 0, premiadas = 0, deletadas = 0;
   const detalhes = [];
+  let rodada = 0;
 
-  for (const comb of pendentes) {
-    const r1 = calcularFaixa('dupla-sena', comb.dezenas, resultado.dezenas1);
-    const r2 = calcularFaixa('dupla-sena', comb.dezenas, resultado.dezenas2);
-    const v1 = r1.premiado ? (obterValorPremio('dupla-sena', r1.faixa, resultado.rateio1) || 0) : 0;
-    const v2 = r2.premiado ? (obterValorPremio('dupla-sena', r2.faixa, resultado.rateio2) || 0) : 0;
+  while (true) {
+    const pendentes = await sb.select('combinacoes',
+      `?loteria=eq.dupla-sena&concurso=eq.${concurso}&status=eq.pendente`
+    );
+    if (!pendentes?.length) break;
+    rodada++;
 
-    if (r1.premiado || r2.premiado) {
-      const partes = [];
-      if (r1.premiado) partes.push(`${r1.faixa} (1º sorteio, ${r1.acertos} acertos)`);
-      if (r2.premiado) partes.push(`${r2.faixa} (2º sorteio, ${r2.acertos} acertos)`);
-      const faixaTexto = partes.join(' + ');
-      const acertosMax = Math.max(r1.acertos, r2.acertos);
-      const valorTotal = v1 + v2;
+    for (const comb of pendentes) {
+      const r1 = calcularFaixa('dupla-sena', comb.dezenas, resultado.dezenas1);
+      const r2 = calcularFaixa('dupla-sena', comb.dezenas, resultado.dezenas2);
+      const v1 = r1.premiado ? (obterValorPremio('dupla-sena', r1.faixa, resultado.rateio1) || 0) : 0;
+      const v2 = r2.premiado ? (obterValorPremio('dupla-sena', r2.faixa, resultado.rateio2) || 0) : 0;
 
-      await sb.update('combinacoes', {
-        status: 'premiada',
-        faixa_premiada: faixaTexto,
-        acertos: acertosMax,
-        valor_premio: valorTotal,
-        concurso_sorteado: resultado.concurso || concurso,
-        resultado_sorteio: resultado.dezenas1,
-        resultado_sorteio_2: resultado.dezenas2,
-        conferido_em: new Date().toISOString(),
-      }, `?id=eq.${comb.id}`).catch(async (e) => {
-        // Caso a coluna resultado_sorteio_2 não exista ainda na tabela, tenta sem ela.
-        if (String(e.message).includes('resultado_sorteio_2')) {
-          await sb.update('combinacoes', {
-            status: 'premiada',
-            faixa_premiada: faixaTexto,
-            acertos: acertosMax,
-            valor_premio: valorTotal,
-            concurso_sorteado: resultado.concurso || concurso,
-            resultado_sorteio: resultado.dezenas1,
-            conferido_em: new Date().toISOString(),
-          }, `?id=eq.${comb.id}`);
-        } else {
-          throw e;
-        }
-      });
-      premiadas++;
-      detalhes.push({ id: comb.id, faixa: (r1.premiado ? r1.faixa : r2.faixa), acertos: acertosMax, valor: valorTotal });
-    } else {
-      await sb.delete('combinacoes', `?id=eq.${comb.id}`);
-      deletadas++;
+      if (r1.premiado || r2.premiado) {
+        const partes = [];
+        if (r1.premiado) partes.push(`${r1.faixa} (1º sorteio, ${r1.acertos} acertos)`);
+        if (r2.premiado) partes.push(`${r2.faixa} (2º sorteio, ${r2.acertos} acertos)`);
+        const faixaTexto = partes.join(' + ');
+        const acertosMax = Math.max(r1.acertos, r2.acertos);
+        const valorTotal = v1 + v2;
+
+        await sb.update('combinacoes', {
+          status: 'premiada',
+          faixa_premiada: faixaTexto,
+          acertos: acertosMax,
+          valor_premio: valorTotal,
+          concurso_sorteado: resultado.concurso || concurso,
+          resultado_sorteio: resultado.dezenas1,
+          resultado_sorteio_2: resultado.dezenas2,
+          conferido_em: new Date().toISOString(),
+        }, `?id=eq.${comb.id}`).catch(async (e) => {
+          // Caso a coluna resultado_sorteio_2 não exista ainda na tabela, tenta sem ela.
+          if (String(e.message).includes('resultado_sorteio_2')) {
+            await sb.update('combinacoes', {
+              status: 'premiada',
+              faixa_premiada: faixaTexto,
+              acertos: acertosMax,
+              valor_premio: valorTotal,
+              concurso_sorteado: resultado.concurso || concurso,
+              resultado_sorteio: resultado.dezenas1,
+              conferido_em: new Date().toISOString(),
+            }, `?id=eq.${comb.id}`);
+          } else {
+            throw e;
+          }
+        });
+        premiadas++;
+        detalhes.push({ id: comb.id, faixa: (r1.premiado ? r1.faixa : r2.faixa), acertos: acertosMax, valor: valorTotal });
+      } else {
+        await sb.delete('combinacoes', `?id=eq.${comb.id}`);
+        deletadas++;
+      }
     }
+
+    totalConferidas += pendentes.length;
+    log(`      bloco ${rodada}: ${pendentes.length} conferidas nesta leva (total até agora: ${totalConferidas})`);
+
+    if (pendentes.length < 1000) break; // leva incompleta = última leva
   }
 
   await sb.update('sorteios_conferidos',
-    { total_combinacoes: pendentes.length, total_premiadas: premiadas, total_deletadas: deletadas },
+    { total_combinacoes: totalConferidas, total_premiadas: premiadas, total_deletadas: deletadas },
     `?loteria=eq.dupla-sena&concurso=eq.${concurso}`
   ).catch(() => {});
 
@@ -332,7 +372,7 @@ async function conferirConcursoDuplaSena(concurso) {
   return {
     concurso: resultado.concurso || concurso,
     dezenas: resultado.dezenas1,
-    conferidas: pendentes.length,
+    conferidas: totalConferidas,
     premiadas,
     deletadas,
     detalhes,
@@ -372,8 +412,8 @@ async function atualizarResumoPorFaixa(detalhes, loteria) {
 async function conferirLoteria(loteria) {
   log(`\n▶ Iniciando conferência: ${loteria.nome}`);
 
-  // Busca todos os concursos distintos com pendentes
-  const pendentes = await sb.select('combinacoes',
+  // Busca todos os concursos distintos com pendentes (paginado — pode passar de 1000 linhas)
+  const pendentes = await sb.selectAll('combinacoes',
     `?loteria=eq.${loteria.id}&status=eq.pendente&select=concurso`
   );
 
@@ -409,8 +449,8 @@ async function conferirLoteria(loteria) {
     await sleep(600); // pausa entre concursos (igual ao lotoia-db.js)
   }
 
-  // Recontagem final
-  const restantes = await sb.select('combinacoes',
+  // Recontagem final (paginado — pode passar de 1000 linhas)
+  const restantes = await sb.selectAll('combinacoes',
     `?loteria=eq.${loteria.id}&status=eq.pendente&select=id`
   );
   const final = restantes?.length || 0;
