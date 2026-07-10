@@ -615,7 +615,7 @@
         <label for="combos">Cartões</label>
         <div class="num-input">
           <button type="button" id="combosDown">−</button>
-          <input id="combos" type="number" min="1" max="20" value="5" readonly>
+          <input id="combos" type="number" min="1" max="50" value="5">
           <button type="button" id="combosUp">+</button>
         </div>
         <div class="hint" id="combosHint">5 cartões</div>
@@ -624,7 +624,7 @@
         <label for="dezenas">Dezenas por cartão</label>
         <div class="num-input">
           <button type="button" id="dezenasDown">−</button>
-          <input id="dezenas" type="number" min="6" max="15" value="6" readonly>
+          <input id="dezenas" type="number" min="6" max="15" value="6">
           <button type="button" id="dezenasUp">+</button>
         </div>
         <div class="hint" id="dezenasHint">6 dezenas · 2 jogos/cartão · R$ 5,00</div>
@@ -636,17 +636,17 @@
       <div class="prob-cell highlight">
         <div class="prob-label">Sena (6 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probSena">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probSenaMeta">prob. por cartão</div>
       </div>
       <div class="prob-cell">
         <div class="prob-label">Quina (5 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probQuina">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probQuinaMeta">prob. por cartão</div>
       </div>
       <div class="prob-cell">
         <div class="prob-label">Quadra (4 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probQuadra">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probQuadraMeta">prob. por cartão</div>
       </div>
     </div>
 
@@ -663,7 +663,7 @@
           <label>Cotas no bolão</label>
           <div class="num-input compact">
             <button type="button" id="cotasDown">−</button>
-            <input id="cotas" type="number" min="2" max="100" value="2" readonly>
+            <input id="cotas" type="number" min="2" max="100" value="2">
             <button type="button" id="cotasUp">+</button>
           </div>
         </div>
@@ -671,12 +671,12 @@
       </div>
     </div>
 
-    <div id="adMid" class="ad-slot empty"></div>
-
-    <div class="cost-bar" id="costBar" style="display:none">
+    <div class="cost-bar" id="costBar">
       <div class="breakdown" id="costBreakdown"></div>
-      <div class="total">Investimento<strong id="costTotal">R$ 0,00</strong></div>
+      <div class="total">Valor total da aposta<strong id="costTotal">R$ 0,00</strong></div>
     </div>
+
+    <div id="adMid" class="ad-slot empty"></div>
 
     <div class="results" id="resultsSection" style="display:none">
       <div class="results-header">
@@ -923,6 +923,7 @@ function iniciarApp(json) {
   atualizarDeAPI();
   atualizarProbabilidades();
   atualizarBolao();
+  updateCostBar();
   autoTrigger();
 }
 
@@ -963,17 +964,30 @@ async function atualizarDeAPI() {
 /* ===== PROBABILIDADES ===== */
 function atualizarProbabilidades() {
   const k = dezPorCartao;
-  const pSena   = probAtLeastOne(probK(k, 6, 50, 6));
-  const pQuina  = probAtLeastOne(probK(k, 6, 50, 5));
-  const pQuadra = probAtLeastOne(probK(k, 6, 50, 4));
+  const numCards = parseInt($('combos').value, 10) || 1;
+
+  // Probabilidade de UM cartão (já considerando os 2 sorteios independentes)
+  const pSenaCard   = probAtLeastOne(probK(k, 6, 50, 6));
+  const pQuinaCard  = probAtLeastOne(probK(k, 6, 50, 5));
+  const pQuadraCard = probAtLeastOne(probK(k, 6, 50, 4));
+
+  // Combinando N cartões: 1 - (1 - p)^N
+  const pSena   = 1 - Math.pow(1 - pSenaCard,   numCards);
+  const pQuina  = 1 - Math.pow(1 - pQuinaCard,  numCards);
+  const pQuadra = 1 - Math.pow(1 - pQuadraCard, numCards);
+
   function fmt(p) {
     if (p === 0) return '<strong>0</strong>';
     const inv = Math.round(1 / p);
     return `1 em <strong>${inv.toLocaleString('pt-BR')}</strong>`;
   }
+  const meta = `${numCards} cartão${numCards > 1 ? 'ões' : ''} de ${k} dezena${k > 1 ? 's' : ''}`;
   $('probSena').innerHTML   = fmt(pSena);
+  $('probSenaMeta').textContent = meta;
   $('probQuina').innerHTML  = fmt(pQuina);
+  $('probQuinaMeta').textContent = meta;
   $('probQuadra').innerHTML = fmt(pQuadra);
+  $('probQuadraMeta').textContent = meta;
 }
 
 /* ===== ANÁLISE ESTATÍSTICA ===== */
@@ -1166,7 +1180,7 @@ async function gerarComOverlay(qtd, strat) {
     lastCartoes = seqs;
     renderCartoes(seqs, qtd);
     renderReport(seqs, analiseData, qtd);
-    renderCostBar(seqs, qtd);
+    updateCostBar();
     $('saveSection').style.display = '';
     // Salvamento automático (mesmo padrão das demais loterias): não depende mais do clique manual.
     aguardarDB(() => salvarCombinacoes());
@@ -1176,15 +1190,16 @@ async function gerarComOverlay(qtd, strat) {
   }
 }
 
-function renderCostBar(seqs, numCards) {
+function updateCostBar() {
+  const numCards = parseInt($('combos').value, 10) || 0;
   const k = dezPorCartao;
   const jogosPorSeq = comb(k, 6);
-  const totalJogos = seqs.length * jogosPorSeq;
+  const totalJogos = numCards * 2 * jogosPorSeq;
   const totalCusto = totalJogos * PRICE_TICKET;
   $('costBreakdown').innerHTML =
-    `${numCards} cartão${numCards > 1 ? 's' : ''} × ${jogosPorSeq * 2} jogo${jogosPorSeq * 2 > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo`;
+    `${numCards} cartão${numCards > 1 ? 's' : ''} × ${jogosPorSeq * 2} jogo${jogosPorSeq * 2 > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo<br>` +
+    `cada cartão de ${k} dezenas equivale a ${jogosPorSeq} jogos simples por sorteio (2 sorteios)`;
   $('costTotal').textContent = fmtBRL(totalCusto);
-  $('costBar').style.display = '';
 }
 
 /* ===== BOLÃO ===== */
@@ -1251,6 +1266,8 @@ function bindNumInput(downId, upId, inputId, min, max, onChange) {
   $(upId).addEventListener('click', inc);
 }
 
+function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
 function atualizarHintDezenas(k) {
   const jogos = comb(k, 6);
   const custo = fmtBRL(jogos * 2 * PRICE_TICKET);
@@ -1260,7 +1277,7 @@ function atualizarHintDezenas(k) {
 function autoTrigger() {
   const params = new URLSearchParams(window.location.search);
   if (!params.get('autogerar')) return;
-  const combos = Math.min(20, Math.max(1, parseInt(params.get('combos')) || 5));
+  const combos = Math.min(50, Math.max(1, parseInt(params.get('combos')) || 5));
   const dez    = Math.min(DEZ_MAX, Math.max(DEZ_MIN, parseInt(params.get('dezenas')) || 6));
   $('combos').value  = combos;
   $('combosHint').textContent = `${combos} cartão${combos > 1 ? 's' : ''}`;
@@ -1295,15 +1312,18 @@ function fecharSheet() {
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   // controles principais
-  bindNumInput('combosDown', 'combosUp', 'combos', 1, 20, v => {
+  bindNumInput('combosDown', 'combosUp', 'combos', 1, 50, v => {
     $('combosHint').textContent = `${v} cartão${v > 1 ? 's' : ''}`;
+    atualizarProbabilidades();
     atualizarBolao();
+    updateCostBar();
   });
   bindNumInput('dezenasDown', 'dezenasUp', 'dezenas', DEZ_MIN, DEZ_MAX, v => {
     dezPorCartao = v;
     atualizarHintDezenas(v);
     atualizarProbabilidades();
     atualizarBolao();
+    updateCostBar();
   });
 
   // estratégias
@@ -1313,6 +1333,33 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       estrategia = btn.dataset.strat;
     });
+  });
+
+  // permite digitar diretamente nos campos numéricos (cartões e dezenas)
+  document.getElementById('combos').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || 1, 1, 50);
+    $('combosHint').textContent = `${el.value} cartão${el.value > 1 ? 's' : ''}`;
+    atualizarProbabilidades();
+    atualizarBolao();
+    updateCostBar();
+  });
+  document.getElementById('dezenas').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || DEZ_MIN, DEZ_MIN, DEZ_MAX);
+    dezPorCartao = parseInt(el.value, 10);
+    atualizarHintDezenas(dezPorCartao);
+    atualizarProbabilidades();
+    atualizarBolao();
+    updateCostBar();
+  });
+  document.getElementById('cotas').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || 2, 2, 100);
+    atualizarBolao();
   });
 
   // gerar
@@ -1326,7 +1373,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btnClear').addEventListener('click', () => {
     $('cardsGrid').innerHTML = '';
     $('resultsSection').style.display = 'none';
-    $('costBar').style.display = 'none';
     $('reportSection').classList.remove('show');
     $('saveSection').style.display = 'none';
     lastCartoes = [];
@@ -1351,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const qgCombosDown = $('qgCombosDown'), qgCombosUp = $('qgCombosUp');
   const qgDezDown = $('qgDezDown'), qgDezUp = $('qgDezUp');
   qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
-  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 20) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
+  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 50) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
   qgDezDown.addEventListener('click',    () => { if (qgDez > DEZ_MIN) { qgDez--; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
   qgDezUp.addEventListener('click',      () => { if (qgDez < DEZ_MAX) { qgDez++; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
 
