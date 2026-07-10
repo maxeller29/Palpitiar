@@ -328,6 +328,11 @@
   .ms .cd.on { color:var(--gold); border-color:rgba(212,168,75,0.4); background:rgba(212,168,75,0.07); }
   .lf .cd.on { color:var(--green); border-color:rgba(76,175,125,0.4); background:rgba(76,175,125,0.07); }
   .qn .cd.on { color:var(--blue); border-color:rgba(107,140,218,0.4); background:rgba(107,140,218,0.07); }
+  .lm .cd.on { color:#e87722; border-color:rgba(232,119,34,0.4); background:rgba(232,119,34,0.07); }
+  .ds .cd.on { color:#00b4cc; border-color:rgba(0,180,204,0.4); background:rgba(0,180,204,0.07); }
+  .tm .cd.on { color:#7cb300; border-color:rgba(124,179,0,0.4); background:rgba(124,179,0,0.07); }
+  .dds .cd.on { color:#c4406e; border-color:rgba(196,64,110,0.4); background:rgba(196,64,110,0.07); }
+  .ml .cd.on { color:#9333ea; border-color:rgba(147,51,234,0.4); background:rgba(147,51,234,0.07); }
 
   .card-stats-row {
     position: relative; z-index: 1;
@@ -1484,6 +1489,7 @@
     </a>
     <a class="mhg-tile mhg-ml" href="milionaria.html">
       <div class="mhg-name">MILIONÁRIA</div>
+      <div class="mhg-days">Qua · Sáb</div>
       <div class="mhg-concurso" id="mhg-ml-concurso">Concurso —</div>
       <div class="mhg-premio" id="mhg-ml-premio">—</div>
       <button class="mobile-gen-btn"
@@ -1495,6 +1501,7 @@
     </a>
     <a class="mhg-tile mhg-ds" href="dupla-sena.html">
       <div class="mhg-name">DUPLA SENA</div>
+      <div class="mhg-days">Seg · Qua · Sex</div>
       <div class="mhg-concurso" id="mhg-ds-concurso">Concurso —</div>
       <div class="mhg-premio" id="mhg-ds-premio">2 sorteios · R$ 2,50</div>
       <button class="mobile-gen-btn"
@@ -1506,6 +1513,7 @@
     </a>
     <a class="mhg-tile mhg-lm" href="lotomania.html">
       <div class="mhg-name">LOTOMANIA</div>
+      <div class="mhg-days">Seg · Qua · Sex</div>
       <div class="mhg-concurso" id="mhg-lm-concurso">Concurso —</div>
       <div class="mhg-premio" id="mhg-lm-premio">50 dezenas · R$ 3,00</div>
       <button class="mobile-gen-btn"
@@ -1517,6 +1525,7 @@
     </a>
     <a class="mhg-tile mhg-tm" href="timemania.html">
       <div class="mhg-name">TIMEMANIA</div>
+      <div class="mhg-days">Ter · Qui · Sáb</div>
       <div class="mhg-concurso" id="mhg-tm-concurso">Concurso —</div>
       <div class="mhg-premio" id="mhg-tm-premio">10 dezenas · R$ 3,50</div>
       <button class="mobile-gen-btn"
@@ -1528,6 +1537,7 @@
     </a>
     <a class="mhg-tile mhg-dds" href="diadesorte.html">
       <div class="mhg-name">DIA DE SORTE</div>
+      <div class="mhg-days">Seg · Ter · Qua · Qui · Sex · Sáb</div>
       <div class="mhg-concurso" id="mhg-dds-concurso">Concurso —</div>
       <div class="mhg-premio" id="mhg-dds-premio">7 dezenas · R$ 2,50</div>
       <button class="mobile-gen-btn"
@@ -1888,6 +1898,10 @@
       <div class="card-tag">◎ Lotomania</div>
       <h2 class="card-title">Loto<em>mania</em></h2>
       <div class="card-sub" id="lm-card-sub">1999&ndash;hoje &middot; 2.900+ concursos</div>
+      <div class="card-days">
+        <span class="cd on">Seg</span><span class="cd">Ter</span><span class="cd on">Qua</span>
+        <span class="cd">Qui</span><span class="cd on">Sex</span><span class="cd">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Combinacoes</div>
@@ -1925,6 +1939,10 @@
       <div class="card-tag">◑ Dupla Sena</div>
       <h2 class="card-title">Dupla<em>Sena</em></h2>
       <div class="card-sub" id="ds-card-sub">2001&ndash;hoje &middot; 2.900+ concursos</div>
+      <div class="card-days">
+        <span class="cd on">Seg</span><span class="cd">Ter</span><span class="cd on">Qua</span>
+        <span class="cd">Qui</span><span class="cd on">Sex</span><span class="cd">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Sorteios</div>
@@ -1962,6 +1980,10 @@
       <div class="card-tag">⏱ Timemania</div>
       <h2 class="card-title">Time<em>mania</em></h2>
       <div class="card-sub" id="tm-card-sub">2008&ndash;hoje &middot; 2.000+ concursos</div>
+      <div class="card-days">
+        <span class="cd">Seg</span><span class="cd on">Ter</span><span class="cd">Qua</span>
+        <span class="cd on">Qui</span><span class="cd">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Aposta min.</div>
@@ -1999,6 +2021,10 @@
       <div class="card-tag">🌸 Dia de Sorte</div>
       <h2 class="card-title">Dia de <em>Sorte</em></h2>
       <div class="card-sub" id="dds-card-sub">2018&ndash;hoje &middot; 1.200+ concursos</div>
+      <div class="card-days">
+        <span class="cd on">Seg</span><span class="cd on">Ter</span><span class="cd on">Qua</span>
+        <span class="cd on">Qui</span><span class="cd on">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Aposta min.</div>
@@ -2036,6 +2062,10 @@
       <div class="card-tag">💎 Milionária</div>
       <h2 class="card-title">Milion<em>ária</em></h2>
       <div class="card-sub" id="ml-card-sub">2022&ndash;hoje &middot; 200+ concursos</div>
+      <div class="card-days">
+        <span class="cd">Seg</span><span class="cd">Ter</span><span class="cd on">Qua</span>
+        <span class="cd">Qui</span><span class="cd">Sex</span><span class="cd on">Sáb</span><span class="cd">Dom</span>
+      </div>
       <div class="card-stats-row">
         <div class="cs">
           <div class="cs-label">Aposta min.</div>
