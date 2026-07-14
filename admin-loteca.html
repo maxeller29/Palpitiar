@@ -1008,15 +1008,17 @@ function toSlug(str) {
 }
 
 function inferirCompeticaoHtml(nomeUm, nomeDois) {
-  const all = (nomeUm + ' ' + nomeDois).toUpperCase();
-  // Nomes sem estado = seleção nacional
+  // Times com /UF no nome = clube brasileiro; sem sufixo = seleção nacional
   const temEstado = s => /\/[A-Z]{2}$/.test(s);
-  if (!temEstado(nomeUm) && !temEstado(nomeDois)) return 'Seleções';
-  const estaduais = ['BA','RJ','SP','MG','RS','SC','PR','CE','PE','AL','GO','MT','ES','RN','PB','MA','PA','AM','DF'];
-  const ufUm   = (nomeUm.match(/\/([A-Z]{2})$/)   || [])[1];
-  const ufDois = (nomeDois.match(/\/([A-Z]{2})$/) || [])[1];
-  // Heurística simples — será ajustável no admin
-  return 'Campeonato Brasileiro';
+  const ehClube = temEstado(nomeUm) && temEstado(nomeDois);
+  if (!ehClube) return 'Copa da Loteca 2026';  // seleções ou misto
+  // Clubes conhecidos da Série A para inferência de nível
+  const SERIE_A = ['ATLETICO/MG','FLAMENGO/RJ','PALMEIRAS/SP','CORINTHIANS/SP','SAO PAULO/SP',
+    'FLUMINENSE/RJ','BOTAFOGO/RJ','VASCO DA GAMA/RJ','INTERNACIONAL/RS','GREMIO/RS',
+    'ATLETICO/PR','CRUZEIRO/MG','BAHIA/BA','FORTALEZA/CE','SPORT/PE','BRAGANTINO/SP',
+    'MIRASSOL/SP','AMERICA/MG','VITORIA/BA','SANTOS/SP','CEARA/CE'];
+  const emA = SERIE_A.includes(nomeUm) || SERIE_A.includes(nomeDois);
+  return emA ? 'Campeonato Brasileiro Série A' : 'Campeonato Brasileiro';
 }
 
 async function upsertTimeHtml(nome) {
@@ -1056,9 +1058,11 @@ function importarDeHTML(input) {
       if (!mNum) return toast('Nº do concurso não encontrado no HTML', 'err');
       const numero = parseInt(mNum[1], 10);
 
-      // Data (encerramento usado como proxy do sorteio)
+      // Data de encerramento (o sorteio ocorre após — admin deve corrigir)
       const mData = html.match(/Encerramento das Apostas[:\s]*(\d{2}\/\d{2}\/\d{4})/i);
-      const dataSorteio = mData ? parseDateBR(mData[1]) : null;
+      const dataEncerramento = mData ? parseDateBR(mData[1]) : null;
+      // Usa a data de encerramento como estimativa do dia do sorteio (mesmo dia, hora posterior)
+      const dataSorteio = dataEncerramento;
 
       // Tabela de jogos
       const tableStart = html.indexOf('tab-apostas tab-loteca');
