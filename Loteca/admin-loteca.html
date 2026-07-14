@@ -761,11 +761,25 @@ function processarHtmlConcurso(file) {
       const temTabela = html.indexOf('tab-apostas') >= 0;
       const temTbody  = html.indexOf('</tbody>') >= 0;
       const jogosDetectados = parseGradeHtmlCaixa(html);
+
+      // Extrair número do concurso
+      const mNum = html.match(/Concurso\s+n[º°o]?\s*(\d{4})/i);
+      if (mNum && !document.getElementById('ncpNumero').value) {
+        document.getElementById('ncpNumero').value = mNum[1];
+      }
+
+      // Extrair data de encerramento e converter para data do sorteio (mesmo dia)
+      const mData = html.match(/Encerramento das Apostas[:\s]*(\d{2})\/(\d{2})\/(\d{4})/i);
+      if (mData) {
+        const iso = `${mData[3]}-${mData[2]}-${mData[1]}`;
+        document.getElementById('ncpData').value = iso;
+      }
+
       if (jogosDetectados.length > 0) {
         document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
         msg.textContent = `✓ ${jogosDetectados.length} confronto(s) extraído(s) do HTML — revise antes de criar`;
       } else {
-        msg.textContent = `⚠ Grade não encontrada (tab-apostas: ${temTabela}, tbody: ${temTbody}) — tamanho do arquivo: ${(html.length/1024).toFixed(0)}KB`;
+        msg.textContent = `⚠ Grade não encontrada (tab-apostas: ${temTabela}, tbody: ${temTbody}) — tamanho: ${(html.length/1024).toFixed(0)}KB`;
       }
       atualizarContagemNCP();
     } catch (err) {

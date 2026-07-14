@@ -196,7 +196,39 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;}
   .conc-list{max-height:240px;}
+  .popup-box.wide{width:92vw;}
+  .ncp-grid{grid-template-columns:1fr;}
 }
+
+/* POPUP OVERLAY */
+.popup-ov{position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;}
+.popup-ov.show{display:flex;}
+
+/* NOVO CONCURSO VIA PRINT */
+.popup-box.wide{width:680px;}
+.ncp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.ncp-field{display:flex;flex-direction:column;gap:4px;}
+.ncp-label{font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);}
+.ncp-input{font-family:var(--mono);font-size:12px;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;width:100%;}
+.ncp-input:focus{border-color:var(--amber-border);}
+.ncp-drop{border:1px dashed var(--amber-border);border-radius:4px;padding:18px;text-align:center;cursor:pointer;background:rgba(232,150,58,0.04);transition:all 0.2s;margin-bottom:12px;}
+.ncp-drop:hover{background:rgba(232,150,58,0.08);}
+.ncp-drop.has-img{padding:0;overflow:hidden;}
+.ncp-drop-msg{font-family:var(--mono);font-size:10px;color:var(--ink-dim);letter-spacing:0.06em;}
+.ncp-drop-msg .em{color:var(--amber);}
+.ncp-preview{max-width:100%;max-height:220px;display:block;margin:0 auto;}
+.ncp-ocr-status{font-family:var(--mono);font-size:9px;color:var(--amber);margin:8px 0;display:none;align-items:center;gap:8px;}
+.ncp-ocr-status.show{display:flex;}
+.ncp-ocr-spin{width:11px;height:11px;border-radius:50%;border:2px solid var(--amber-border);border-top-color:var(--amber);animation:spin 0.7s linear infinite;flex-shrink:0;}
+.ncp-textarea{width:100%;font-family:var(--mono);font-size:11px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;resize:vertical;min-height:180px;line-height:1.7;}
+.ncp-textarea:focus{border-color:var(--amber-border);}
+.ncp-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:6px;line-height:1.6;}
+.ncp-count{font-family:var(--mono);font-size:9px;margin-top:6px;}
+.ncp-count.ok{color:var(--emerald);}
+.ncp-count.warn{color:var(--amber);}
+.ncp-popup-h{font-family:var(--display);font-weight:600;font-size:18px;color:var(--ink);margin-bottom:4px;}
+.ncp-popup-sub{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:0.06em;margin-bottom:18px;}
+.ncp-popup-foot{margin-top:14px;display:flex;justify-content:flex-end;gap:8px;}
 </style>
 </head>
 <body>
@@ -205,9 +237,8 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 <div class="admin-header">
   <div class="admin-title">Admin Lote<em>ca</em><span>Painel de Análise · Palpitiar</span></div>
   <div class="admin-actions">
+    <button class="btn btn-amber btn-sm" onclick="abrirPopupNovoConcurso()">📷 Novo concurso (print)</button>
     <a class="btn btn-sm" href="loteca.html" target="_blank">Ver página pública ↗</a>
-    <button class="btn btn-sm btn-amber" onclick="document.getElementById('inputHtmlCaixa').click()">📥 Importar HTML</button>
-    <input type="file" id="inputHtmlCaixa" accept=".html,.htm" style="display:none" onchange="importarDeHTML(this)">
     <button class="btn btn-sm" onclick="trocarChave()">🔑 Trocar chave</button>
   </div>
 </div>
@@ -267,6 +298,58 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 
 <div class="toast" id="toast"></div>
 
+<!-- POPUP NOVO CONCURSO VIA PRINT -->
+<div class="popup-ov" id="popupNovoConcurso">
+  <div class="popup-box wide" style="background:#0f2419;border:1px solid var(--amber-border);border-radius:6px;padding:28px 32px;max-height:90vh;overflow-y:auto;">
+    <div class="ncp-popup-h">📷 Novo Concurso via Print</div>
+    <div class="ncp-popup-sub">Duas formas de preencher a grade: (1) recomendado — salve a página da Caixa com a grade aberta (Ctrl+S → "Página da Web, completa") e envie o .html aqui; (2) suba um print e o OCR tenta ler os confrontos. Revise sempre antes de criar.</div>
+
+    <div id="ncpFormBody">
+    <div class="ncp-grid">
+      <div class="ncp-field">
+        <label class="ncp-label">Número do concurso</label>
+        <input class="ncp-input" type="number" id="ncpNumero" placeholder="Ex.: 1262">
+      </div>
+      <div class="ncp-field">
+        <label class="ncp-label">Data do sorteio</label>
+        <input class="ncp-input" type="date" id="ncpData">
+      </div>
+      <div class="ncp-field" style="grid-column:1 / -1">
+        <label class="ncp-label">Competição (aplicada aos 14 jogos)</label>
+        <input class="ncp-input" type="text" id="ncpCompeticao" value="Copa do Mundo FIFA 2026">
+      </div>
+    </div>
+
+    <div class="ncp-drop" id="ncpDropHtml" onclick="document.getElementById('ncpFileHtml').click()" style="border-color:#4caf7d">
+      <div id="ncpDropHtmlInner">
+        <div class="ncp-drop-msg">✓ <span class="em">Recomendado</span> — clique para enviar o .html salvo da página da Caixa (Ctrl+S → Página da Web, completa)</div>
+      </div>
+      <input type="file" id="ncpFileHtml" accept=".html,.htm,text/html" style="display:none" onchange="onSelecionarHtmlConcurso(event)">
+    </div>
+    <div class="ncp-hint" style="margin:-6px 0 10px">— ou, se não tiver o .html salvo —</div>
+    <div class="ncp-drop" id="ncpDrop" onclick="document.getElementById('ncpFile').click()">
+      <div id="ncpDropInner">
+        <div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>
+      </div>
+      <input type="file" id="ncpFile" accept="image/*" style="display:none" onchange="onSelecionarPrintConcurso(event)">
+    </div>
+    <div class="ncp-ocr-status" id="ncpOcrStatus"><div class="ncp-ocr-spin"></div><span id="ncpOcrMsg">Lendo imagem…</span></div>
+
+    <div class="ncp-field">
+      <label class="ncp-label">Grade de jogos — uma linha por jogo, formato "Time da casa x Time visitante"</label>
+      <textarea class="ncp-textarea" id="ncpTextarea" placeholder="Ex.:&#10;Brasil x Noruega&#10;Canada x Marrocos&#10;Paraguai x Franca&#10;..."></textarea>
+      <div class="ncp-count" id="ncpCount"></div>
+      <div class="ncp-hint">O texto acima vem do OCR (quando a imagem for legível) mas pode ser digitado ou corrigido à mão. A ordem das linhas vira a ordem dos jogos (1 a 14). Linhas sem "x" entre os dois nomes são ignoradas.</div>
+    </div>
+    </div><!-- /ncpFormBody -->
+
+    <div class="ncp-popup-foot" id="ncpFoot">
+      <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
+      <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>
+    </div>
+  </div>
+</div>
+
 <!-- POPUP CALCULAR ANÁLISE -->
 <div class="popup-overlay" id="popupAnalise">
   <div class="popup-box">
@@ -290,6 +373,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"></script>
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://oslvqimllizsdtxwkrag.supabase.co';
@@ -659,7 +743,7 @@ async function carregarConcursos() {
   });
   const list = document.getElementById('concList');
   if (concursos.length === 0) {
-    list.innerHTML = '<div class="empty-msg">Nenhum concurso. Rode o coletor primeiro.</div>';
+    list.innerHTML = '<div class="empty-msg">Nenhum concurso. Rode o coletor ou use "Novo concurso (print)".</div>';
     return;
   }
   list.innerHTML = concursos.map(c => `
@@ -993,137 +1077,404 @@ async function publicar(status) {
   }
 }
 
-// ─── IMPORTAR HTML DA CAIXA ────────────────────────────────────────────────
-function parseDateBR(str) {
-  if (!str) return null;
-  const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  if (!m) return null;
-  return `${m[3]}-${m[2]}-${m[1]}`;
+// ─── NOVO CONCURSO VIA PRINT ───────────────────────────────────────────────
+
+function abrirPopupNovoConcurso() {
+  document.getElementById('ncpNumero').value = '';
+  document.getElementById('ncpData').value = '';
+  document.getElementById('ncpTextarea').value = '';
+  document.getElementById('ncpDropInner').innerHTML =
+    '<div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>';
+  document.getElementById('ncpDrop').classList.remove('has-img');
+  document.getElementById('ncpOcrStatus').classList.remove('show');
+  atualizarContagemNCP();
+  document.getElementById('popupNovoConcurso').classList.add('show');
 }
 
-function toSlug(str) {
-  return str.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function fecharPopupNovoConcurso() {
+  document.getElementById('popupNovoConcurso').classList.remove('show');
+  const formBody = document.getElementById('ncpFormBody');
+  if (formBody) formBody.style.display = '';
+  document.getElementById('ncpFoot').innerHTML = `
+    <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
+    <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>`;
 }
 
-function inferirCompeticaoHtml(nomeUm, nomeDois) {
-  // Times com /UF no nome = clube brasileiro; sem sufixo = seleção nacional
-  const temEstado = s => /\/[A-Z]{2}$/.test(s);
-  const ehClube = temEstado(nomeUm) && temEstado(nomeDois);
-  if (!ehClube) return 'Copa da Loteca 2026';  // seleções ou misto
-  // Clubes conhecidos da Série A para inferência de nível
-  const SERIE_A = ['ATLETICO/MG','FLAMENGO/RJ','PALMEIRAS/SP','CORINTHIANS/SP','SAO PAULO/SP',
-    'FLUMINENSE/RJ','BOTAFOGO/RJ','VASCO DA GAMA/RJ','INTERNACIONAL/RS','GREMIO/RS',
-    'ATLETICO/PR','CRUZEIRO/MG','BAHIA/BA','FORTALEZA/CE','SPORT/PE','BRAGANTINO/SP',
-    'MIRASSOL/SP','AMERICA/MG','VITORIA/BA','SANTOS/SP','CEARA/CE'];
-  const emA = SERIE_A.includes(nomeUm) || SERIE_A.includes(nomeDois);
-  return emA ? 'Campeonato Brasileiro Série A' : 'Campeonato Brasileiro';
-}
-
-async function upsertTimeHtml(nome) {
-  const existing = await sb('GET', 'times_mapeamento', null, { nome_caixa: `eq.${nome}`, select: 'id' });
-  if (existing.length > 0) return existing[0].id;
-  const uf  = (nome.match(/\/([A-Z]{2})$/) || [])[1] || null;
-  const criado = await sb('POST', 'times_mapeamento', {
-    nome_caixa: nome, nome_popular: nome,
-    estado: uf, pais: uf ? 'Brasil' : null,
-    nivel_nacional: 'media', fonte_dados: 'html_caixa', ativo: true,
+(function initNcpDragDrop() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const drop = document.getElementById('ncpDrop');
+    if (!drop) return;
+    ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background='rgba(232,150,58,0.14)'; }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background=''; }));
+    drop.addEventListener('drop', e => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) processarImagemConcurso(file);
+    });
   });
-  return criado[0].id;
+})();
+
+function onSelecionarPrintConcurso(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (file) processarImagemConcurso(file);
 }
 
-async function upsertCompHtml(label) {
-  const slug = toSlug(label);
-  const existing = await sb('GET', 'competicoes_config', null, { slug: `eq.${slug}`, select: 'id' });
-  if (existing.length > 0) return existing[0].id;
-  const criado = await sb('POST', 'competicoes_config', {
+function processarImagemConcurso(file) {
+  if (!file.type.startsWith('image/')) { toast('Escolha um arquivo de imagem', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    document.getElementById('ncpDrop').classList.add('has-img');
+    document.getElementById('ncpDropInner').innerHTML = `<img class="ncp-preview" src="${e.target.result}">`;
+    await rodarOcrConcurso(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function upscaleImagem(dataUrl, escala) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function onSelecionarHtmlConcurso(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (file) processarHtmlConcurso(file);
+}
+
+function processarHtmlConcurso(file) {
+  const nomeOk = /\.html?$/i.test(file.name) || file.type === 'text/html';
+  if (!nomeOk) { toast('Escolha um arquivo .html salvo da página da Caixa', 'err'); return; }
+
+  const status = document.getElementById('ncpOcrStatus');
+  const msg = document.getElementById('ncpOcrMsg');
+  status.classList.add('show');
+  msg.textContent = 'Lendo arquivo HTML…';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const html = e.target.result;
+      const temTabela = html.indexOf('tab-apostas') >= 0;
+      const temTbody  = html.indexOf('</tbody>') >= 0;
+      const jogosDetectados = parseGradeHtmlCaixa(html);
+
+      const mNum = html.match(/Concurso\s+n[º°o]?\s*(\d{4})/i);
+      if (mNum && !document.getElementById('ncpNumero').value) {
+        document.getElementById('ncpNumero').value = mNum[1];
+      }
+
+      const mData = html.match(/Encerramento das Apostas[:\s]*(\d{2})\/(\d{2})\/(\d{4})/i);
+      if (mData) {
+        document.getElementById('ncpData').value = `${mData[3]}-${mData[2]}-${mData[1]}`;
+      }
+
+      if (jogosDetectados.length > 0) {
+        document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
+        msg.textContent = `✓ ${jogosDetectados.length} confronto(s) extraído(s) do HTML — revise antes de criar`;
+      } else {
+        msg.textContent = `⚠ Grade não encontrada (tab-apostas: ${temTabela}, tbody: ${temTbody}) — tamanho: ${(html.length/1024).toFixed(0)}KB`;
+      }
+      atualizarContagemNCP();
+    } catch (err) {
+      msg.textContent = 'Erro ao ler HTML: ' + err.message;
+    } finally {
+      setTimeout(() => status.classList.remove('show'), 8000);
+    }
+  };
+  reader.onerror = () => { msg.textContent = 'Erro ao ler o arquivo'; setTimeout(() => status.classList.remove('show'), 3500); };
+  reader.readAsText(file, 'utf-8');
+}
+
+function parseGradeHtmlCaixa(htmlTexto) {
+  if (!htmlTexto) return [];
+  const tableStart = htmlTexto.indexOf('tab-apostas tab-loteca');
+  const tableEnd   = htmlTexto.indexOf('</tbody>', tableStart);
+  if (tableStart < 0 || tableEnd < 0) return [];
+  const tabela = htmlTexto.substring(tableStart, tableEnd);
+  const alts = [...tabela.matchAll(/alt="([^"]+)"/g)].map(m => m[1].trim());
+  if (alts.length < 2) return [];
+  const resultado = [];
+  const n = Math.min(Math.floor(alts.length / 2), 14);
+  for (let i = 0; i < n; i++) {
+    const casa  = alts[i * 2];
+    const visit = alts[i * 2 + 1];
+    if (casa && visit && casa !== visit) resultado.push(`${casa} x ${visit}`);
+  }
+  return resultado;
+}
+
+async function rodarOcrConcurso(dataUrl) {
+  const status = document.getElementById('ncpOcrStatus');
+  const msg = document.getElementById('ncpOcrMsg');
+  status.classList.add('show');
+  msg.textContent = 'Lendo imagem (OCR)… pode levar alguns segundos';
+
+  if (typeof Tesseract === 'undefined') {
+    msg.textContent = 'OCR indisponível (biblioteca não carregou) — digite a grade manualmente abaixo';
+    setTimeout(() => status.classList.remove('show'), 3500);
+    return;
+  }
+
+  let worker;
+  try {
+    const imagemOcr = await upscaleImagem(dataUrl, 2);
+    worker = await Tesseract.createWorker('por', 1, {
+      logger: info => {
+        if (info.status === 'recognizing text') {
+          msg.textContent = `Lendo imagem (OCR)… ${Math.round((info.progress||0)*100)}%`;
+        }
+      },
+    });
+    const { data } = await worker.recognize(imagemOcr, {}, { tsv: true, text: true });
+
+    let jogosDetectados = parseGradeOcrTabela(data.tsv || '');
+    if (jogosDetectados.length === 0) {
+      jogosDetectados = parseGradeOcrTexto(data.text || '');
+    }
+
+    if (jogosDetectados.length > 0) {
+      document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
+      msg.textContent = `✓ ${jogosDetectados.length} confronto(s) detectado(s) — revise antes de criar`;
+    } else {
+      msg.textContent = '⚠ Não consegui reconhecer os confrontos automaticamente — digite a grade manualmente abaixo';
+    }
+    atualizarContagemNCP();
+  } catch (err) {
+    msg.textContent = 'Erro no OCR: ' + err.message + ' — digite a grade manualmente abaixo';
+  } finally {
+    if (worker) { try { await worker.terminate(); } catch (e) {} }
+    setTimeout(() => status.classList.remove('show'), 4000);
+  }
+}
+
+function parseTsvPalavras(tsv) {
+  const linhas = tsv.split('\n').filter(Boolean);
+  if (linhas.length < 2) return [];
+  const cols = linhas[0].split('\t');
+  const idx = {
+    level: cols.indexOf('level'), left: cols.indexOf('left'), top: cols.indexOf('top'),
+    width: cols.indexOf('width'), height: cols.indexOf('height'), text: cols.indexOf('text'),
+  };
+  const palavras = [];
+  for (let i = 1; i < linhas.length; i++) {
+    const c = linhas[i].split('\t');
+    if (c[idx.level] !== '5') continue;
+    const texto = (c[idx.text] || '').trim();
+    if (!texto) continue;
+    const top = parseFloat(c[idx.top]) || 0;
+    const height = parseFloat(c[idx.height]) || 0;
+    palavras.push({ text: texto, left: parseFloat(c[idx.left]) || 0, top, width: parseFloat(c[idx.width]) || 0, height, cy: top + height / 2 });
+  }
+  return palavras;
+}
+
+function agruparEmLinhas(palavras) {
+  if (palavras.length === 0) return [];
+  const ordenadas = [...palavras].sort((a, b) => a.cy - b.cy);
+  const alturaMedia = ordenadas.reduce((s, p) => s + p.height, 0) / ordenadas.length;
+  const tolerancia = Math.max(8, alturaMedia * 0.7);
+  const linhas = [];
+  let atual = [ordenadas[0]];
+  for (let i = 1; i < ordenadas.length; i++) {
+    const p = ordenadas[i];
+    const cyMedioAtual = atual.reduce((s, x) => s + x.cy, 0) / atual.length;
+    if (Math.abs(p.cy - cyMedioAtual) <= tolerancia) { atual.push(p); }
+    else { linhas.push(atual); atual = [p]; }
+  }
+  linhas.push(atual);
+  return linhas;
+}
+
+function separarTimesDaLinha(palavrasLinha) {
+  const ord = [...palavrasLinha].sort((a, b) => a.left - b.left);
+  let ordem = null;
+  if (ord.length > 1 && /^0?\d{1,2}[\.\)]?$/.test(ord[0].text)) {
+    const n = parseInt(ord[0].text, 10);
+    if (n >= 1 && n <= 20) { ordem = n; ord.shift(); }
+  }
+  if (ord.length < 2) return null;
+  let maiorGap = -1, posGap = -1;
+  for (let i = 1; i < ord.length; i++) {
+    const gap = ord[i].left - (ord[i - 1].left + ord[i - 1].width);
+    if (gap > maiorGap) { maiorGap = gap; posGap = i; }
+  }
+  if (posGap <= 0) return null;
+  const esquerda = ord.slice(0, posGap);
+  const direita = ord.slice(posGap);
+  if (esquerda.length === 0 || direita.length === 0) return null;
+  const juntar = (grupo) => grupo.map(p => p.text).join(' ').replace(/\s*\/\s*/g, '/').replace(/\s{2,}/g, ' ').trim();
+  const casa = juntar(esquerda);
+  const visit = juntar(direita);
+  if (!casa || !visit || casa.toLowerCase() === visit.toLowerCase()) return null;
+  return { casa, visit, ordem };
+}
+
+function parseGradeOcrTabela(tsv) {
+  if (!tsv) return [];
+  const palavras = parseTsvPalavras(tsv);
+  if (palavras.length === 0) return [];
+  const linhas = agruparEmLinhas(palavras).filter(linha => {
+    const texto = linha.map(p => p.text).join(' ');
+    return !/^(jogo\b|coluna\b)/i.test(texto.trim());
+  });
+  const resultados = [];
+  linhas.forEach(linha => {
+    const r = separarTimesDaLinha(linha);
+    if (r) resultados.push(r);
+  });
+  const comOrdem = resultados.filter(r => r.ordem !== null);
+  if (comOrdem.length >= resultados.length * 0.6 && comOrdem.length > 0) {
+    resultados.sort((a, b) => (a.ordem ?? 99) - (b.ordem ?? 99));
+  }
+  return resultados.slice(0, 14).map(r => `${r.casa} x ${r.visit}`);
+}
+
+function parseGradeOcrTexto(textoOcr) {
+  if (!textoOcr) return [];
+  const linhas = textoOcr.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const encontrados = [];
+  const re = /^(.{2,40}?)\s+[x×X]\s+(.{2,40}?)$/;
+  linhas.forEach(l => {
+    const limpa = l.replace(/^(jogo\s*)?\d{1,2}[\.\)\-–]?\s*/i, '').trim();
+    const m = limpa.match(re);
+    if (m) {
+      const casa = m[1].replace(/\s{2,}/g,' ').trim();
+      const visit = m[2].replace(/\s{2,}/g,' ').trim();
+      if (casa && visit && casa.toLowerCase() !== visit.toLowerCase()) encontrados.push(`${casa} x ${visit}`);
+    }
+  });
+  return encontrados.slice(0, 14);
+}
+
+function parseLinhasGrade(texto) {
+  return (texto || '').split(/\n+/).map(l => l.trim()).filter(Boolean)
+    .map(l => {
+      const m = l.match(/^(.+?)\s+[x×X]\s+(.+)$/);
+      if (!m) return null;
+      return { casa: m[1].trim(), visit: m[2].trim() };
+    })
+    .filter(Boolean);
+}
+
+function atualizarContagemNCP() {
+  const el = document.getElementById('ncpCount');
+  const linhas = parseLinhasGrade(document.getElementById('ncpTextarea').value);
+  el.textContent = `${linhas.length} jogo(s) reconhecido(s) no texto${linhas.length !== 14 ? ' (esperado: 14)' : ''}`;
+  el.className = 'ncp-count ' + (linhas.length === 14 ? 'ok' : 'warn');
+}
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'ncpTextarea') atualizarContagemNCP();
+});
+
+async function upsertCompAdmin(label) {
+  const slug = label.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const existentes = await sb('GET', 'competicoes_config', null, { slug: `eq.${slug}`, select: 'id' });
+  if (existentes.length > 0) return existentes[0].id;
+  const novo = await sb('POST', 'competicoes_config', {
     slug, label, nome_caixa_pattern: label,
     tipo: 'pontos_corridos', nivel: 'nacional_a',
     reducao_score_eliminatorio: 0, peso_forma: 1.0,
   });
-  return criado[0].id;
+  return novo[0].id;
 }
 
-function importarDeHTML(input) {
-  const file = input.files[0];
-  if (!file) return;
-  input.value = '';
-  const reader = new FileReader();
-  reader.onload = async e => {
-    try {
-      const html = e.target.result;
-      // Número do concurso
-      const mNum = html.match(/Concurso\s+n[º°o]?\s*(\d{4})/i);
-      if (!mNum) return toast('Nº do concurso não encontrado no HTML', 'err');
-      const numero = parseInt(mNum[1], 10);
+async function upsertTimeAdmin(nome) {
+  const nomeLimpo = nome.trim();
+  const existentes = await sb('GET', 'times_mapeamento', null, { nome_caixa: `eq.${nomeLimpo}`, select: 'id' });
+  if (existentes.length > 0) return existentes[0].id;
+  const novo = await sb('POST', 'times_mapeamento', {
+    nome_caixa: nomeLimpo, nome_popular: nomeLimpo, pais: 'Internacional',
+    nivel_nacional: 'media', fonte_dados: 'print_manual', ativo: true,
+  });
+  return novo[0].id;
+}
 
-      // Data de encerramento (o sorteio ocorre após — admin deve corrigir)
-      const mData = html.match(/Encerramento das Apostas[:\s]*(\d{2}\/\d{2}\/\d{4})/i);
-      const dataEncerramento = mData ? parseDateBR(mData[1]) : null;
-      // Usa a data de encerramento como estimativa do dia do sorteio (mesmo dia, hora posterior)
-      const dataSorteio = dataEncerramento;
+async function criarConcursoDoPrint() {
+  const numero = parseInt(document.getElementById('ncpNumero').value, 10);
+  const dataSorteio = document.getElementById('ncpData').value || null;
+  const competicaoLabel = document.getElementById('ncpCompeticao').value.trim() || 'Loteca';
+  const linhas = parseLinhasGrade(document.getElementById('ncpTextarea').value);
 
-      // Tabela de jogos
-      const tableStart = html.indexOf('tab-apostas tab-loteca');
-      const tableEnd   = html.indexOf('</tbody>', tableStart);
-      if (tableStart < 0 || tableEnd < 0) return toast('Tabela de jogos não encontrada', 'err');
-      const tableHtml = html.substring(tableStart, tableEnd);
+  if (!numero) { toast('Informe o número do concurso', 'err'); return; }
+  if (linhas.length === 0) { toast('A grade de jogos está vazia', 'err'); return; }
+  if (linhas.length !== 14) {
+    const ok = confirm(`Foram reconhecidos ${linhas.length} jogo(s), o esperado é 14. Criar mesmo assim?`);
+    if (!ok) return;
+  }
 
-      // Times: alt="NOME" dentro da tabela
-      const altMatches = [...tableHtml.matchAll(/alt="([^"]+)"/g)].map(m => m[1]);
-      if (altMatches.length < 28) return toast(`Apenas ${altMatches.length} times encontrados (esperado 28)`, 'err');
+  const btn = document.getElementById('ncpCriarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Criando…';
 
-      // Pares: índice par=casa, ímpar=visit (1 par por jogo, 14 jogos)
-      const jogosHtml = [];
-      for (let i = 0; i < 14; i++) {
-        jogosHtml.push({ casa: altMatches[i * 2], visit: altMatches[i * 2 + 1], ordem: i + 1 });
-      }
+  try {
+    const existentes = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
+    if (existentes.length > 0) throw new Error(`Concurso ${numero} já existe no banco`);
 
-      // Confirmar
-      const preview = jogosHtml.slice(0, 3).map(j => `${j.ordem}. ${j.casa} × ${j.visit}`).join('\n') + '\n…';
-      if (!confirm(`Importar Concurso ${numero} (${dataSorteio || 'data desconhecida'}) com ${jogosHtml.length} jogos?\n\n${preview}`)) return;
+    btn.textContent = 'Criando competição…';
+    const competicaoId = await upsertCompAdmin(competicaoLabel);
 
-      toast(`Importando concurso ${numero}…`);
+    btn.textContent = 'Criando concurso…';
+    const concursoNovo = await sb('POST', 'loteca_concursos', {
+      numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
+      acumulado: false, estimativa_premio: null, arrecadacao: null,
+      ganhadores_14: null, rateio_14: null, ganhadores_13: null, rateio_13: null,
+    });
+    const concursoId = concursoNovo[0].id;
 
-      // Verificar se já existe
-      const existing = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
-      if (existing.length > 0) return toast(`Concurso ${numero} já existe no banco`, 'err');
-
-      // Criar concurso
-      const concCriado = await sb('POST', 'loteca_concursos', {
-        numero, data_sorteio: dataSorteio, status_analise: 'aguardando',
-        acumulado: false, estimativa_premio: null,
+    for (let i = 0; i < linhas.length; i++) {
+      const { casa, visit } = linhas[i];
+      btn.textContent = `Jogo ${i + 1}/${linhas.length}…`;
+      const timeCasaId  = await upsertTimeAdmin(casa);
+      const timeVisitId = await upsertTimeAdmin(visit);
+      await sb('POST', 'loteca_jogos_analise', {
+        concurso_id: concursoId, ordem: i + 1,
+        time_casa_id: timeCasaId, time_visit_id: timeVisitId,
+        competicao_id: competicaoId, competicao_label: competicaoLabel,
+        is_classico: false, is_eliminatorio: false,
+        classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
+        resultado_real: null, revisado_editor: false,
+        resumo: `${casa} x ${visit}`,
+        justificativa: JSON.stringify({ nomeEquipeUm: casa, nomeEquipeDois: visit, fonte: 'print_manual' }),
       });
-      const concursoId = concCriado[0].id;
-
-      // Criar jogos
-      for (const j of jogosHtml) {
-        const compLabel = inferirCompeticaoHtml(j.casa, j.visit);
-        const [compId, casaId, visitId] = await Promise.all([
-          upsertCompHtml(compLabel),
-          upsertTimeHtml(j.casa),
-          upsertTimeHtml(j.visit),
-        ]);
-        await sb('POST', 'loteca_jogos_analise', {
-          concurso_id: concursoId, ordem: j.ordem,
-          time_casa_id: casaId, time_visit_id: visitId,
-          competicao_id: compId, competicao_label: compLabel,
-          is_classico: false, is_eliminatorio: false,
-          classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
-          resultado_real: null, acertou: null, revisado_editor: false,
-          resumo: `${j.casa} x ${j.visit}`,
-          justificativa: JSON.stringify({ nomeEquipeUm: j.casa, nomeEquipeDois: j.visit, fonte: 'html_caixa' }),
-        });
-      }
-
-      toast(`✓ Concurso ${numero} importado com ${jogosHtml.length} jogos`);
-      await carregarConcursos();
-    } catch (err) {
-      toast('Erro ao importar: ' + err.message, 'err');
     }
-  };
-  reader.readAsText(file, 'UTF-8');
+
+    document.getElementById('ncpFormBody').style.display = 'none';
+    document.getElementById('ncpFoot').innerHTML = `
+      <div style="width:100%">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--emerald);margin-bottom:8px">
+          ✓ Concurso ${numero} criado com ${linhas.length} jogo(s)
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-bottom:14px">
+          Competição: <strong style="color:var(--ink)">${competicaoLabel}</strong> · ${linhas.length} jogos inseridos
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn" onclick="fecharPopupNovoConcurso()">Fechar</button>
+          <button class="btn btn-green" onclick="fecharEAbrirConcurso('${concursoId}')">✓ Abrir concurso</button>
+        </div>
+      </div>`;
+
+  } catch (err) {
+    toast('Erro ao criar concurso: ' + err.message, 'err');
+    btn.disabled = false;
+    btn.textContent = '✓ Criar concurso e jogos';
+  }
+}
+
+async function fecharEAbrirConcurso(concursoId) {
+  fecharPopupNovoConcurso();
+  await carregarConcursos();
+  abrirConcurso(concursoId);
 }
 
 // ─── BOOT ──────────────────────────────────────────────────────────────────
