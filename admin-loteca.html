@@ -1415,7 +1415,7 @@ async function upsertTimeAdmin(nome) {
   const pais   = mUF ? 'Brasil' : null;
   const novo = await sb('POST', 'times_mapeamento', {
     nome_caixa: nomeLimpo, nome_popular: nomeLimpo,
-    estado, pais, nivel_nacional: 'media', fonte_dados: 'html_caixa', ativo: true,
+    estado, pais, nivel_nacional: 'media', fonte_dados: 'api_futebol', ativo: true,
   });
   return novo[0].id;
 }
