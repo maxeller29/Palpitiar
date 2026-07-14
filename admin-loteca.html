@@ -1091,13 +1091,14 @@ function abrirPopupNovoConcurso() {
   document.getElementById('popupNovoConcurso').classList.add('show');
 }
 
-function fecharPopupNovoConcurso() {
+function fecharPopupNovoConcurso(recarregar) {
   document.getElementById('popupNovoConcurso').classList.remove('show');
   const formBody = document.getElementById('ncpFormBody');
   if (formBody) formBody.style.display = '';
   document.getElementById('ncpFoot').innerHTML = `
     <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
     <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>`;
+  if (recarregar) carregarConcursos();
 }
 
 (function initNcpDragDrop() {
@@ -1503,7 +1504,7 @@ async function criarConcursoDoPrint() {
           <div>Data: <strong style="color:var(--ink)">${dataSorteio}</strong></div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn" onclick="fecharPopupNovoConcurso()">Fechar</button>
+          <button class="btn" onclick="fecharPopupNovoConcurso(true)">Fechar</button>
           <button class="btn btn-green" onclick="fecharEAbrirConcurso('${concursoId}')">✓ Abrir concurso</button>
         </div>
       </div>`;
