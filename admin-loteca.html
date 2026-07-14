@@ -1448,18 +1448,28 @@ async function criarConcursoDoPrint() {
   try {
     setLog('Verificando concurso…');
     const existentes = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
-    if (existentes.length > 0) throw new Error(`Concurso ${numero} já existe no banco (id: ${existentes[0].id})`);
+    let concursoId;
+    if (existentes.length > 0) {
+      // Concurso já existe — verifica se tem jogos para decidir se pode continuar
+      const jogosExist = await sb('GET', 'loteca_jogos_analise', null, { concurso_id: `eq.${existentes[0].id}`, select: 'id' });
+      if (jogosExist.length > 0) {
+        throw new Error(`Concurso ${numero} já existe com ${jogosExist.length} jogo(s). Para recriar, delete-o no Supabase primeiro.`);
+      }
+      // Existe mas sem jogos (criação parcial anterior) — reusa
+      concursoId = existentes[0].id;
+      setLog(`Concurso ${numero} encontrado sem jogos — continuando…`);
+    } else {
+      setLog('Criando concurso <strong style="color:var(--ink)">' + numero + '</strong>…');
+      const concursoNovo = await sb('POST', 'loteca_concursos', {
+        numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
+        acumulado: false, estimativa_premio: null, arrecadacao: null,
+        ganhadores_14: null, rateio_14: null, ganhadores_13: null, rateio_13: null,
+      });
+      concursoId = concursoNovo[0].id;
+    }
 
-    setLog('Criando competição <strong style="color:var(--ink)">' + competicaoLabel + '</strong>…');
+    setLog('Resolvendo competição <strong style="color:var(--ink)">' + competicaoLabel + '</strong>…');
     const competicaoId = await upsertCompAdmin(competicaoLabel);
-
-    setLog('Criando concurso <strong style="color:var(--ink)">' + numero + '</strong>…');
-    const concursoNovo = await sb('POST', 'loteca_concursos', {
-      numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
-      acumulado: false, estimativa_premio: null, arrecadacao: null,
-      ganhadores_14: null, rateio_14: null, ganhadores_13: null, rateio_13: null,
-    });
-    const concursoId = concursoNovo[0].id;
 
     let jogosCriados = 0;
     for (let i = 0; i < linhas.length; i++) {
@@ -1499,11 +1509,18 @@ async function criarConcursoDoPrint() {
       </div>`;
 
   } catch (err) {
-    // Mostra erro DENTRO do popup (não depende do toast)
+    const isRls = err.message.includes('42501') || err.message.toLowerCase().includes('row-level security');
+    const errHtml = isRls
+      ? `✗ Sem permissão de INSERT (RLS bloqueando).<br>
+         No Supabase SQL Editor execute:<br>
+         <code style="font-size:9px;background:rgba(0,0,0,0.4);padding:3px 8px;border-radius:2px;display:block;margin-top:6px;line-height:1.8;white-space:pre-wrap">CREATE POLICY "admin_insert_times"
+ON public.times_mapeamento
+FOR INSERT WITH CHECK (true);</code>`
+      : `✗ Erro: ${err.message}`;
     foot.innerHTML = `
       <div style="width:100%">
         <div style="font-family:var(--mono);font-size:11px;color:#e07060;margin-bottom:12px;line-height:1.6">
-          ✗ Erro: ${err.message}
+          ${errHtml}
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px">
           <button class="btn" onclick="fecharPopupNovoConcurso()">Fechar</button>
