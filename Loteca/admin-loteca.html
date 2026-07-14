@@ -153,7 +153,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 .pstep.done{color:var(--emerald);border-color:rgba(93,186,111,0.25);background:rgba(93,186,111,0.06);}
 .pstep-icon{width:14px;text-align:center;}
 .popup-cur{font-family:var(--mono);font-size:9px;color:var(--ink-dim);min-height:14px;}
-.popup-foot{margin-top:14px;display:flex;justify-content:flex-end;}
+.popup-foot{margin-top:14px;display:flex;justify-content:flex-end;gap:8px;}
 
 /* FAT-SOURCE badge */
 .fat-src{font-family:var(--mono);font-size:7px;letter-spacing:0.1em;text-transform:uppercase;padding:1px 4px;border-radius:2px;border:1px solid rgba(93,186,111,0.3);color:rgba(93,186,111,0.8);margin-left:4px;}
@@ -181,9 +181,34 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 .fat-input:focus{border-color:var(--amber-border);}
 .fat-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin:4px 0 10px;line-height:1.6;}
 
+/* NOVO CONCURSO VIA PRINT */
+.popup-box.wide{width:680px;}
+.ncp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.ncp-field{display:flex;flex-direction:column;gap:4px;}
+.ncp-label{font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);}
+.ncp-input{font-family:var(--mono);font-size:12px;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;width:100%;}
+.ncp-input:focus{border-color:var(--amber-border);}
+.ncp-drop{border:1px dashed var(--amber-border);border-radius:4px;padding:18px;text-align:center;cursor:pointer;background:rgba(232,150,58,0.04);transition:all 0.2s;margin-bottom:12px;}
+.ncp-drop:hover{background:rgba(232,150,58,0.08);}
+.ncp-drop.has-img{padding:0;overflow:hidden;}
+.ncp-drop-msg{font-family:var(--mono);font-size:10px;color:var(--ink-dim);letter-spacing:0.06em;}
+.ncp-drop-msg .em{color:var(--amber);}
+.ncp-preview{max-width:100%;max-height:220px;display:block;margin:0 auto;}
+.ncp-ocr-status{font-family:var(--mono);font-size:9px;color:var(--amber);margin:8px 0;display:none;align-items:center;gap:8px;}
+.ncp-ocr-status.show{display:flex;}
+.ncp-ocr-spin{width:11px;height:11px;border-radius:50%;border:2px solid var(--amber-border);border-top-color:var(--amber);animation:spin 0.7s linear infinite;flex-shrink:0;}
+.ncp-textarea{width:100%;font-family:var(--mono);font-size:11px;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:3px;color:var(--ink);outline:none;resize:vertical;min-height:180px;line-height:1.7;}
+.ncp-textarea:focus{border-color:var(--amber-border);}
+.ncp-hint{font-family:var(--mono);font-size:9px;color:var(--ink-faint);margin-top:6px;line-height:1.6;}
+.ncp-count{font-family:var(--mono);font-size:9px;margin-top:6px;}
+.ncp-count.ok{color:var(--emerald);}
+.ncp-count.warn{color:var(--amber);}
+
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;}
   .conc-list{max-height:240px;}
+  .ncp-grid{grid-template-columns:1fr;}
+  .popup-box.wide{width:92vw;}
 }
 </style>
 </head>
@@ -193,6 +218,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 <div class="admin-header">
   <div class="admin-title">Admin Lote<em>ca</em><span>Painel de Análise · Palpitiar</span></div>
   <div class="admin-actions">
+    <button class="btn btn-amber btn-sm" onclick="abrirPopupNovoConcurso()">📷 Novo concurso (print)</button>
     <a class="btn btn-sm" href="loteca.html" target="_blank">Ver página pública ↗</a>
     <button class="btn btn-sm" onclick="trocarChave()">🔑 Trocar chave</button>
   </div>
@@ -274,6 +300,50 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
   </div>
 </div>
 
+<!-- POPUP NOVO CONCURSO VIA PRINT -->
+<div class="popup-ov" id="popupNovoConcurso">
+  <div class="popup-box wide">
+    <div class="popup-h">📷 Novo Concurso via Print</div>
+    <div class="popup-sub">Suba o print da grade de jogos aberta no site/app da Caixa — o OCR tenta extrair os confrontos automaticamente. Revise antes de criar: OCR não é perfeito.</div>
+
+    <div class="ncp-grid">
+      <div class="ncp-field">
+        <label class="ncp-label">Número do concurso</label>
+        <input class="ncp-input" type="number" id="ncpNumero" placeholder="Ex.: 1262">
+      </div>
+      <div class="ncp-field">
+        <label class="ncp-label">Data do sorteio (opcional)</label>
+        <input class="ncp-input" type="date" id="ncpData">
+      </div>
+      <div class="ncp-field" style="grid-column:1 / -1">
+        <label class="ncp-label">Competição (aplicada aos 14 jogos)</label>
+        <input class="ncp-input" type="text" id="ncpCompeticao" value="Copa do Mundo FIFA 2026">
+      </div>
+    </div>
+
+    <div class="ncp-drop" id="ncpDrop" onclick="document.getElementById('ncpFile').click()">
+      <div id="ncpDropInner">
+        <div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>
+      </div>
+      <input type="file" id="ncpFile" accept="image/*" style="display:none" onchange="onSelecionarPrintConcurso(event)">
+    </div>
+    <div class="ncp-ocr-status" id="ncpOcrStatus"><div class="ncp-ocr-spin"></div><span id="ncpOcrMsg">Lendo imagem…</span></div>
+
+    <div class="ncp-field">
+      <label class="ncp-label">Grade de jogos — uma linha por jogo, formato "Time da casa x Time visitante"</label>
+      <textarea class="ncp-textarea" id="ncpTextarea" placeholder="Ex.:&#10;Brasil x Noruega&#10;Canada x Marrocos&#10;Paraguai x Franca&#10;..."></textarea>
+      <div class="ncp-count" id="ncpCount"></div>
+      <div class="ncp-hint">O texto acima vem do OCR (quando a imagem for legível) mas pode ser digitado ou corrigido à mão. A ordem das linhas vira a ordem dos jogos (1 a 14). Linhas sem "x" entre os dois nomes são ignoradas.</div>
+    </div>
+
+    <div class="popup-foot">
+      <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
+      <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"></script>
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://oslvqimllizsdtxwkrag.supabase.co';
@@ -580,6 +650,209 @@ function fmtDate(s) {
   return `${d}/${m}/${y}`;
 }
 
+// ─── NOVO CONCURSO VIA PRINT (OCR) ─────────────────────────────────────────
+// Permite ao admin criar um concurso inteiro (14 jogos) a partir de um print
+// da grade aberta no site/app da Caixa, sem depender da API de resultados
+// (que só publica o concurso quando ele já tem jogos apurados).
+
+function abrirPopupNovoConcurso() {
+  document.getElementById('ncpNumero').value = '';
+  document.getElementById('ncpData').value = '';
+  document.getElementById('ncpTextarea').value = '';
+  document.getElementById('ncpDropInner').innerHTML =
+    '<div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>';
+  document.getElementById('ncpDrop').classList.remove('has-img');
+  document.getElementById('ncpOcrStatus').classList.remove('show');
+  atualizarContagemNCP();
+  document.getElementById('popupNovoConcurso').classList.add('show');
+}
+function fecharPopupNovoConcurso() {
+  document.getElementById('popupNovoConcurso').classList.remove('show');
+}
+
+// Suporte a arrastar-e-soltar a imagem sobre a área de upload
+(function initNcpDragDrop(){
+  document.addEventListener('DOMContentLoaded', () => {
+    const drop = document.getElementById('ncpDrop');
+    if (!drop) return;
+    ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background='rgba(232,150,58,0.14)'; }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background=''; }));
+    drop.addEventListener('drop', e => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) processarImagemConcurso(file);
+    });
+  });
+})();
+
+function onSelecionarPrintConcurso(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (file) processarImagemConcurso(file);
+}
+
+function processarImagemConcurso(file) {
+  if (!file.type.startsWith('image/')) { toast('Escolha um arquivo de imagem', 'err'); return; }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    document.getElementById('ncpDrop').classList.add('has-img');
+    document.getElementById('ncpDropInner').innerHTML = `<img class="ncp-preview" src="${e.target.result}">`;
+    await rodarOcrConcurso(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function rodarOcrConcurso(dataUrl) {
+  const status = document.getElementById('ncpOcrStatus');
+  const msg = document.getElementById('ncpOcrMsg');
+  status.classList.add('show');
+  msg.textContent = 'Lendo imagem (OCR)… pode levar alguns segundos';
+
+  if (typeof Tesseract === 'undefined') {
+    msg.textContent = 'OCR indisponível (biblioteca não carregou) — digite a grade manualmente abaixo';
+    setTimeout(() => status.classList.remove('show'), 3500);
+    return;
+  }
+
+  try {
+    const { data } = await Tesseract.recognize(dataUrl, 'por', {
+      logger: info => {
+        if (info.status === 'recognizing text') {
+          msg.textContent = `Lendo imagem (OCR)… ${Math.round((info.progress||0)*100)}%`;
+        }
+      },
+    });
+    const jogosDetectados = parseGradeOcr(data.text);
+    if (jogosDetectados.length > 0) {
+      document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
+      msg.textContent = `✓ ${jogosDetectados.length} confronto(s) detectado(s) — revise antes de criar`;
+    } else {
+      msg.textContent = '⚠ Não consegui reconhecer os confrontos automaticamente — digite a grade manualmente abaixo';
+    }
+    atualizarContagemNCP();
+  } catch (err) {
+    msg.textContent = 'Erro no OCR: ' + err.message + ' — digite a grade manualmente abaixo';
+  } finally {
+    setTimeout(() => status.classList.remove('show'), 4000);
+  }
+}
+
+// Heurística: procura linhas do tipo "TIME A x TIME B" no texto bruto do OCR.
+// A grade da Caixa normalmente lista os 14 confrontos em sequência, um por
+// linha ou por bloco — como o OCR é ruidoso, aceitamos variações de "x".
+function parseGradeOcr(textoOcr) {
+  if (!textoOcr) return [];
+  const linhas = textoOcr.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const encontrados = [];
+  const re = /^(.{2,40}?)\s+[x×X]\s+(.{2,40}?)$/;
+  linhas.forEach(l => {
+    // remove numeração de jogo no início (ex.: "01.", "1 -", "Jogo 3")
+    const limpa = l.replace(/^(jogo\s*)?\d{1,2}[\.\)\-–]?\s*/i, '').trim();
+    const m = limpa.match(re);
+    if (m) {
+      const casa = m[1].replace(/\s{2,}/g,' ').trim();
+      const visit = m[2].replace(/\s{2,}/g,' ').trim();
+      if (casa && visit && casa.toLowerCase() !== visit.toLowerCase()) {
+        encontrados.push(`${casa} x ${visit}`);
+      }
+    }
+  });
+  return encontrados.slice(0, 14);
+}
+
+// Parseia o textarea final (uma linha "Casa x Visitante" por jogo)
+function parseLinhasGrade(texto) {
+  return (texto || '').split(/\n+/).map(l => l.trim()).filter(Boolean)
+    .map(l => {
+      const m = l.match(/^(.+?)\s+[x×X]\s+(.+)$/);
+      if (!m) return null;
+      return { casa: m[1].trim(), visit: m[2].trim() };
+    })
+    .filter(Boolean);
+}
+
+function atualizarContagemNCP() {
+  const el = document.getElementById('ncpCount');
+  const linhas = parseLinhasGrade(document.getElementById('ncpTextarea').value);
+  el.textContent = `${linhas.length} jogo(s) reconhecido(s) no texto${linhas.length !== 14 ? ' (esperado: 14)' : ''}`;
+  el.className = 'ncp-count ' + (linhas.length === 14 ? 'ok' : 'warn');
+}
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'ncpTextarea') atualizarContagemNCP();
+});
+
+// Upsert de time por nome (mesma lógica dos coletores server-side)
+async function upsertTimeAdmin(nome) {
+  const nomeLimpo = nome.trim();
+  const existentes = await sb('GET', 'times_mapeamento', null, {
+    nome_caixa: `eq.${nomeLimpo}`, select: 'id',
+  });
+  if (existentes.length > 0) return existentes[0].id;
+  const novo = await sb('POST', 'times_mapeamento', {
+    nome_caixa: nomeLimpo, nome_popular: nomeLimpo, pais: 'Internacional',
+    nivel_nacional: 'media', fonte_dados: 'print_manual', ativo: true,
+  });
+  return novo[0].id;
+}
+
+async function criarConcursoDoPrint() {
+  const numero = parseInt(document.getElementById('ncpNumero').value, 10);
+  const dataSorteio = document.getElementById('ncpData').value || null;
+  const competicaoLabel = document.getElementById('ncpCompeticao').value.trim() || 'Loteca';
+  const linhas = parseLinhasGrade(document.getElementById('ncpTextarea').value);
+
+  if (!numero) { toast('Informe o número do concurso', 'err'); return; }
+  if (linhas.length === 0) { toast('A grade de jogos está vazia', 'err'); return; }
+  if (linhas.length !== 14) {
+    const ok = confirm(`Foram reconhecidos ${linhas.length} jogo(s), o esperado é 14. Criar mesmo assim?`);
+    if (!ok) return;
+  }
+
+  const btn = document.getElementById('ncpCriarBtn');
+  btn.disabled = true;
+  btn.textContent = 'Criando…';
+
+  try {
+    // Concurso já existe?
+    const existentes = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
+    if (existentes.length > 0) {
+      throw new Error(`Concurso ${numero} já existe no banco`);
+    }
+
+    const concursoNovo = await sb('POST', 'loteca_concursos', {
+      numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
+      acumulado: false, estimativa_premio: null, arrecadacao: null,
+      ganhadores_14: null, rateio_14: null, ganhadores_13: null, rateio_13: null,
+    });
+    const concursoId = concursoNovo[0].id;
+
+    for (let i = 0; i < linhas.length; i++) {
+      const { casa, visit } = linhas[i];
+      const timeCasaId  = await upsertTimeAdmin(casa);
+      const timeVisitId = await upsertTimeAdmin(visit);
+      await sb('POST', 'loteca_jogos_analise', {
+        concurso_id: concursoId, ordem: i + 1,
+        time_casa_id: timeCasaId, time_visit_id: timeVisitId,
+        competicao_label: competicaoLabel,
+        is_classico: false, is_eliminatorio: false,
+        classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
+        resultado_real: null, revisado_editor: false,
+        resumo: `${casa} x ${visit}`,
+        justificativa: JSON.stringify({ nomeEquipeUm: casa, nomeEquipeDois: visit, fonte: 'print_manual' }),
+      });
+    }
+
+    toast(`Concurso ${numero} criado com ${linhas.length} jogo(s)`);
+    fecharPopupNovoConcurso();
+    await carregarConcursos();
+    abrirConcurso(concursoId);
+  } catch (err) {
+    toast('Erro ao criar concurso: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Criar concurso e jogos';
+  }
+}
+
 // ─── LISTA DE CONCURSOS ────────────────────────────────────────────────────
 async function carregarConcursos() {
   concursos = await sb('GET', 'loteca_concursos', null, {
@@ -587,7 +860,7 @@ async function carregarConcursos() {
   });
   const list = document.getElementById('concList');
   if (concursos.length === 0) {
-    list.innerHTML = '<div class="empty-msg">Nenhum concurso. Rode o coletor primeiro.</div>';
+    list.innerHTML = '<div class="empty-msg">Nenhum concurso. Rode o coletor ou use "Novo concurso (print)".</div>';
     return;
   }
   list.innerHTML = concursos.map(c => `
@@ -965,6 +1238,20 @@ async function iniciar() {
 document.addEventListener('change', e => {
   if (e.target && e.target.id && e.target.id.startsWith('cob-')) atualizarCobResumo();
 });
+
+// Inicializar drag&drop mesmo que DOMContentLoaded já tenha passado
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  const drop = document.getElementById('ncpDrop');
+  if (drop && !drop.dataset.dndReady) {
+    drop.dataset.dndReady = '1';
+    ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background='rgba(232,150,58,0.14)'; }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background=''; }));
+    drop.addEventListener('drop', e => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) processarImagemConcurso(file);
+    });
+  }
+}
 
 if (SB_KEY) iniciar();
 else document.getElementById('loginView').style.display = '';
