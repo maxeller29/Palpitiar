@@ -170,6 +170,13 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 .status-bar-item{display:flex;align-items:center;gap:5px;}
 .status-dot-sm{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);}
 
+/* PROGRESSO DA ANÁLISE AUTOMÁTICA */
+.analise-progress-wrap{padding:10px 14px;border-bottom:1px solid var(--line);background:rgba(232,150,58,0.05);}
+.analise-progress-info{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9px;color:var(--ink-dim);letter-spacing:0.06em;margin-bottom:6px;}
+.analise-progress-info strong{color:var(--amber);}
+.analise-progress-bg{height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
+.analise-progress-bar{height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:2px;transition:width 0.4s linear;width:0%;}
+
 /* FORMA RECENTE (badges) */
 .ja-forma-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
 .ja-forma-side{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
@@ -286,6 +293,14 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
             <button class="btn btn-green" onclick="publicar('preliminar')">▶ Preliminar</button>
             <button class="btn btn-green" onclick="publicar('final')">✓ Final</button>
           </div>
+        </div>
+
+        <div class="analise-progress-wrap" id="analiseProgressWrap" style="display:none">
+          <div class="analise-progress-info">
+            <span id="analiseProgressLabel">Análise automática em andamento…</span>
+            <span id="analiseProgressTime">—</span>
+          </div>
+          <div class="analise-progress-bg"><div class="analise-progress-bar" id="analiseProgressBar"></div></div>
         </div>
 
         <div class="cob-resumo" id="cobResumo"></div>
@@ -965,6 +980,62 @@ function atualizarCobResumo() {
 // ─── ANÁLISE AUTOMÁTICA (GitHub Actions via Netlify Function) ──────────────
 // Dispara o workflow loteca-analisar.yml, que coleta força/forma/mando/H2H/odds
 // e grava no Supabase. Depois é só recarregar o concurso e revisar.
+
+// Duração de referência para a barra de progresso (o workflow real leva
+// ~2–4 min); a barra trava em 95% além disso, já que o fim real é detectado
+// pelo polling em monitorarAnaliseAuto, não pelo tempo decorrido.
+const ANALISE_ESTIMATIVA_MS = 3 * 60 * 1000;
+let analiseProgressInterval = null;
+
+function fmtRestante(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = String(s % 60).padStart(2, '0');
+  return `${m}:${r}`;
+}
+
+function iniciarProgressoAnalise() {
+  const wrap = document.getElementById('analiseProgressWrap');
+  const bar = document.getElementById('analiseProgressBar');
+  const label = document.getElementById('analiseProgressLabel');
+  const timeEl = document.getElementById('analiseProgressTime');
+  if (!wrap || !bar) return;
+
+  const inicio = Date.now();
+  wrap.style.display = '';
+  label.textContent = 'Coletando força, forma, mando, H2H e odds…';
+  bar.style.width = '0%';
+
+  clearInterval(analiseProgressInterval);
+  analiseProgressInterval = setInterval(() => {
+    const decorrido = Date.now() - inicio;
+    const pct = Math.min(95, (decorrido / ANALISE_ESTIMATIVA_MS) * 100);
+    bar.style.width = pct.toFixed(1) + '%';
+    const restante = ANALISE_ESTIMATIVA_MS - decorrido;
+    timeEl.innerHTML = restante > 0
+      ? `restante estimado: <strong>${fmtRestante(restante)}</strong>`
+      : 'quase lá…';
+  }, 1000);
+}
+
+function pararProgressoAnalise(sucesso) {
+  clearInterval(analiseProgressInterval);
+  analiseProgressInterval = null;
+  const wrap = document.getElementById('analiseProgressWrap');
+  const bar = document.getElementById('analiseProgressBar');
+  const label = document.getElementById('analiseProgressLabel');
+  const timeEl = document.getElementById('analiseProgressTime');
+  if (!wrap) return;
+  if (sucesso) {
+    bar.style.width = '100%';
+    label.textContent = '✓ Análise concluída';
+    timeEl.textContent = '';
+    setTimeout(() => { wrap.style.display = 'none'; }, 1500);
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
 async function dispararAnaliseAuto() {
   if (!concursoAtivo) { toast('Abra um concurso primeiro', 'err'); return; }
   const numero = concursoAtivo.numero;
@@ -986,6 +1057,7 @@ async function dispararAnaliseAuto() {
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     btn.textContent = '⟳ Aguardando resultado…';
     toast(`Análise do concurso ${numero} disparada — aguardando conclusão`, 'ok');
+    iniciarProgressoAnalise();
     monitorarAnaliseAuto(concursoAtivo.id, numero, btn);
   } catch (err) {
     btn.disabled = false;
@@ -1004,7 +1076,7 @@ async function monitorarAnaliseAuto(concursoId, numero, btn) {
   const INTERVALO_MS = 15000;
 
   const tick = async () => {
-    if (!concursoAtivo || concursoAtivo.id !== concursoId) return; // usuário trocou de concurso
+    if (!concursoAtivo || concursoAtivo.id !== concursoId) { pararProgressoAnalise(false); return; } // usuário trocou de concurso
     let jogosCheck;
     try {
       jogosCheck = await sb('GET', 'loteca_jogos_analise', null, {
@@ -1022,6 +1094,7 @@ async function monitorarAnaliseAuto(concursoId, numero, btn) {
     if (pronto) {
       btn.disabled = false;
       btn.textContent = '⟳ Análise automática';
+      pararProgressoAnalise(true);
       toast(`Análise do concurso ${numero} concluída — jogos recarregados`, 'ok');
       await abrirConcurso(concursoId);
       return;
@@ -1029,6 +1102,7 @@ async function monitorarAnaliseAuto(concursoId, numero, btn) {
     if (Date.now() - inicio > LIMITE_MS) {
       btn.disabled = false;
       btn.textContent = '⟳ Análise automática';
+      pararProgressoAnalise(false);
       toast(`Análise do concurso ${numero} ainda não concluiu — confira o GitHub Actions`, 'err');
       return;
     }

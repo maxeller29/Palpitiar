@@ -157,8 +157,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // ─── Fator 1: FORÇA ───────────────────────────────────────────────────────────
 // Seleções: pontos FIFA normalizados 1200–1900 -> 5–98
 
+// As chaves do dicionário FIFA são só ASCII ('FRANCA', 'BELGICA', 'ITALIA'...),
+// mas os times são cadastrados com a grafia correta em português ("França",
+// "Bélgica", "Itália"...). Sem remover os acentos aqui a busca falha calada
+// para boa parte das seleções, que caem no ramo de "clube estrangeiro" e
+// perdem força, forma, mando e H2H em cascata.
+function normalizarPais(s) {
+  return String(s || '')
+    .toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function forcaFifa(nomeCaixa) {
-  const reg = FIFA[nomeCaixa.toUpperCase()];
+  const reg = FIFA[normalizarPais(nomeCaixa)];
   if (!reg) return null;
   const norm = (reg.pts - 1200) / (1900 - 1200) * 100;
   return Math.max(5, Math.min(98, Math.round(norm)));
@@ -462,7 +475,7 @@ async function tsdbFormaRecente(teamId) {
     const adv = isHome ? e.strAwayTeam : e.strHomeTeam;
     const r = gf > gc ? 'V' : gf === gc ? 'E' : 'D';
     seq.push(r);
-    ultimos5.push({ gf, gc, adv, r, data: e.dateEvent || null });
+    ultimos5.push({ gf, gc, adv, r, casa: isHome, data: e.dateEvent || null });
   }
   const forma = formaComGols(ultimos5);
   return { forma, sequencia: seq.join(''), jogos: comPlacar.length, ultimos5 };
@@ -509,7 +522,7 @@ async function sofaFormaRecente(teamId) {
     else if (gf === ga) { pontos += 1; r = 'E'; }
     else r = 'D';
     sequencia.push(r);
-    ultimos5.push({ gf, gc: ga, adv, r });
+    ultimos5.push({ gf, gc: ga, adv, r, casa: isHome });
   }
   ultimos5.reverse(); // mais recente primeiro
   const forma = formaComGols(ultimos5);
@@ -635,7 +648,7 @@ async function analisarTime(time) {
   };
 
   // Tipo do time: seleção (tabela FIFA) > clube BR (sufixo /UF ou pais) > clube estrangeiro
-  const fifa = FIFA[nomeCaixa];
+  const fifa = FIFA[normalizarPais(nomeCaixa)];
   if (fifa) resultado.tipo = 'selecao';
   else if (/\/[A-Z]{2}$/.test(nomeCaixa) || time.pais === 'Brasil') resultado.tipo = 'clube_br';
   else resultado.tipo = 'clube_ext';
@@ -730,6 +743,10 @@ async function analisarTime(time) {
     if (coletas.length > 0) {
       const merge = mesclarUltimos(coletas);
       resultado.ultimos5 = merge;
+      // Também alimenta o fator Mando (mandoDeUltimos lê ultimosRaw filtrando
+      // por casa/fora) — sem isso, "Mando de campo" ficava sempre vazio para
+      // times sem chave de api-football configurada.
+      if (resultado.ultimosRaw.length === 0) resultado.ultimosRaw = merge;
       resultado.forma = formaComGols(merge);
       resultado.formaSeq = merge.map(u => u.r).join('');
       console.log(`      [forma] ${resultado.nome}: ${merge.length} jogo(s) — ${resultado.formaSeq} — forma ${resultado.forma}`);
