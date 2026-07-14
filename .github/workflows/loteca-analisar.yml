@@ -1,0 +1,42 @@
+name: Loteca — Analisar concurso
+
+# Disparado manualmente ou pelo botão "Análise automática" do admin-loteca.html
+# (via Netlify Function analisar-loteca).
+
+on:
+  workflow_dispatch:
+    inputs:
+      numero:
+        description: 'Número do concurso da Loteca'
+        required: true
+      skip_odds:
+        description: 'Pular busca de odds de mercado'
+        required: false
+        default: 'false'
+
+jobs:
+  analisar:
+    name: Analisar concurso ${{ github.event.inputs.numero }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Analisar concurso
+        env:
+          SUPABASE_KEY:        ${{ secrets.SUPABASE_KEY }}
+          APIFOOTBALL_KEY:     ${{ secrets.APIFOOTBALL_KEY }}
+          API_FUTEBOL_LOTECA:  ${{ secrets.API_FUTEBOL_LOTECA }}
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: |
+          FLAGS="--skip-sofascore"
+          if [ "${{ github.event.inputs.skip_odds }}" = "true" ]; then FLAGS="$FLAGS --skip-odds"; fi
+          node Loteca/loteca-analisar.js ${{ github.event.inputs.numero }} $FLAGS

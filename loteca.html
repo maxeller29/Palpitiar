@@ -502,11 +502,11 @@ footer a:hover{text-decoration:underline;}
     <div class="how-list" style="max-width:720px;margin-top:8px">
       <div class="how-item">
         <div class="how-num">01</div>
-        <div class="how-txt"><h4>Score 0–100 por time</h4><p>Cada time recebe uma pontuação baseada em 7 fatores ponderados. O time com score mais alto tem maior probabilidade de vencer.</p></div>
+        <div class="how-txt"><h4>Score 0–100 por time</h4><p>Cada time recebe uma pontuação baseada em 5 fatores ponderados, coletados automaticamente (ranking FIFA, tabela do Brasileirão, últimos jogos). O time com score mais alto tem maior probabilidade de vencer.</p></div>
       </div>
       <div class="how-item">
         <div class="how-num">02</div>
-        <div class="how-txt"><h4>Probabilidades via modelo Poisson bivariado</h4><p>A diferença de scores é convertida em lambdas de gol esperado para cada time. A distribuição de Poisson calcula as probabilidades de C1, X e C2.</p></div>
+        <div class="how-txt"><h4>Probabilidades via modelo Poisson + odds de mercado</h4><p>A diferença de scores é convertida em lambdas de gol esperado e a distribuição de Poisson calcula as probabilidades de C1, X e C2. Quando há odds de casas de apostas disponíveis, o resultado final combina 65% mercado + 35% modelo.</p></div>
       </div>
       <div class="how-item">
         <div class="how-num">03</div>
@@ -517,16 +517,15 @@ footer a:hover{text-decoration:underline;}
         <div class="how-txt"><h4>10 configurações de cartões</h4><p>Combinações de apostas simples/duplas/triplas otimizadas para diferentes orçamentos. Triplos nos jogos mais abertos, simples nos favoritos claros.</p></div>
       </div>
     </div>
-    <div class="section-label" style="margin-top:28px">Os 7 Fatores do Score</div>
+    <div class="section-label" style="margin-top:28px">Os 5 Fatores do Score</div>
     <div class="fatores-grid">
-      <div class="fator-card"><div class="fator-nome">Força Relativa</div><div class="fator-peso">25%</div><div class="fator-desc">Ranking, valor de mercado e histórico de resultados</div></div>
-      <div class="fator-card"><div class="fator-nome">Forma Recente</div><div class="fator-peso">20%</div><div class="fator-desc">Últimos 5 jogos separados por mando (casa/fora)</div></div>
-      <div class="fator-card"><div class="fator-nome">Competição</div><div class="fator-peso">20%</div><div class="fator-desc">Tipo e fase — mata-mata penaliza o favorito</div></div>
-      <div class="fator-card"><div class="fator-nome">Mando de Campo</div><div class="fator-peso">15%</div><div class="fator-desc">Vantagem média histórica do mandante</div></div>
-      <div class="fator-card"><div class="fator-nome">H2H</div><div class="fator-peso">10%</div><div class="fator-desc">Histórico direto entre os times (últimos 5 jogos)</div></div>
-      <div class="fator-card"><div class="fator-nome">Contexto Motivacional</div><div class="fator-peso">7%</div><div class="fator-desc">Poupar titulares, rebaixamento, liderança em disputa</div></div>
-      <div class="fator-card"><div class="fator-nome">Odds de Mercado</div><div class="fator-peso">3%</div><div class="fator-desc">Validação cruzada com casas de apostas</div></div>
+      <div class="fator-card"><div class="fator-nome">Força Relativa</div><div class="fator-peso">30%</div><div class="fator-desc">Ranking FIFA (seleções) ou posição na tabela da Série A/B (clubes)</div></div>
+      <div class="fator-card"><div class="fator-nome">Forma Recente</div><div class="fator-peso">25%</div><div class="fator-desc">Últimos 5 jogos — resultados e saldo de gols</div></div>
+      <div class="fator-card"><div class="fator-nome">Mando de Campo</div><div class="fator-peso">15%</div><div class="fator-desc">Aproveitamento real do mandante em casa e do visitante fora</div></div>
+      <div class="fator-card"><div class="fator-nome">H2H</div><div class="fator-peso">10%</div><div class="fator-desc">Histórico direto entre os times (últimos 5 confrontos)</div></div>
+      <div class="fator-card"><div class="fator-nome">Contexto Motivacional</div><div class="fator-peso">20%</div><div class="fator-desc">Desfalques, poupar titulares, decisão de título ou rebaixamento</div></div>
     </div>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-top:12px;max-width:720px">As odds das casas de apostas não entram no score: elas são combinadas diretamente nas probabilidades finais (65% mercado + 35% modelo) quando disponíveis. Jogos eliminatórios e clássicos recebem penalidade automática na classificação de dificuldade.</p>
   </div>
 
 </div>
@@ -659,9 +658,16 @@ function renderChips() {
     if (nd) cfg.push(nd + (nd>1?' duplos':' duplo'));
     if (nt) cfg.push(nt + (nt>1?' triplos':' triplo'));
     if (!nd && !nt) cfg.push('todos simples');
+    // Chance real de 14 pontos deste concurso (probabilidades publicadas)
+    let chanceTxt = '';
+    if (jogosGlobal.length > 0) {
+      const chance = chanceRealCartao(jogosGlobal, alocarCoberturas(jogosGlobal, nd, nt));
+      if (chance) chanceTxt = `<span class="chip-config" style="color:var(--emerald)">1 em ${chance.toLocaleString('pt-BR')}</span>`;
+    }
     return `<div class="chip${c.destaque?' destaque':''}" id="chip-${c.id}" onclick="selecionarChip('${c.id}')">
       <span class="chip-nome">${c.nome}</span>
       <span class="chip-config">${cfg.join(' · ')}</span>
+      ${chanceTxt}
       <span class="chip-preco">R$${c.preco}</span>
     </div>`;
   }).join('');
@@ -693,7 +699,10 @@ function renderVolanteCaixa(cartaoId) {
 
   document.getElementById('volanteNome').textContent = 'Volante Sugerido';
   const cartaoNomeEl = document.getElementById('volanteCartaoNome');
-  if (cartaoNomeEl) cartaoNomeEl.textContent = c.nome + ' · ' + c.config + ' · R$' + c.preco;
+  if (cartaoNomeEl) {
+    const chanceTxt = calc.chance ? ' · chance real: 1 em ' + calc.chance.toLocaleString('pt-BR') : '';
+    cartaoNomeEl.textContent = c.nome + ' · ' + c.config + ' · R$' + c.preco + chanceTxt;
+  }
   document.getElementById('volanteConfig').textContent = c.config;
   document.getElementById('volantePreco').textContent = 'R$' + c.preco;
 
@@ -758,6 +767,81 @@ function atualizarJogosComCartao(cartaoId) {
 }
 
 // Calcula coberturas e marcações de um cartão para os jogos atuais
+// ─── ALOCAÇÃO ÓTIMA DE DUPLOS/TRIPLOS ──────────────────────────────────────
+// Probabilidades do jogo normalizadas e ordenadas desc: [maior, meio, menor]
+function probsOrdenadas(j) {
+  const arr = [j.p_coluna1, j.p_empate, j.p_coluna2].map(v => Math.max(1, Number(v) || 33));
+  const tot = arr[0] + arr[1] + arr[2];
+  return arr.map(v => v / tot).sort((a, b) => b - a);
+}
+
+// Escolhe ONDE colocar os duplos e triplos maximizando a probabilidade de 14
+// acertos (DP sobre soma de log-cobertura). Nem sempre o jogo mais "difícil"
+// é onde o triplo agrega mais. Sem probabilidades publicadas, cai no critério
+// antigo por dificuldade.
+function alocarCoberturas(jogos, nDuplos, nTriplos) {
+  const temProbs = jogos.every(j => Number.isFinite(j.p_coluna1) && Number.isFinite(j.p_empate) && Number.isFinite(j.p_coluna2));
+  const n = jogos.length;
+  nTriplos = Math.min(nTriplos, n);
+  nDuplos  = Math.min(nDuplos, n - nTriplos);
+
+  if (!temProbs) {
+    const ordemClasse = ['dificil','medio','facil'];
+    const sorted = [...jogos].sort((a,b) => ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
+    const cob = {};
+    sorted.forEach((j, i) => {
+      cob[j.ordem] = i < nTriplos ? 'triplo' : i < nTriplos + nDuplos ? 'duplo' : 'simples';
+    });
+    return cob;
+  }
+
+  const lg = jogos.map(j => {
+    const [a, b] = probsOrdenadas(j);
+    return { s: Math.log(a), d: Math.log(a + b), t: 0 };
+  });
+
+  // DP: melhor soma de log-cobertura do jogo i em diante com d duplos e t triplos restantes
+  const memo = new Map();
+  function dp(i, d, t) {
+    if (i === n) return { v: (d === 0 && t === 0) ? 0 : -Infinity, e: null };
+    const key = i * 121 + d * 11 + t;
+    if (memo.has(key)) return memo.get(key);
+    let melhor = { v: dp(i + 1, d, t).v + lg[i].s, e: 'simples' };
+    if (d > 0) {
+      const v = dp(i + 1, d - 1, t).v + lg[i].d;
+      if (v > melhor.v) melhor = { v, e: 'duplo' };
+    }
+    if (t > 0) {
+      const v = dp(i + 1, d, t - 1).v + lg[i].t;
+      if (v > melhor.v) melhor = { v, e: 'triplo' };
+    }
+    memo.set(key, melhor);
+    return melhor;
+  }
+
+  const cob = {};
+  let d = nDuplos, t = nTriplos;
+  for (let i = 0; i < n; i++) {
+    const e = dp(i, d, t).e || 'simples';
+    cob[jogos[i].ordem] = e;
+    if (e === 'duplo') d--;
+    else if (e === 'triplo') t--;
+  }
+  return cob;
+}
+
+// Probabilidade real de 14 acertos do cartão → "1 em N" (null sem probs)
+function chanceRealCartao(jogos, coberturas) {
+  let p = 1;
+  for (const j of jogos) {
+    if (!Number.isFinite(j.p_coluna1) || !Number.isFinite(j.p_empate) || !Number.isFinite(j.p_coluna2)) return null;
+    const [a, b] = probsOrdenadas(j);
+    const cob = coberturas[j.ordem] || 'simples';
+    p *= cob === 'triplo' ? 1 : cob === 'duplo' ? (a + b) : a;
+  }
+  return p > 0 ? Math.round(1 / p) : null;
+}
+
 function calcularMarcacoes(cartaoId) {
   const c = CARTOES.find(x => x.id === cartaoId);
   if (!c || jogosGlobal.length === 0) return null;
@@ -766,16 +850,7 @@ function calcularMarcacoes(cartaoId) {
   const nDuplos  = partes ? parseInt(partes[1]) : 0;
   const nTriplos = partes ? parseInt(partes[2]) : 0;
 
-  // Ordenar jogos por abertura (dificil > medio > facil)
-  const ordemClasse = ['dificil','medio','facil'];
-  const sorted = [...jogosGlobal].sort((a,b) => ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
-
-  const coberturas = {};
-  sorted.forEach((j, i) => {
-    if (i < nTriplos) coberturas[j.ordem] = 'triplo';
-    else if (i < nTriplos + nDuplos) coberturas[j.ordem] = 'duplo';
-    else coberturas[j.ordem] = 'simples';
-  });
+  const coberturas = alocarCoberturas(jogosGlobal, nDuplos, nTriplos);
 
   const marcacoes = {};
   jogosGlobal.forEach(j => {
@@ -793,7 +868,7 @@ function calcularMarcacoes(cartaoId) {
     }
   });
 
-  return { marcacoes, coberturas, cartao: c };
+  return { marcacoes, coberturas, cartao: c, chance: chanceRealCartao(jogosGlobal, coberturas) };
 }
 
 function gerarVolante(cartaoId) {
@@ -801,14 +876,16 @@ function gerarVolante(cartaoId) {
 }
 
 // ─── FATORES & FORMA ───────────────────────────────────────────────────────
+// Fatores v2 — 'competicao' e 'odds' são mantidos na lista apenas para exibir
+// análises antigas que ainda tenham esses fatores salvos no breakdown.
 const FATORES_DEF = [
-  { k:'forca',      label:'Força relativa',  peso:25, hint:'Ranking FIFA/CBF, valor de mercado e histórico de resultados.', ref:'Top 10 mundial ≈ 90–100 · seleção média ≈ 40–60 · fraca ≈ 10–30' },
-  { k:'forma',      label:'Forma recente',   peso:20, hint:'Desempenho nos últimos 5 jogos (vitórias, empates, gols).', ref:'V=100 · E=50 · D=0 — média ponderada com peso maior nos jogos recentes' },
-  { k:'competicao', label:'Competição',      peso:20, hint:'Fase e importância do jogo na competição.', ref:'Final/decisão = 30–45 · mata-mata = 40–60 · grupos = 55–70 · amistoso = 45–60' },
-  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Vantagem histórica de jogar em casa ou em campo neutro.', ref:'Clubes BR em casa ≈ 65–75 · campo neutro ≈ 50 · visitante forte ≈ 35–45' },
+  { k:'forca',      label:'Força relativa',  peso:30, hint:'Ranking FIFA (seleções) ou posição na tabela da Série A/B (clubes BR).', ref:'Top 10 mundial ≈ 90–100 · 1º Série A ≈ 88 · 1º Série B ≈ 62 · fraca ≈ 10–30' },
+  { k:'forma',      label:'Forma recente',   peso:25, hint:'Desempenho nos últimos 5 jogos (vitórias, empates, gols).', ref:'70% resultados (V=100 · E=50 · D=0) + 30% saldo de gols' },
+  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Aproveitamento real do mandante em casa e do visitante fora (últimos 10 jogos).', ref:'Forte em casa ≈ 70–90 · neutro = 50 · fraco fora ≈ 10–30' },
   { k:'h2h',        label:'Histórico H2H',   peso:10, hint:'Resultado dos últimos confrontos diretos entre as equipes.', ref:'Domina = 80–95 · equilíbrio = 40–60 · costuma perder = 10–35' },
-  { k:'motivacao',  label:'Motivação',       peso:7,  hint:'Contexto e necessidade do resultado neste jogo.', ref:'Decisão de título/rebaixamento = 80–100 · neutro = 50 · poupar titulares = 15–30' },
-  { k:'odds',       label:'Odds mercado',    peso:3,  hint:'Validação com probabilidades das casas de apostas.', ref:'Odd 1.40 → 71% · 2.00 → 50% · 2.50 → 40% · 3.00 → 33%' },
+  { k:'motivacao',  label:'Motivação',       peso:20, hint:'Contexto e necessidade do resultado neste jogo (avaliação do editor).', ref:'Decisão de título/rebaixamento = 80–100 · neutro = 50 · poupar titulares = 15–30' },
+  { k:'competicao', label:'Competição',      peso:0,  hint:'Fator descontinuado — presente apenas em análises antigas.', ref:'' },
+  { k:'odds',       label:'Odds mercado',    peso:0,  hint:'Nas análises novas as odds entram como blend nas probabilidades, não como fator.', ref:'' },
 ];
 function getFatObj(j, lado) {
   let raw = lado === 'casa' ? j.fatores_casa : j.fatores_visit;
@@ -906,7 +983,7 @@ function renderJogo(jogo, timesMap, calcCartao) {
           </div>
         </span>` : '';
       return `<div class="sb-row">
-        <span class="sb-label">${f.label} <span style="color:var(--amber)">${f.peso}%</span> ${ttHtml}</span>
+        <span class="sb-label">${f.label} ${f.peso ? `<span style="color:var(--amber)">${f.peso}%</span>` : ''} ${ttHtml}</span>
         <div class="sb-bars">
           <div class="sb-bar-bg" style="transform:scaleX(-1)"><div class="sb-bar-fill" style="width:${vc}%;background:${scoreColor(vc)}"></div></div>
           <div class="sb-bar-bg"><div class="sb-bar-fill" style="width:${vv}%;background:${scoreColor(vv)}"></div></div>
@@ -1162,15 +1239,8 @@ function simularCartao(cartaoId, jogos) {
   const nDuplos  = partes ? parseInt(partes[1]) : 0;
   const nTriplos = partes ? parseInt(partes[2]) : 0;
 
-  const ordemClasse = ['dificil','medio','facil'];
-  const sorted = [...jogos].sort((a,b) => ordemClasse.indexOf(a.classificacao) - ordemClasse.indexOf(b.classificacao));
-
-  const coberturas = {};
-  sorted.forEach((j, i) => {
-    if (i < nTriplos) coberturas[j.ordem] = 'triplo';
-    else if (i < nTriplos + nDuplos) coberturas[j.ordem] = 'duplo';
-    else coberturas[j.ordem] = 'simples';
-  });
+  // Mesma alocação ótima usada no volante sugerido
+  const coberturas = alocarCoberturas(jogos, nDuplos, nTriplos);
 
   const resLabel = r => r === 'coluna1' ? 'Col.1' : r === 'coluna2' ? 'Col.2' : 'Empate';
   const marcLabel = m => m === 'coluna1' ? 'C1' : m === 'coluna2' ? 'C2' : 'X';

@@ -280,6 +280,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
             <span id="edStatus"></span>
           </div>
           <div class="toolbar-actions">
+            <button class="btn" id="btnAnaliseAuto" onclick="dispararAnaliseAuto()" title="Coleta força, forma, mando, H2H e odds das APIs externas via GitHub Actions">⟳ Análise automática</button>
             <button class="btn btn-amber" onclick="calcularTudoComPopup()">⚙ Calcular análise</button>
             <button class="btn" onclick="salvarTudo()">💾 Salvar tudo</button>
             <button class="btn btn-green" onclick="publicar('preliminar')">▶ Preliminar</button>
@@ -471,15 +472,40 @@ function coberturaPorClasse(classe) {
   return classe === 'facil' ? 'simples' : classe === 'medio' ? 'duplo' : 'triplo';
 }
 
+// ─── ODDS DE MERCADO (coletadas pelo analisador, salvas na justificativa) ──
+// O recálculo local reaplica o mesmo blend do loteca-analisar.js para não
+// descartar a informação de mercado: 65% odds + 35% modelo.
+function getOddsSalvas(j) {
+  try {
+    const just = typeof j.justificativa === 'string' ? JSON.parse(j.justificativa) : j.justificativa;
+    const o = just && just.odds;
+    if (o && Number.isFinite(o.p1) && Number.isFinite(o.px) && Number.isFinite(o.p2)) return o;
+  } catch {}
+  return null;
+}
+function blendComOdds(probs, odds) {
+  const w = 0.65;
+  const b1 = w * odds.p1 + (1 - w) * probs.p1;
+  const bx = w * odds.px + (1 - w) * probs.px;
+  const b2 = w * odds.p2 + (1 - w) * probs.p2;
+  const tot = b1 + bx + b2;
+  let i1 = Math.round(b1 / tot * 100);
+  let ix = Math.round(bx / tot * 100);
+  let i2 = 100 - i1 - ix;
+  if (i2 < 0) { ix += i2; i2 = 0; }
+  return Object.assign({}, probs, { p1: i1, px: ix, p2: i2, comOdds: true });
+}
+
 // ─── FATORES DO SCORE ──────────────────────────────────────────────────────
+// Fatores v2 — alinhados ao loteca-analisar.js. "Competição" saiu (atributo do
+// jogo, tratado via checkbox Eliminatório). Odds não são fator: viram blend
+// direto nas probabilidades (65% odds + 35% modelo) quando coletadas.
 const FATORES_DEF = [
-  { k:'forca',      label:'Força relativa',  peso:25, hint:'Ranking FIFA/CBF, valor de mercado, histórico de resultados. Referência: top10 mundial ≈ 90–100, médio ≈ 40–60, fraco ≈ 10–30.' },
-  { k:'forma',      label:'Forma recente',   peso:20, hint:'Últimos 5 jogos (casa/fora separados). V=100, E=50, D=0 — média ponderada. Auto-calculado dos placares acima.' },
-  { k:'competicao', label:'Competição',      peso:20, hint:'Fase/importância do jogo. Final = 30–40, mata-mata = 40–60, fase de grupos = 60–75, amistoso = 50–65.' },
-  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Vantagem histórica do mandante nesta competição. Clubes brasileiros: 60–70. Seleções em campo neutro: ~50.' },
-  { k:'h2h',        label:'Histórico H2H',   peso:10, hint:'Últimos 5 confrontos diretos. Vitórias = 80–100, equilíbrio = 40–60, derrotas = 10–30.' },
-  { k:'motivacao',  label:'Motivação',       peso:7,  hint:'Contexto do jogo. Decisão de título/rebaixamento = 80–100. Poupar titulares = 20–35. Jogo neutro = 50.' },
-  { k:'odds',       label:'Odds mercado',    peso:3,  hint:'Validação com casas de apostas. Converta: odd 1.50 → 67%, odd 2.00 → 50%, odd 3.00 → 33%. Use como verificação.' },
+  { k:'forca',      label:'Força relativa',  peso:30, hint:'Auto: seleções pelo ranking FIFA; clubes BR pela posição na tabela (1º Série A ≈ 88, 1º Série B ≈ 62). Top10 mundial ≈ 90–100, médio ≈ 40–60, fraco ≈ 10–30.' },
+  { k:'forma',      label:'Forma recente',   peso:25, hint:'Auto: últimos 5 jogos — 70% resultados (V=100, E=50, D=0) + 30% saldo de gols, com regressão à média. Pode ser recalculada dos placares acima.' },
+  { k:'mando',      label:'Mando de campo',  peso:15, hint:'Auto: aproveitamento específico — mandante nos últimos jogos EM CASA, visitante nos últimos jogos FORA (últimos 10 jogos).' },
+  { k:'h2h',        label:'Histórico H2H',   peso:10, hint:'Auto: últimos 5 confrontos diretos (V=100, E=50, D=0, regressão à média).' },
+  { k:'motivacao',  label:'Motivação',       peso:20, manual:true, hint:'ÚNICA entrada manual. Desfalques importantes, decisão de título/rebaixamento = 80–100, poupar titulares = 20–35, contexto neutro = 50. Vazio = peso redistribuído.' },
 ];
 
 // Score composto com redistribuição de pesos (fatores vazios não contam)
@@ -665,10 +691,16 @@ async function calcularTudoComPopup() {
     return { sc, sv };
   });
 
-  // Passo 3: Poisson
+  // Passo 3: Poisson + blend com odds de mercado (quando coletadas)
   setPopupStep(3, 'active', 'Calculando probabilidades C1 / Empate / C2…');
   await delay(300);
-  const probsArr = scores.map(({ sc, sv }) => isNaN(sc) || isNaN(sv) ? null : calcProbs(sc, sv));
+  const probsArr = scores.map(({ sc, sv }, idx) => {
+    if (isNaN(sc) || isNaN(sv)) return null;
+    let p = calcProbs(sc, sv);
+    const odds = getOddsSalvas(jogos[idx]);
+    if (odds) p = blendComOdds(p, odds);
+    return p;
+  });
 
   // Passo 4: Classificação
   setPopupStep(4, 'active', 'Classificando Fácil / Médio / Difícil…');
@@ -705,6 +737,7 @@ async function calcularTudoComPopup() {
         <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
         <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
         <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+        ${probs.comOdds ? '<span style="color:var(--sky);font-size:9px" title="Blend 65% odds de mercado + 35% modelo">odds ✓</span>' : ''}
       </div>`;
     calculados++;
   });
@@ -796,6 +829,7 @@ function renderJogosAdmin() {
         <span class="ja-prob px">X <strong>${j.p_empate}%</strong></span>
         <span class="ja-prob c2">C2 <strong>${j.p_coluna2}%</strong></span>
         <span style="color:var(--ink-faint);font-size:9px">λ ${j.lambda_casa ?? '—'} / ${j.lambda_visit ?? '—'}</span>
+        ${getOddsSalvas(j) ? '<span style="color:var(--sky);font-size:9px" title="Blend 65% odds de mercado + 35% modelo">odds ✓</span>' : ''}
       </div>` : '';
     const fatCasa  = getFatObj(j, 'casa');
     const fatVisit = getFatObj(j, 'visit');
@@ -809,6 +843,7 @@ function renderJogosAdmin() {
         <td>
           <div class="tt-wrap">
             <span>${f.label}</span>
+            ${f.manual ? '<span class="fat-source" style="background:rgba(232,150,58,0.15);color:var(--amber)" title="Única entrada manual — preencha quando souber o contexto">manual</span>' : ''}
             ${f.hint ? `
             <span class="tt-icon"
               onmouseenter="mostrarTooltip('${idx}-${f.k}')"
@@ -927,6 +962,39 @@ function atualizarCobResumo() {
     <span class="cob-chip" style="color:var(--ink-faint)">Custo base 2d+2t ref.: triplos e duplos definem os cartões</span>`;
 }
 
+// ─── ANÁLISE AUTOMÁTICA (GitHub Actions via Netlify Function) ──────────────
+// Dispara o workflow loteca-analisar.yml, que coleta força/forma/mando/H2H/odds
+// e grava no Supabase. Depois é só recarregar o concurso e revisar.
+async function dispararAnaliseAuto() {
+  if (!concursoAtivo) { toast('Abra um concurso primeiro', 'err'); return; }
+  const numero = concursoAtivo.numero;
+  if (!confirm(`Disparar análise automática do concurso ${numero}?\n\nO robô coleta força, forma, mando, H2H e odds das APIs externas (~2–4 min). Jogos marcados como revisados não são sobrescritos.`)) return;
+
+  const btn = document.getElementById('btnAnaliseAuto');
+  btn.disabled = true;
+  btn.textContent = '⟳ Disparando…';
+
+  // Fora do domínio de produção (teste local), chama a function publicada
+  const base = location.hostname.endsWith('palpitiar.com.br') ? '' : 'https://palpitiar.com.br';
+  try {
+    const res = await fetch(base + '/.netlify/functions/analisar-loteca', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
+      body: JSON.stringify({ numero }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    btn.textContent = '✓ Em andamento…';
+    toast(`Análise do concurso ${numero} disparada — recarregue em ~3 min`, 'ok');
+    // Reabilita depois de um tempo para permitir recarregar/redisparar
+    setTimeout(() => { btn.disabled = false; btn.textContent = '⟳ Análise automática'; }, 60000);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '⟳ Análise automática';
+    toast('Erro ao disparar: ' + err.message, 'err');
+  }
+}
+
 // ─── CALCULAR ANÁLISE (todos os jogos) ─────────────────────────────────────
 function lerFatoresInput(idx, lado) {
   const f = {};
@@ -983,7 +1051,9 @@ function calcularTudo() {
     const isClassico = document.getElementById('classico-'+idx).checked;
     const isElim     = document.getElementById('elim-'+idx).checked;
 
-    const probs  = calcProbs(sc, sv);
+    let probs = calcProbs(sc, sv);
+    const oddsJ = getOddsSalvas(j);
+    if (oddsJ) probs = blendComOdds(probs, oddsJ);
     const classe = classificar(probs, isClassico, isElim);
     const sug    = sugerir(probs);
     const cob    = coberturaPorClasse(classe);
@@ -1007,6 +1077,7 @@ function calcularTudo() {
         <span class="ja-prob px">X <strong>${probs.px}%</strong></span>
         <span class="ja-prob c2">C2 <strong>${probs.p2}%</strong></span>
         <span style="color:var(--ink-faint);font-size:9px">λ ${probs.lambdaCasa} / ${probs.lambdaVisit}</span>
+        ${probs.comOdds ? '<span style="color:var(--sky);font-size:9px" title="Blend 65% odds de mercado + 35% modelo">odds ✓</span>' : ''}
       </div>`;
     calculados++;
   });

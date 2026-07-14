@@ -1,24 +1,33 @@
 /**
- * loteca-analisar.js
+ * loteca-analisar.js  (v2)
  * Análise automática da Loteca — Palpitiar
  *
  * Coleta dados externos e pré-preenche scores/probabilidades no Supabase.
  * O admin (admin-loteca.html) revisa e publica.
  *
- * Fontes em cascata:
- *   1. Ranking FIFA (tabela embutida)        -> força de seleções
- *   2. API-Futebol (api-futebol.com.br)      -> força/forma de clubes BR
- *   3. SofaScore (API JSON pública)          -> forma recente (todos)
- *   Fatores indisponíveis: peso redistribuído entre os disponíveis.
+ * Cada time é classificado automaticamente como seleção, clube BR ou clube
+ * estrangeiro (tabela FIFA / sufixo "/UF" / demais) e usa o pipeline adequado:
+ *
+ *   Seleções          força = ranking FIFA embutido
+ *   Clubes BR         força = posição na tabela Série A/B (API-Futebol)
+ *   Clubes estrang.   força = estimada pela forma
+ *   Todos             forma/mando = últimos 10 jogos (api-football → TheSportsDB → SofaScore)
+ *                     H2H  = últimos 5 confrontos diretos (api-football)
+ *                     odds = mercado pré-jogo (api-football) — blend 65% odds + 35% modelo
+ *
+ * Fatores por time: força 30 | forma 25 | mando 15 | h2h 10 | motivação 20 (manual, admin)
+ * Fatores indisponíveis: peso redistribuído entre os disponíveis.
  *
  * Uso:
  *   node loteca-analisar.js 1255
  *   node loteca-analisar.js 1255 --force          (sobrescreve jogos revisados)
  *   node loteca-analisar.js 1255 --skip-sofascore (só FIFA/API-Futebol)
+ *   node loteca-analisar.js 1255 --skip-odds      (não busca odds de mercado)
  *
  * Variáveis de ambiente:
  *   SUPABASE_KEY        = sb_secret_...   (obrigatória)
  *   API_FUTEBOL_LOTECA  = Bearer token    (opcional — clubes BR)
+ *   APIFOOTBALL_KEY     = chave api-sports (opcional — forma/H2H/odds)
  */
 
 'use strict';
@@ -38,6 +47,7 @@ const args = process.argv.slice(2);
 const NUMERO = parseInt(args.find(a => /^\d+$/.test(a)), 10);
 const FORCE = args.includes('--force');
 const SKIP_SOFA = args.includes('--skip-sofascore');
+const SKIP_ODDS = args.includes('--skip-odds');
 
 if (!SUPABASE_KEY) {
   console.error('ERRO: defina SUPABASE_KEY.  PowerShell: $env:SUPABASE_KEY = "sb_secret_..."');
@@ -191,29 +201,40 @@ async function af2Get(pathUrl) {
   }
 }
 
-// Resolve ID do time buscando por nome (cache local)
-async function af2ResolverTimeId(nomeEn) {
-  const chave = normalizarNome(nomeEn);
+// Resolve ID do time buscando por nome (cache local).
+// ehSelecao: prioriza type=national; ehClubeBr: filtra country=Brazil.
+async function af2ResolverTimeId(nomeEn, ehSelecao, ehClubeBr) {
+  const chave = (ehSelecao ? 'n:' : ehClubeBr ? 'br:' : 'c:') + normalizarNome(nomeEn);
   if (af2Cache[chave]) return af2Cache[chave];
+  // compat: cache antigo de seleções sem prefixo
+  if (ehSelecao && af2Cache[normalizarNome(nomeEn)]) return af2Cache[normalizarNome(nomeEn)];
 
-  const data = await af2Get(`/teams?name=${encodeURIComponent(nomeEn)}&type=national`);
-  await sleep(AF2_DELAY);
-  const times = (data.response || []);
-  if (times.length === 0) {
-    // tentar sem filtro national
-    const data2 = await af2Get(`/teams?name=${encodeURIComponent(nomeEn)}`);
+  const q = encodeURIComponent(nomeEn);
+  const tentativas = ehSelecao
+    ? [`/teams?name=${q}&type=national`, `/teams?search=${q}`]
+    : ehClubeBr
+      ? [`/teams?search=${q}&country=Brazil`, `/teams?search=${q}`]
+      : [`/teams?name=${q}`, `/teams?search=${q}`];
+
+  for (const url of tentativas) {
+    const data = await af2Get(url);
     await sleep(AF2_DELAY);
-    const t = (data2.response || [])[0];
-    if (t) { af2Cache[chave] = t.team.id; salvarAf2Cache(); return t.team.id; }
-    return null;
+    let times = (data.response || []);
+    if (!ehSelecao) times = times.filter(t => !t.team.national);
+    if (times.length === 0) continue;
+    // preferir correspondência exata de nome normalizado
+    const alvo = normalizarNome(nomeEn);
+    const exato = times.find(t => normalizarNome(t.team.name) === alvo);
+    const id = (exato || times[0]).team.id;
+    af2Cache[chave] = id;
+    salvarAf2Cache();
+    return id;
   }
-  af2Cache[chave] = times[0].team.id;
-  salvarAf2Cache();
-  return times[0].team.id;
+  return null;
 }
 
-// Ultimos 5 jogos finalizados do time
-// Tenta: last=5 sem season; se vazio tenta season 2025 e 2024 explicitamente
+// Ultimos 10 jogos finalizados do time (5 para forma; todos para mando casa/fora)
+// Tenta: last=10 sem season; se vazio tenta season atual e anterior
 async function af2UltimosJogos(teamId) {
   const anoAtual = new Date().getFullYear();
   const tentativas = [
@@ -228,7 +249,7 @@ async function af2UltimosJogos(teamId) {
     const todos = (data.response || [])
       .filter(m => m.fixture.status && ['FT','AET','PEN'].includes(m.fixture.status.short))
       .sort((a, b) => String(b.fixture.date).localeCompare(String(a.fixture.date)))
-      .slice(0, 5);
+      .slice(0, 10);
     if (todos.length === 0) continue;
     return todos.map(m => {
       const isHome = m.teams.home.id === teamId;
@@ -236,10 +257,96 @@ async function af2UltimosJogos(teamId) {
       const gc = isHome ? m.goals.away : m.goals.home;
       const adv = isHome ? m.teams.away.name : m.teams.home.name;
       if (!Number.isFinite(gf) || !Number.isFinite(gc)) return null;
-      return { gf, gc, adv, r: gf > gc ? 'V' : gf === gc ? 'E' : 'D', data: String(m.fixture.date).slice(0, 10) };
+      return { gf, gc, adv, casa: isHome, r: gf > gc ? 'V' : gf === gc ? 'E' : 'D', data: String(m.fixture.date).slice(0, 10) };
     }).filter(Boolean);
   }
   return [];
+}
+
+// ─── Fator MANDO: aproveitamento específico casa/fora ────────────────────────
+// Para o mandante: só jogos em casa; para o visitante: só jogos fora.
+// Regressão à média por tamanho de amostra (poucos jogos → encolhe para 50).
+function mandoDeUltimos(jogos, emCasa) {
+  const rel = (jogos || []).filter(j => j.casa === emCasa);
+  if (rel.length === 0) return null;
+  let pts = 0;
+  rel.forEach(j => { if (j.r === 'V') pts += 3; else if (j.r === 'E') pts += 1; });
+  const apr = pts / (rel.length * 3) * 100;
+  const conf = Math.sqrt(Math.min(rel.length, 5) / 5);
+  return Math.round(50 + (apr - 50) * conf);
+}
+
+// ─── Fator H2H: últimos 5 confrontos diretos (api-football) ──────────────────
+// Retorna { casa, visit } em 0-100 (V=100, E=50, D=0, regressão à média).
+async function af2H2H(idCasa, idVisit) {
+  const data = await af2Get(`/fixtures/headtohead?h2h=${idCasa}-${idVisit}&last=5`);
+  await sleep(AF2_DELAY);
+  const jogos = (data.response || [])
+    .filter(m => m.fixture.status && ['FT','AET','PEN'].includes(m.fixture.status.short));
+  if (jogos.length === 0) return null;
+  let soma = 0;
+  jogos.forEach(m => {
+    const golsCasaTime = m.teams.home.id === idCasa ? m.goals.home : m.goals.away;
+    const golsVisitTime = m.teams.home.id === idCasa ? m.goals.away : m.goals.home;
+    soma += golsCasaTime > golsVisitTime ? 100 : golsCasaTime === golsVisitTime ? 50 : 0;
+  });
+  const apr = soma / jogos.length;
+  const conf = Math.sqrt(jogos.length / 5);
+  const casa = Math.round(50 + (apr - 50) * conf);
+  return { casa, visit: 100 - casa, jogos: jogos.length };
+}
+
+// ─── ODDS de mercado (api-football) ───────────────────────────────────────────
+// Busca o próximo confronto entre os dois times e as odds "Match Winner".
+// Retorna probabilidades implícitas SEM o vig (normalizado), média das casas.
+async function af2OddsProximoJogo(idCasa, idVisit) {
+  const fx = await af2Get(`/fixtures/headtohead?h2h=${idCasa}-${idVisit}&next=1`);
+  await sleep(AF2_DELAY);
+  const fixture = (fx.response || [])[0];
+  if (!fixture) return null;
+
+  const od = await af2Get(`/odds?fixture=${fixture.fixture.id}&bet=1`);
+  await sleep(AF2_DELAY);
+  const resp = (od.response || [])[0];
+  if (!resp) return null;
+
+  let sH = 0, sD = 0, sA = 0, n = 0;
+  (resp.bookmakers || []).forEach(bk => {
+    const bet = (bk.bets || []).find(b => b.id === 1 || /match winner/i.test(b.name || ''));
+    if (!bet) return;
+    const vh = (bet.values || []).find(v => v.value === 'Home');
+    const vd = (bet.values || []).find(v => v.value === 'Draw');
+    const va = (bet.values || []).find(v => v.value === 'Away');
+    if (!vh || !vd || !va) return;
+    const oh = parseFloat(vh.odd), od2 = parseFloat(vd.odd), oa = parseFloat(va.odd);
+    if (!(oh > 1 && od2 > 1 && oa > 1)) return;
+    sH += 1 / oh; sD += 1 / od2; sA += 1 / oa; n++;
+  });
+  if (n === 0) return null;
+
+  let h = sH / n, d = sD / n, a = sA / n;
+  // O fixture pode estar com mando invertido em relação à grade da Loteca
+  if (fixture.teams.home.id !== idCasa) { const t = h; h = a; a = t; }
+  const tot = h + d + a;
+  return {
+    p1: h / tot * 100, px: d / tot * 100, p2: a / tot * 100,
+    casas: n, fixtureId: fixture.fixture.id,
+    dataJogo: String(fixture.fixture.date).slice(0, 10),
+  };
+}
+
+// Blend final: 65% odds de mercado + 35% modelo (inteiros somando 100)
+function blendComOdds(probsModelo, odds) {
+  const w = 0.65;
+  const b1 = w * odds.p1 + (1 - w) * probsModelo.p1;
+  const bx = w * odds.px + (1 - w) * probsModelo.px;
+  const b2 = w * odds.p2 + (1 - w) * probsModelo.p2;
+  const tot = b1 + bx + b2;
+  let i1 = Math.round(b1 / tot * 100);
+  let ix = Math.round(bx / tot * 100);
+  let i2 = 100 - i1 - ix;
+  if (i2 < 0) { ix += i2; i2 = 0; }
+  return Object.assign({}, probsModelo, { p1: i1, px: ix, p2: i2, comOdds: true });
 }
 
 // Mescla listas de jogos de varias fontes (dedup por data), mais recentes primeiro
@@ -409,30 +516,54 @@ async function sofaFormaRecente(teamId) {
   return { forma, sequencia: sequencia.join(''), jogos: eventos.length, ultimos5 };
 }
 
-// ─── Fator 2c: FORMA (API-Futebol, clubes BR) ─────────────────────────────────
+// ─── Clubes BR: força pela posição na tabela + forma (API-Futebol) ────────────
+// Série A = campeonato 10, Série B = campeonato 14. Tabelas cacheadas por execução.
 
-async function apiFutebolForma(apiFutebolId) {
+const apiFutTabelaCache = {};
+async function apiFutebolTabela(campId) {
+  if (apiFutTabelaCache[campId] !== undefined) return apiFutTabelaCache[campId];
+  try {
+    const data = await httpGet(`https://api.api-futebol.com.br/v1/campeonatos/${campId}/tabela`,
+      { 'Authorization': `Bearer ${API_FUTEBOL_TOKEN}` });
+    apiFutTabelaCache[campId] = Array.isArray(data) ? data : null;
+  } catch { apiFutTabelaCache[campId] = null; }
+  return apiFutTabelaCache[campId];
+}
+
+async function apiFutebolClube(apiFutebolId) {
   if (!API_FUTEBOL_TOKEN || !apiFutebolId) return null;
-  // Brasileirão Série A = campeonato 10 na API-Futebol
-  const url = `https://api.api-futebol.com.br/v1/campeonatos/10/tabela`;
-  const data = await httpGet(url, { 'Authorization': `Bearer ${API_FUTEBOL_TOKEN}` });
-  if (!Array.isArray(data)) return null;
-  const linha = data.find(t => t.time && t.time.time_id === apiFutebolId);
-  if (!linha || !linha.ultimos_jogos) return null;
-  let pontos = 0;
-  linha.ultimos_jogos.forEach(r => {
-    if (r === 'v') pontos += 3; else if (r === 'e') pontos += 1;
-  });
-  const forma = Math.round(pontos / (linha.ultimos_jogos.length * 3) * 100);
-  return { forma, sequencia: linha.ultimos_jogos.join('').toUpperCase(), jogos: linha.ultimos_jogos.length };
+  // Escala de força alinhada à referência do admin (Série A 1º ≈ 88; Série B 1º ≈ 62)
+  const series = [
+    { camp: 10, letra: 'A', base: 88, passo: 1.8 },
+    { camp: 14, letra: 'B', base: 62, passo: 1.5 },
+  ];
+  for (const s of series) {
+    const tabela = await apiFutebolTabela(s.camp);
+    if (!tabela) continue;
+    const linha = tabela.find(t => t.time && t.time.time_id === apiFutebolId);
+    if (!linha) continue;
+    let forma = null, sequencia = null;
+    if (Array.isArray(linha.ultimos_jogos) && linha.ultimos_jogos.length > 0) {
+      let pontos = 0;
+      linha.ultimos_jogos.forEach(r => { if (r === 'v') pontos += 3; else if (r === 'e') pontos += 1; });
+      forma = Math.round(pontos / (linha.ultimos_jogos.length * 3) * 100);
+      sequencia = linha.ultimos_jogos.join('').toUpperCase();
+    }
+    const forca = Math.round(Math.max(20, s.base - ((linha.posicao || 10) - 1) * s.passo));
+    return { forca, forma, sequencia, posicao: linha.posicao, serie: s.letra };
+  }
+  return null;
 }
 
 // ─── Score composto com redistribuição de pesos ──────────────────────────────
-// Pesos do modelo: forca 25 | forma 20 | competicao 20 | mando 15 | h2h 10 | motivacao 7 | odds 3
+// Pesos v2: forca 30 | forma 25 | mando 15 | h2h 10 | motivacao 20 (manual, admin)
+// "Competição" saiu dos fatores de time (é atributo do jogo — já tratado em
+// classificar() via is_eliminatorio). Odds saíram dos fatores: viram blend
+// direto nas probabilidades finais (blendComOdds).
 // Fatores indisponíveis têm o peso redistribuído proporcionalmente.
 
 function scoreComposto(fatores) {
-  const PESOS = { forca: 25, forma: 20, competicao: 20, mando: 15, h2h: 10, motivacao: 7, odds: 3 };
+  const PESOS = { forca: 30, forma: 25, mando: 15, h2h: 10, motivacao: 20 };
   let somaPeso = 0, somaValor = 0;
   const usados = {};
   for (const [k, peso] of Object.entries(PESOS)) {
@@ -496,59 +627,74 @@ async function analisarTime(time) {
   if (cacheTime[chave]) return cacheTime[chave];
 
   const nomeCaixa = (time.nome_caixa || '').toUpperCase();
-  const resultado = { nome: time.nome_popular || time.nome_caixa, forca: null, forma: null, formaSeq: null, ultimos5: [], fontes: [] };
+  const resultado = {
+    nome: time.nome_popular || time.nome_caixa,
+    tipo: null, af2Id: null,
+    forca: null, forma: null, formaSeq: null,
+    ultimos5: [], ultimosRaw: [], fontes: [],
+  };
 
-  // 1. Força via FIFA (seleções)
-  const fifa = forcaFifa(nomeCaixa);
-  if (fifa !== null) {
-    resultado.forca = fifa;
+  // Tipo do time: seleção (tabela FIFA) > clube BR (sufixo /UF ou pais) > clube estrangeiro
+  const fifa = FIFA[nomeCaixa];
+  if (fifa) resultado.tipo = 'selecao';
+  else if (/\/[A-Z]{2}$/.test(nomeCaixa) || time.pais === 'Brasil') resultado.tipo = 'clube_br';
+  else resultado.tipo = 'clube_ext';
+
+  // Nome para busca em APIs internacionais (clube BR sem o sufixo /UF)
+  const nomeBusca = resultado.tipo === 'selecao'
+    ? fifa.en
+    : (time.nome_popular || time.nome_caixa).replace(/\/[A-Z]{2}$/, '').trim();
+
+  // 1. Força
+  if (resultado.tipo === 'selecao') {
+    resultado.forca = forcaFifa(nomeCaixa);
     resultado.fontes.push('fifa');
-  }
-
-  // 2. Forma via API-Futebol (clubes BR com id mapeado)
-  if (time.api_futebol_id && API_FUTEBOL_TOKEN) {
+  } else if (resultado.tipo === 'clube_br' && time.api_futebol_id && API_FUTEBOL_TOKEN) {
     try {
-      const af = await apiFutebolForma(time.api_futebol_id);
+      const af = await apiFutebolClube(time.api_futebol_id);
       if (af) {
-        resultado.forma = af.forma;
-        resultado.formaSeq = af.sequencia;
-        resultado.fontes.push('api-futebol');
-        if (resultado.forca === null) {
-          // Sem FIFA: estimar força pela posição/forma (aproximação)
-          resultado.forca = Math.min(85, 35 + Math.round(af.forma * 0.4));
-        }
+        resultado.forca = af.forca;
+        if (af.forma !== null) { resultado.forma = af.forma; resultado.formaSeq = af.sequencia; }
+        resultado.fontes.push(`api-futebol:${af.posicao}º-serie-${af.serie}`);
+        console.log(`      [api-futebol] ${resultado.nome}: ${af.posicao}º Série ${af.serie} — força ${af.forca}`);
       }
       await sleep(700);
     } catch (e) { console.log(`      [api-futebol] ${resultado.nome}: ${e.message}`); }
   }
 
-  // 3. Ultimos jogos: coletar de multiplas fontes e mesclar (dedup por data)
+  // 2. ID no api-football (usado por forma, mando, H2H e odds)
+  if (APIFOOTBALL_KEY) {
+    try {
+      resultado.af2Id = await af2ResolverTimeId(nomeBusca, resultado.tipo === 'selecao', resultado.tipo === 'clube_br');
+      if (!resultado.af2Id) console.log(`      [api-football] ${resultado.nome}: time nao encontrado`);
+    } catch (e) { console.log(`      [api-football] ${resultado.nome}: ${e.message}`); }
+  }
+
+  // 3. Últimos jogos via api-football (forma se ainda faltar + mando casa/fora)
+  if (resultado.af2Id) {
+    try {
+      const jogos = await af2UltimosJogos(resultado.af2Id);
+      if (jogos.length > 0) {
+        resultado.ultimosRaw = jogos;
+        if (resultado.ultimos5.length === 0) resultado.ultimos5 = jogos.slice(0, 5);
+        if (resultado.forma === null) {
+          resultado.forma = formaComGols(jogos.slice(0, 5));
+          resultado.formaSeq = jogos.slice(0, 5).map(j => j.r).join('');
+        }
+        resultado.fontes.push('api-football');
+        console.log(`      [api-football] ${resultado.nome}: ${jogos.length} jogo(s) — ${jogos.slice(0,5).map(j=>j.r).join('')}`);
+      } else {
+        console.log(`      [api-football] ${resultado.nome}: sem jogos recentes`);
+      }
+    } catch (e) { console.log(`      [api-football] ${resultado.nome}: ${e.message}`); }
+  }
+
+  // 4. Fallbacks de forma (TheSportsDB, SofaScore) se ainda sem forma
   if (resultado.forma === null) {
-    const nomeEn = (FIFA[nomeCaixa] && FIFA[nomeCaixa].en) || time.nome_popular || time.nome_caixa;
     const coletas = [];
 
-    // 3a. api.football via RapidAPI (100 req/dia gratis, cobre amistosos)
-    if (APIFOOTBALL_KEY) {
-      try {
-        const af2Id = await af2ResolverTimeId(nomeEn);
-        if (af2Id) {
-          const jogos = await af2UltimosJogos(af2Id);
-          if (jogos.length > 0) {
-            coletas.push(jogos);
-            resultado.fontes.push('api-football');
-            console.log(`      [api-football] ${resultado.nome}: ${jogos.length} jogo(s) — ${jogos.map(j=>j.r).join('')}`);
-          } else {
-            console.log(`      [api-football] ${resultado.nome}: sem jogos recentes`);
-          }
-        } else {
-          console.log(`      [api-football] ${resultado.nome}: time nao encontrado`);
-        }
-      } catch (e) { console.log(`      [api-football] ${resultado.nome}: ${e.message}`); }
-    }
-
-    // 3b. TheSportsDB (free = 1 evento; ainda soma ao merge)
     try {
-      const tsdbId = await tsdbBuscarTimeId(nomeEn);
+      const tsdbId = await tsdbBuscarTimeId(nomeBusca);
       await sleep(TSDB_DELAY);
       if (tsdbId) {
         const tf = await tsdbFormaRecente(tsdbId);
@@ -560,12 +706,11 @@ async function analisarTime(time) {
       }
     } catch (e) { console.log(`      [thesportsdb] ${resultado.nome}: ${e.message}`); }
 
-    // 3c. SofaScore (fallback, costuma bloquear com 403)
     if (!SKIP_SOFA && coletas.length === 0) {
       try {
         let sofaId = time.sofascore_id;
         if (!sofaId) {
-          sofaId = await sofaBuscarTimeId(nomeEn);
+          sofaId = await sofaBuscarTimeId(nomeBusca);
           await sleep(700);
           if (sofaId) {
             await supabase('PATCH', 'times_mapeamento', { sofascore_id: sofaId }, { id: `eq.${time.id}` });
@@ -582,7 +727,6 @@ async function analisarTime(time) {
       } catch (e) { console.log(`      [sofascore] ${resultado.nome}: ${e.message}`); }
     }
 
-    // Merge final -> forma
     if (coletas.length > 0) {
       const merge = mesclarUltimos(coletas);
       resultado.ultimos5 = merge;
@@ -590,6 +734,11 @@ async function analisarTime(time) {
       resultado.formaSeq = merge.map(u => u.r).join('');
       console.log(`      [forma] ${resultado.nome}: ${merge.length} jogo(s) — ${resultado.formaSeq} — forma ${resultado.forma}`);
     }
+  }
+
+  // 5. Clube sem força definida: estimar pela forma
+  if (resultado.forca === null && resultado.forma !== null) {
+    resultado.forca = Math.min(85, 35 + Math.round(resultado.forma * 0.4));
   }
 
   cacheTime[chave] = resultado;
@@ -600,12 +749,12 @@ async function analisarTime(time) {
 
 (async () => {
   console.log(`\n${'='.repeat(70)}`);
-  console.log(`ANALISE AUTOMATICA — LOTECA CONCURSO ${NUMERO}`);
-  const fontes = ['FIFA embutido'];
-  if (APIFOOTBALL_KEY) fontes.push('api.football (RapidAPI)');
+  console.log(`ANALISE AUTOMATICA v2 — LOTECA CONCURSO ${NUMERO}`);
+  const fontes = ['FIFA embutido (selecoes)'];
+  if (API_FUTEBOL_TOKEN) fontes.push('API-Futebol (tabela Serie A/B)');
+  if (APIFOOTBALL_KEY) fontes.push('api-football (forma+mando+H2H' + (SKIP_ODDS ? '' : '+odds') + ')');
   else if (FD_TOKEN) fontes.push('football-data.org (legado)');
   fontes.push('TheSportsDB');
-  if (API_FUTEBOL_TOKEN) fontes.push('API-Futebol');
   if (!SKIP_SOFA) fontes.push('SofaScore (fallback)');
   console.log(`Fontes: ${fontes.join(' + ')}`);
   if (!APIFOOTBALL_KEY) console.log(`DICA: defina APIFOOTBALL_KEY para ate 5 jogos/time incluindo amistosos`);
@@ -631,7 +780,7 @@ async function analisarTime(time) {
     // 3. Times
     const timeIds = [...new Set(jogos.flatMap(j => [j.time_casa_id, j.time_visit_id]).filter(Boolean))];
     const times = await supabase('GET', 'times_mapeamento', null, {
-      id: `in.(${timeIds.join(',')})`, select: 'id,nome_caixa,nome_popular,api_futebol_id,sofascore_id',
+      id: `in.(${timeIds.join(',')})`, select: 'id,nome_caixa,nome_popular,pais,api_futebol_id,sofascore_id',
     });
     const timesById = {};
     times.forEach(t => { timesById[t.id] = t; });
@@ -654,16 +803,33 @@ async function analisarTime(time) {
       const ac = await analisarTime(tc);
       const av = await analisarTime(tv);
 
-      const compCasa  = scoreComposto({ forca: ac.forca, forma: ac.forma });
-      const compVisit = scoreComposto({ forca: av.forca, forma: av.forma });
+      // Mando específico: aproveitamento do mandante em casa e do visitante fora
+      const mandoCasa = mandoDeUltimos(ac.ultimosRaw, true);
+      const mandoFora = mandoDeUltimos(av.ultimosRaw, false);
 
-      const probs  = calcProbs(compCasa.score, compVisit.score);
+      // H2H: últimos confrontos diretos
+      let h2h = null;
+      if (ac.af2Id && av.af2Id) {
+        try { h2h = await af2H2H(ac.af2Id, av.af2Id); }
+        catch (e) { console.log(`      [h2h] ${e.message}`); }
+      }
+
+      const compCasa  = scoreComposto({ forca: ac.forca, forma: ac.forma, mando: mandoCasa, h2h: h2h ? h2h.casa : null });
+      const compVisit = scoreComposto({ forca: av.forca, forma: av.forma, mando: mandoFora, h2h: h2h ? h2h.visit : null });
+
+      let probs = calcProbs(compCasa.score, compVisit.score);
+
+      // Odds de mercado: blend 65% odds + 35% modelo
+      let odds = null;
+      if (!SKIP_ODDS && ac.af2Id && av.af2Id) {
+        try { odds = await af2OddsProximoJogo(ac.af2Id, av.af2Id); }
+        catch (e) { console.log(`      [odds] ${e.message}`); }
+      }
+      if (odds) probs = blendComOdds(probs, odds);
+
       const classe = classificar(probs, jogo.is_classico, jogo.is_eliminatorio);
       const sug    = sugerir(probs);
       const cob    = coberturaPorClasse(classe);
-
-      const resumoAuto = `${ac.nome} (${compCasa.score}) x ${av.nome} (${compVisit.score})` +
-        (ac.formaSeq ? ` | forma: ${ac.formaSeq} vs ${av.formaSeq || '?'}` : '');
 
       await supabase('PATCH', 'loteca_jogos_analise', {
         score_casa: compCasa.score,
@@ -679,16 +845,21 @@ async function analisarTime(time) {
         cobertura: cob,
         justificativa: JSON.stringify({
           fontes_casa: ac.fontes, fontes_visit: av.fontes,
+          tipo_casa: ac.tipo, tipo_visit: av.tipo,
           forca_casa: ac.forca, forca_visit: av.forca,
           forma_casa: ac.forma, forma_visit: av.forma,
           forma_seq_casa: ac.formaSeq, forma_seq_visit: av.formaSeq,
+          mando_casa: mandoCasa, mando_fora: mandoFora,
+          h2h: h2h,
+          odds: odds ? { p1: +odds.p1.toFixed(1), px: +odds.px.toFixed(1), p2: +odds.p2.toFixed(1), casas: odds.casas, data_jogo: odds.dataJogo } : null,
           gerado_em: new Date().toISOString(),
-          modo: 'automatico',
+          modo: 'automatico-v2',
         }),
       }, { id: `eq.${jogo.id}` });
 
       const tag = classe === 'facil' ? 'FACIL  ' : classe === 'medio' ? 'MEDIO  ' : 'DIFICIL';
-      console.log(`  [J${String(jogo.ordem).padStart(2)}] ${ac.nome.padEnd(18)} ${String(compCasa.score).padStart(3)} x ${String(compVisit.score).padStart(3).padEnd(4)} ${av.nome.padEnd(18)} | ${probs.p1}/${probs.px}/${probs.p2} | ${tag} -> ${cob}`);
+      const mkOdds = odds ? ` [odds:${odds.casas}]` : '';
+      console.log(`  [J${String(jogo.ordem).padStart(2)}] ${ac.nome.padEnd(18)} ${String(compCasa.score).padStart(3)} x ${String(compVisit.score).padStart(3).padEnd(4)} ${av.nome.padEnd(18)} | ${probs.p1}/${probs.px}/${probs.p2}${mkOdds} | ${tag} -> ${cob}`);
       atualizados++;
     }
 
