@@ -206,6 +206,8 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
   <div class="admin-title">Admin Lote<em>ca</em><span>Painel de Análise · Palpitiar</span></div>
   <div class="admin-actions">
     <a class="btn btn-sm" href="loteca.html" target="_blank">Ver página pública ↗</a>
+    <button class="btn btn-sm btn-amber" onclick="document.getElementById('inputHtmlCaixa').click()">📥 Importar HTML</button>
+    <input type="file" id="inputHtmlCaixa" accept=".html,.htm" style="display:none" onchange="importarDeHTML(this)">
     <button class="btn btn-sm" onclick="trocarChave()">🔑 Trocar chave</button>
   </div>
 </div>
@@ -989,6 +991,135 @@ async function publicar(status) {
   } catch (err) {
     toast('Erro ao publicar: ' + err.message, 'err');
   }
+}
+
+// ─── IMPORTAR HTML DA CAIXA ────────────────────────────────────────────────
+function parseDateBR(str) {
+  if (!str) return null;
+  const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!m) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function toSlug(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function inferirCompeticaoHtml(nomeUm, nomeDois) {
+  const all = (nomeUm + ' ' + nomeDois).toUpperCase();
+  // Nomes sem estado = seleção nacional
+  const temEstado = s => /\/[A-Z]{2}$/.test(s);
+  if (!temEstado(nomeUm) && !temEstado(nomeDois)) return 'Seleções';
+  const estaduais = ['BA','RJ','SP','MG','RS','SC','PR','CE','PE','AL','GO','MT','ES','RN','PB','MA','PA','AM','DF'];
+  const ufUm   = (nomeUm.match(/\/([A-Z]{2})$/)   || [])[1];
+  const ufDois = (nomeDois.match(/\/([A-Z]{2})$/) || [])[1];
+  // Heurística simples — será ajustável no admin
+  return 'Campeonato Brasileiro';
+}
+
+async function upsertTimeHtml(nome) {
+  const existing = await sb('GET', 'times_mapeamento', null, { nome_caixa: `eq.${nome}`, select: 'id' });
+  if (existing.length > 0) return existing[0].id;
+  const uf  = (nome.match(/\/([A-Z]{2})$/) || [])[1] || null;
+  const criado = await sb('POST', 'times_mapeamento', {
+    nome_caixa: nome, nome_popular: nome,
+    estado: uf, pais: uf ? 'Brasil' : null,
+    nivel_nacional: 'media', fonte_dados: 'html_caixa', ativo: true,
+  });
+  return criado[0].id;
+}
+
+async function upsertCompHtml(label) {
+  const slug = toSlug(label);
+  const existing = await sb('GET', 'competicoes_config', null, { slug: `eq.${slug}`, select: 'id' });
+  if (existing.length > 0) return existing[0].id;
+  const criado = await sb('POST', 'competicoes_config', {
+    slug, label, nome_caixa_pattern: label,
+    tipo: 'pontos_corridos', nivel: 'nacional_a',
+    reducao_score_eliminatorio: 0, peso_forma: 1.0,
+  });
+  return criado[0].id;
+}
+
+function importarDeHTML(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const html = e.target.result;
+      // Número do concurso
+      const mNum = html.match(/Concurso\s+n[º°o]?\s*(\d{4})/i);
+      if (!mNum) return toast('Nº do concurso não encontrado no HTML', 'err');
+      const numero = parseInt(mNum[1], 10);
+
+      // Data (encerramento usado como proxy do sorteio)
+      const mData = html.match(/Encerramento das Apostas[:\s]*(\d{2}\/\d{2}\/\d{4})/i);
+      const dataSorteio = mData ? parseDateBR(mData[1]) : null;
+
+      // Tabela de jogos
+      const tableStart = html.indexOf('tab-apostas tab-loteca');
+      const tableEnd   = html.indexOf('</tbody>', tableStart);
+      if (tableStart < 0 || tableEnd < 0) return toast('Tabela de jogos não encontrada', 'err');
+      const tableHtml = html.substring(tableStart, tableEnd);
+
+      // Times: alt="NOME" dentro da tabela
+      const altMatches = [...tableHtml.matchAll(/alt="([^"]+)"/g)].map(m => m[1]);
+      if (altMatches.length < 28) return toast(`Apenas ${altMatches.length} times encontrados (esperado 28)`, 'err');
+
+      // Pares: índice par=casa, ímpar=visit (1 par por jogo, 14 jogos)
+      const jogosHtml = [];
+      for (let i = 0; i < 14; i++) {
+        jogosHtml.push({ casa: altMatches[i * 2], visit: altMatches[i * 2 + 1], ordem: i + 1 });
+      }
+
+      // Confirmar
+      const preview = jogosHtml.slice(0, 3).map(j => `${j.ordem}. ${j.casa} × ${j.visit}`).join('\n') + '\n…';
+      if (!confirm(`Importar Concurso ${numero} (${dataSorteio || 'data desconhecida'}) com ${jogosHtml.length} jogos?\n\n${preview}`)) return;
+
+      toast(`Importando concurso ${numero}…`);
+
+      // Verificar se já existe
+      const existing = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
+      if (existing.length > 0) return toast(`Concurso ${numero} já existe no banco`, 'err');
+
+      // Criar concurso
+      const concCriado = await sb('POST', 'loteca_concursos', {
+        numero, data_sorteio: dataSorteio, status_analise: 'aguardando',
+        acumulado: false, estimativa_premio: null,
+      });
+      const concursoId = concCriado[0].id;
+
+      // Criar jogos
+      for (const j of jogosHtml) {
+        const compLabel = inferirCompeticaoHtml(j.casa, j.visit);
+        const [compId, casaId, visitId] = await Promise.all([
+          upsertCompHtml(compLabel),
+          upsertTimeHtml(j.casa),
+          upsertTimeHtml(j.visit),
+        ]);
+        await sb('POST', 'loteca_jogos_analise', {
+          concurso_id: concursoId, ordem: j.ordem,
+          time_casa_id: casaId, time_visit_id: visitId,
+          competicao_id: compId, competicao_label: compLabel,
+          is_classico: false, is_eliminatorio: false,
+          classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
+          resultado_real: null, acertou: null, revisado_editor: false,
+          resumo: `${j.casa} x ${j.visit}`,
+          justificativa: JSON.stringify({ nomeEquipeUm: j.casa, nomeEquipeDois: j.visit, fonte: 'html_caixa' }),
+        });
+      }
+
+      toast(`✓ Concurso ${numero} importado com ${jogosHtml.length} jogos`);
+      await carregarConcursos();
+    } catch (err) {
+      toast('Erro ao importar: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
 }
 
 // ─── BOOT ──────────────────────────────────────────────────────────────────
