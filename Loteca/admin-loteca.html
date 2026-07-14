@@ -220,7 +220,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
   <div class="admin-actions">
     <button class="btn btn-amber btn-sm" onclick="abrirPopupNovoConcurso()">📷 Novo concurso (print)</button>
     <a class="btn btn-sm" href="../admin.html">🎰 Admin Loterias</a>
-    <a class="btn btn-sm" href="loteca.html" target="_blank">Ver página pública ↗</a>
+    <a class="btn btn-sm" href="../loteca.html" target="_blank">Ver página pública ↗</a>
     <button class="btn btn-sm" onclick="trocarChave()">🔑 Trocar chave</button>
   </div>
 </div>
@@ -307,6 +307,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
     <div class="popup-h">📷 Novo Concurso via Print</div>
     <div class="popup-sub">Duas formas de preencher a grade automaticamente: (1) recomendado — salve a página da Caixa com a grade aberta (Ctrl+S → "Página da Web, completa") e envie o arquivo .html aqui, extração é exata; (2) suba um print da grade e o OCR tenta ler os confrontos (menos confiável). Revise sempre antes de criar.</div>
 
+    <div id="ncpFormBody">
     <div class="ncp-grid">
       <div class="ncp-field">
         <label class="ncp-label">Número do concurso</label>
@@ -343,8 +344,9 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
       <div class="ncp-count" id="ncpCount"></div>
       <div class="ncp-hint">O texto acima vem do OCR (quando a imagem for legível) mas pode ser digitado ou corrigido à mão. A ordem das linhas vira a ordem dos jogos (1 a 14). Linhas sem "x" entre os dois nomes são ignoradas.</div>
     </div>
+    </div><!-- /ncpFormBody -->
 
-    <div class="popup-foot">
+    <div class="popup-foot" id="ncpFoot">
       <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
       <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>
     </div>
@@ -676,6 +678,12 @@ function abrirPopupNovoConcurso() {
 }
 function fecharPopupNovoConcurso() {
   document.getElementById('popupNovoConcurso').classList.remove('show');
+  // Restaura popup para próximo uso
+  const formBody = document.getElementById('ncpFormBody');
+  if (formBody) formBody.style.display = '';
+  document.getElementById('ncpFoot').innerHTML = `
+    <button class="btn" onclick="fecharPopupNovoConcurso()">Cancelar</button>
+    <button class="btn btn-green" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">✓ Criar concurso e jogos</button>`;
 }
 
 // Suporte a arrastar-e-soltar a imagem sobre a área de upload
@@ -767,27 +775,29 @@ function processarHtmlConcurso(file) {
   reader.readAsText(file, 'utf-8');
 }
 
-// A página da Caixa (Angular/silce-web) renderiza cada partida da Loteca em uma
-// linha de tabela com o time da casa logo antes de "</td>" (precedido por "| ")
-// e o time visitante numa célula com a classe "td_sem_borda_direita ng-binding"
-// logo antes do "|". Ambos os padrões batem exatamente 14 vezes por concurso.
+// A página da Caixa (Angular/silce-web) salva os nomes dos times nos atributos
+// alt="NOME" das imagens dentro da tabela .tab-apostas. Cada jogo tem 2 imagens:
+// [i*2]=casa, [i*2+1]=visitante. São exatamente 28 alt dentro da tbody.
 function parseGradeHtmlCaixa(htmlTexto) {
   if (!htmlTexto) return [];
-  const reVisit = /td_sem_borda_direita ng-binding">\s*([A-ZÀ-Ú][A-ZÀ-Ú0-9 \/\-]{1,40}?)\s*\|/g;
-  const reHome = /\|\s*([A-ZÀ-Ú][A-ZÀ-Ú0-9 \/\-]{1,40}?)<\/td>/g;
 
-  const limpar = (s) => s.replace(/\s{2,}/g, ' ').trim();
-  const visits = [...htmlTexto.matchAll(reVisit)].map(m => limpar(m[1]));
-  const homes = [...htmlTexto.matchAll(reHome)].map(m => limpar(m[1]));
+  // Isola o corpo da tabela de apostas
+  const tableStart = htmlTexto.indexOf('tab-apostas tab-loteca');
+  const tableEnd   = htmlTexto.indexOf('</tbody>', tableStart);
+  if (tableStart < 0 || tableEnd < 0) return [];
+  const tabela = htmlTexto.substring(tableStart, tableEnd);
 
-  if (homes.length === 0 || visits.length === 0) return [];
+  // Coleta todos os alt="NOME" dentro da tabela
+  const alts = [...tabela.matchAll(/alt="([^"]+)"/g)].map(m => m[1].trim());
+  if (alts.length < 2) return [];
 
-  const n = Math.min(homes.length, visits.length, 14);
+  // Pares: índice par=casa, ímpar=visitante
   const resultado = [];
+  const n = Math.min(Math.floor(alts.length / 2), 14);
   for (let i = 0; i < n; i++) {
-    if (homes[i] && visits[i] && homes[i].toLowerCase() !== visits[i].toLowerCase()) {
-      resultado.push(`${homes[i]} x ${visits[i]}`);
-    }
+    const casa  = alts[i * 2];
+    const visit = alts[i * 2 + 1];
+    if (casa && visit && casa !== visit) resultado.push(`${casa} x ${visit}`);
   }
   return resultado;
 }
@@ -1002,6 +1012,19 @@ document.addEventListener('input', e => {
   if (e.target && e.target.id === 'ncpTextarea') atualizarContagemNCP();
 });
 
+// Upsert de competição por label
+async function upsertCompAdmin(label) {
+  const slug = label.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const existentes = await sb('GET', 'competicoes_config', null, { slug: `eq.${slug}`, select: 'id' });
+  if (existentes.length > 0) return existentes[0].id;
+  const novo = await sb('POST', 'competicoes_config', {
+    slug, label, nome_caixa_pattern: label,
+    tipo: 'pontos_corridos', nivel: 'nacional_a',
+    reducao_score_eliminatorio: 0, peso_forma: 1.0,
+  });
+  return novo[0].id;
+}
+
 // Upsert de time por nome (mesma lógica dos coletores server-side)
 async function upsertTimeAdmin(nome) {
   const nomeLimpo = nome.trim();
@@ -1040,6 +1063,11 @@ async function criarConcursoDoPrint() {
       throw new Error(`Concurso ${numero} já existe no banco`);
     }
 
+    // Upsert competição (obrigatório — loteca_jogos_analise exige competicao_id)
+    btn.textContent = 'Criando competição…';
+    const competicaoId = await upsertCompAdmin(competicaoLabel);
+
+    btn.textContent = 'Criando concurso…';
     const concursoNovo = await sb('POST', 'loteca_concursos', {
       numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
       acumulado: false, estimativa_premio: null, arrecadacao: null,
@@ -1049,12 +1077,13 @@ async function criarConcursoDoPrint() {
 
     for (let i = 0; i < linhas.length; i++) {
       const { casa, visit } = linhas[i];
+      btn.textContent = `Jogo ${i + 1}/${linhas.length}…`;
       const timeCasaId  = await upsertTimeAdmin(casa);
       const timeVisitId = await upsertTimeAdmin(visit);
       await sb('POST', 'loteca_jogos_analise', {
         concurso_id: concursoId, ordem: i + 1,
         time_casa_id: timeCasaId, time_visit_id: timeVisitId,
-        competicao_label: competicaoLabel,
+        competicao_id: competicaoId, competicao_label: competicaoLabel,
         is_classico: false, is_eliminatorio: false,
         classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
         resultado_real: null, revisado_editor: false,
@@ -1063,16 +1092,32 @@ async function criarConcursoDoPrint() {
       });
     }
 
-    toast(`Concurso ${numero} criado com ${linhas.length} jogo(s)`);
-    fecharPopupNovoConcurso();
-    await carregarConcursos();
-    abrirConcurso(concursoId);
+    // Sucesso — esconder formulário e mostrar mensagem com botão fechar
+    document.getElementById('ncpFormBody').style.display = 'none';
+    document.getElementById('ncpFoot').innerHTML = `
+      <div style="width:100%">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--emerald);margin-bottom:8px">
+          ✓ Concurso ${numero} criado com ${linhas.length} jogo(s)
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-bottom:14px">
+          Competição: <strong style="color:var(--ink)">${competicaoLabel}</strong> · ${linhas.length} jogos inseridos
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-green" onclick="fecharEAbrirConcurso('${concursoId}')">✓ Abrir concurso</button>
+        </div>
+      </div>`;
+
   } catch (err) {
     toast('Erro ao criar concurso: ' + err.message, 'err');
-  } finally {
     btn.disabled = false;
     btn.textContent = '✓ Criar concurso e jogos';
   }
+}
+
+async function fecharEAbrirConcurso(concursoId) {
+  fecharPopupNovoConcurso();
+  await carregarConcursos();
+  abrirConcurso(concursoId);
 }
 
 // ─── LISTA DE CONCURSOS ────────────────────────────────────────────────────
