@@ -702,6 +702,26 @@ function processarImagemConcurso(file) {
   reader.readAsDataURL(file);
 }
 
+// Amplia a imagem 2x antes do OCR — melhora bastante o reconhecimento de
+// prints de tela pequenos/comprimidos (celular, recorte de app).
+function upscaleImagem(dataUrl, escala) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * escala;
+      canvas.height = img.height * escala;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(dataUrl); // falha no upscale: segue com a original
+    img.src = dataUrl;
+  });
+}
+
 async function rodarOcrConcurso(dataUrl) {
   const status = document.getElementById('ncpOcrStatus');
   const msg = document.getElementById('ncpOcrMsg');
@@ -714,15 +734,28 @@ async function rodarOcrConcurso(dataUrl) {
     return;
   }
 
+  let worker;
   try {
-    const { data } = await Tesseract.recognize(dataUrl, 'por', {
+    const imagemOcr = await upscaleImagem(dataUrl, 2);
+
+    worker = await Tesseract.createWorker('por', 1, {
       logger: info => {
         if (info.status === 'recognizing text') {
           msg.textContent = `Lendo imagem (OCR)… ${Math.round((info.progress||0)*100)}%`;
         }
       },
     });
-    const jogosDetectados = parseGradeOcr(data.text);
+    const { data } = await worker.recognize(imagemOcr, {}, { tsv: true, text: true });
+
+    // A grade real da Caixa é uma tabela de 2 colunas (Coluna 1 | X | Coluna 2),
+    // sem "x" entre os nomes na mesma linha — por isso a leitura espacial (TSV
+    // com coordenadas) é tentada primeiro; o parser de texto por linha (para
+    // prints já formatados como "Time A x Time B") fica como reserva.
+    let jogosDetectados = parseGradeOcrTabela(data.tsv || '');
+    if (jogosDetectados.length === 0) {
+      jogosDetectados = parseGradeOcrTexto(data.text || '');
+    }
+
     if (jogosDetectados.length > 0) {
       document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
       msg.textContent = `✓ ${jogosDetectados.length} confronto(s) detectado(s) — revise antes de criar`;
@@ -733,14 +766,132 @@ async function rodarOcrConcurso(dataUrl) {
   } catch (err) {
     msg.textContent = 'Erro no OCR: ' + err.message + ' — digite a grade manualmente abaixo';
   } finally {
+    if (worker) { try { await worker.terminate(); } catch (e) {} }
     setTimeout(() => status.classList.remove('show'), 4000);
   }
 }
 
-// Heurística: procura linhas do tipo "TIME A x TIME B" no texto bruto do OCR.
-// A grade da Caixa normalmente lista os 14 confrontos em sequência, um por
-// linha ou por bloco — como o OCR é ruidoso, aceitamos variações de "x".
-function parseGradeOcr(textoOcr) {
+// Converte a saída TSV do Tesseract (uma linha de cabeçalho + uma linha por
+// nível de detecção) em uma lista de palavras com posição, mantendo só as
+// palavras de nível 5 (o nível mais fino, uma por palavra reconhecida).
+function parseTsvPalavras(tsv) {
+  const linhas = tsv.split('\n').filter(Boolean);
+  if (linhas.length < 2) return [];
+  const cols = linhas[0].split('\t');
+  const idx = {
+    level: cols.indexOf('level'), left: cols.indexOf('left'), top: cols.indexOf('top'),
+    width: cols.indexOf('width'), height: cols.indexOf('height'), text: cols.indexOf('text'),
+  };
+  const palavras = [];
+  for (let i = 1; i < linhas.length; i++) {
+    const c = linhas[i].split('\t');
+    if (c[idx.level] !== '5') continue;
+    const texto = (c[idx.text] || '').trim();
+    if (!texto) continue;
+    const top = parseFloat(c[idx.top]) || 0;
+    const height = parseFloat(c[idx.height]) || 0;
+    palavras.push({
+      text: texto,
+      left: parseFloat(c[idx.left]) || 0,
+      top, width: parseFloat(c[idx.width]) || 0, height,
+      cy: top + height / 2,
+    });
+  }
+  return palavras;
+}
+
+// Agrupa palavras em "linhas" de tabela por proximidade vertical (mesma
+// centralização em Y, dentro de uma tolerância baseada na altura média).
+function agruparEmLinhas(palavras) {
+  if (palavras.length === 0) return [];
+  const ordenadas = [...palavras].sort((a, b) => a.cy - b.cy);
+  const alturaMedia = ordenadas.reduce((s, p) => s + p.height, 0) / ordenadas.length;
+  const tolerancia = Math.max(8, alturaMedia * 0.7);
+
+  const linhas = [];
+  let atual = [ordenadas[0]];
+  for (let i = 1; i < ordenadas.length; i++) {
+    const p = ordenadas[i];
+    const cyMedioAtual = atual.reduce((s, x) => s + x.cy, 0) / atual.length;
+    if (Math.abs(p.cy - cyMedioAtual) <= tolerancia) {
+      atual.push(p);
+    } else {
+      linhas.push(atual);
+      atual = [p];
+    }
+  }
+  linhas.push(atual);
+  return linhas;
+}
+
+// Dada uma "linha" de palavras (já ordenáveis por X), separa os times da
+// coluna esquerda (casa) e da coluna direita (visitante), usando o maior
+// espaço horizontal entre palavras consecutivas como divisor de coluna.
+function separarTimesDaLinha(palavrasLinha) {
+  const ord = [...palavrasLinha].sort((a, b) => a.left - b.left);
+
+  // Remove o número do jogo no início da linha (ex.: "1", "01", "12.")
+  let ordem = null;
+  if (ord.length > 1 && /^0?\d{1,2}[\.\)]?$/.test(ord[0].text)) {
+    const n = parseInt(ord[0].text, 10);
+    if (n >= 1 && n <= 20) { ordem = n; ord.shift(); }
+  }
+  if (ord.length < 2) return null;
+
+  // Maior espaço horizontal entre palavras consecutivas = divisor de coluna
+  let maiorGap = -1, posGap = -1;
+  for (let i = 1; i < ord.length; i++) {
+    const gap = ord[i].left - (ord[i - 1].left + ord[i - 1].width);
+    if (gap > maiorGap) { maiorGap = gap; posGap = i; }
+  }
+  if (posGap <= 0) return null;
+
+  const esquerda = ord.slice(0, posGap);
+  const direita = ord.slice(posGap);
+  if (esquerda.length === 0 || direita.length === 0) return null;
+
+  const juntar = (grupo) => grupo.map(p => p.text).join(' ')
+    .replace(/\s*\/\s*/g, '/').replace(/\s{2,}/g, ' ').trim();
+
+  const casa = juntar(esquerda);
+  const visit = juntar(direita);
+  if (!casa || !visit || casa.toLowerCase() === visit.toLowerCase()) return null;
+
+  return { casa, visit, ordem };
+}
+
+// Orquestra a leitura espacial: TSV → palavras → linhas → times por linha.
+function parseGradeOcrTabela(tsv) {
+  if (!tsv) return [];
+  const palavras = parseTsvPalavras(tsv);
+  if (palavras.length === 0) return [];
+
+  const linhas = agruparEmLinhas(palavras)
+    .filter(linha => {
+      const texto = linha.map(p => p.text).join(' ');
+      return !/^(jogo\b|coluna\b)/i.test(texto.trim());
+    });
+
+  const resultados = [];
+  linhas.forEach(linha => {
+    const r = separarTimesDaLinha(linha);
+    if (r) resultados.push(r);
+  });
+
+  // Se a maioria das linhas trouxe um número de ordem detectado, usa-o para
+  // ordenar (a ordem visual de leitura já costuma bater, mas isso corrige
+  // eventuais quebras de linha fora de ordem).
+  const comOrdem = resultados.filter(r => r.ordem !== null);
+  if (comOrdem.length >= resultados.length * 0.6 && comOrdem.length > 0) {
+    resultados.sort((a, b) => (a.ordem ?? 99) - (b.ordem ?? 99));
+  }
+
+  return resultados.slice(0, 14).map(r => `${r.casa} x ${r.visit}`);
+}
+
+// Reserva: heurística antiga para prints já em formato "TIME A x TIME B" por
+// linha (alguns apps/sites já publicam a grade nesse layout de texto único).
+function parseGradeOcrTexto(textoOcr) {
   if (!textoOcr) return [];
   const linhas = textoOcr.split(/\n+/).map(l => l.trim()).filter(Boolean);
   const encontrados = [];
