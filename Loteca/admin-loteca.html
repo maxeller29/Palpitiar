@@ -305,7 +305,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 <div class="popup-ov" id="popupNovoConcurso">
   <div class="popup-box wide">
     <div class="popup-h">📷 Novo Concurso via Print</div>
-    <div class="popup-sub">Suba o print da grade de jogos aberta no site/app da Caixa — o OCR tenta extrair os confrontos automaticamente. Revise antes de criar: OCR não é perfeito.</div>
+    <div class="popup-sub">Duas formas de preencher a grade automaticamente: (1) recomendado — salve a página da Caixa com a grade aberta (Ctrl+S → "Página da Web, completa") e envie o arquivo .html aqui, extração é exata; (2) suba um print da grade e o OCR tenta ler os confrontos (menos confiável). Revise sempre antes de criar.</div>
 
     <div class="ncp-grid">
       <div class="ncp-field">
@@ -322,6 +322,13 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
       </div>
     </div>
 
+    <div class="ncp-drop" id="ncpDropHtml" onclick="document.getElementById('ncpFileHtml').click()" style="border-color:#4caf7d">
+      <div id="ncpDropHtmlInner">
+        <div class="ncp-drop-msg">✓ <span class="em">Recomendado</span> — clique para enviar o .html salvo da página da Caixa (Ctrl+S → Página da Web, completa)</div>
+      </div>
+      <input type="file" id="ncpFileHtml" accept=".html,.htm,text/html" style="display:none" onchange="onSelecionarHtmlConcurso(event)">
+    </div>
+    <div class="ncp-hint" style="margin:-6px 0 10px">— ou, se não tiver o .html salvo —</div>
     <div class="ncp-drop" id="ncpDrop" onclick="document.getElementById('ncpFile').click()">
       <div id="ncpDropInner">
         <div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>
@@ -720,6 +727,69 @@ function upscaleImagem(dataUrl, escala) {
     img.onerror = () => resolve(dataUrl); // falha no upscale: segue com a original
     img.src = dataUrl;
   });
+}
+
+// Extrai a grade de 14 jogos a partir do HTML salvo da própria página de apostas
+// da Caixa (Ctrl+S → "Página da Web, completa" no navegador com a grade aberta).
+// É a fonte mais confiável: texto exato da Caixa, sem depender de OCR/imagem.
+function onSelecionarHtmlConcurso(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (file) processarHtmlConcurso(file);
+}
+
+function processarHtmlConcurso(file) {
+  const nomeOk = /\.html?$/i.test(file.name) || file.type === 'text/html';
+  if (!nomeOk) { toast('Escolha um arquivo .html salvo da página da Caixa', 'err'); return; }
+
+  const status = document.getElementById('ncpOcrStatus');
+  const msg = document.getElementById('ncpOcrMsg');
+  status.classList.add('show');
+  msg.textContent = 'Lendo arquivo HTML…';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const jogosDetectados = parseGradeHtmlCaixa(e.target.result);
+      if (jogosDetectados.length > 0) {
+        document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
+        msg.textContent = `✓ ${jogosDetectados.length} confronto(s) extraído(s) do HTML — revise antes de criar`;
+      } else {
+        msg.textContent = '⚠ Não encontrei a grade nesse HTML — confira se é a página da Caixa salva com a grade aberta, ou use o print (OCR) abaixo';
+      }
+      atualizarContagemNCP();
+    } catch (err) {
+      msg.textContent = 'Erro ao ler HTML: ' + err.message;
+    } finally {
+      setTimeout(() => status.classList.remove('show'), 4000);
+    }
+  };
+  reader.onerror = () => { msg.textContent = 'Erro ao ler o arquivo'; setTimeout(() => status.classList.remove('show'), 3500); };
+  reader.readAsText(file, 'utf-8');
+}
+
+// A página da Caixa (Angular/silce-web) renderiza cada partida da Loteca em uma
+// linha de tabela com o time da casa logo antes de "</td>" (precedido por "| ")
+// e o time visitante numa célula com a classe "td_sem_borda_direita ng-binding"
+// logo antes do "|". Ambos os padrões batem exatamente 14 vezes por concurso.
+function parseGradeHtmlCaixa(htmlTexto) {
+  if (!htmlTexto) return [];
+  const reVisit = /td_sem_borda_direita ng-binding">\s*([A-ZÀ-Ú][A-ZÀ-Ú0-9 \/\-]{1,40}?)\s*\|/g;
+  const reHome = /\|\s*([A-ZÀ-Ú][A-ZÀ-Ú0-9 \/\-]{1,40}?)<\/td>/g;
+
+  const limpar = (s) => s.replace(/\s{2,}/g, ' ').trim();
+  const visits = [...htmlTexto.matchAll(reVisit)].map(m => limpar(m[1]));
+  const homes = [...htmlTexto.matchAll(reHome)].map(m => limpar(m[1]));
+
+  if (homes.length === 0 || visits.length === 0) return [];
+
+  const n = Math.min(homes.length, visits.length, 14);
+  const resultado = [];
+  for (let i = 0; i < n; i++) {
+    if (homes[i] && visits[i] && homes[i].toLowerCase() !== visits[i].toLowerCase()) {
+      resultado.push(`${homes[i]} x ${visits[i]}`);
+    }
+  }
+  return resultado;
 }
 
 async function rodarOcrConcurso(dataUrl) {
