@@ -1198,12 +1198,28 @@ function processarHtmlConcurso(file) {
 
 function parseGradeHtmlCaixa(htmlTexto) {
   if (!htmlTexto) return [];
-  const tableStart = htmlTexto.indexOf('tab-apostas tab-loteca');
-  const tableEnd   = htmlTexto.indexOf('</tbody>', tableStart);
-  if (tableStart < 0 || tableEnd < 0) return [];
+
+  // Localiza o início da tabela (qualquer ordem das classes)
+  let tableStart = htmlTexto.indexOf('tab-apostas tab-loteca');
+  if (tableStart < 0) tableStart = htmlTexto.indexOf('tab-loteca tab-apostas');
+  if (tableStart < 0) tableStart = htmlTexto.indexOf('tab-apostas');
+  if (tableStart < 0) return [];
+
+  // Usa </table> como fim (mais confiável que </tbody> que pode aparecer por linha)
+  let tableEnd = htmlTexto.indexOf('</table>', tableStart);
+  if (tableEnd < 0) {
+    // fallback: captura até 80 KB a partir do início da tabela
+    tableEnd = Math.min(tableStart + 80000, htmlTexto.length);
+  }
+
   const tabela = htmlTexto.substring(tableStart, tableEnd);
   const alts = [...tabela.matchAll(/alt="([^"]+)"/g)].map(m => m[1].trim());
+
+  // Guarda o total encontrado para debug (acessível em processarHtmlConcurso)
+  parseGradeHtmlCaixa._ultimoAlts = alts.length;
+
   if (alts.length < 2) return [];
+
   const resultado = [];
   const n = Math.min(Math.floor(alts.length / 2), 14);
   for (let i = 0; i < n; i++) {
@@ -1393,16 +1409,22 @@ async function upsertTimeAdmin(nome) {
   const nomeLimpo = nome.trim();
   const existentes = await sb('GET', 'times_mapeamento', null, { nome_caixa: `eq.${nomeLimpo}`, select: 'id' });
   if (existentes.length > 0) return existentes[0].id;
+  // Infere estado e país pelo sufixo /UF (ex.: BOTAFOGO/RJ → estado=RJ, pais=Brasil)
+  const mUF = nomeLimpo.match(/\/([A-Z]{2})$/);
+  const estado = mUF ? mUF[1] : null;
+  const pais   = mUF ? 'Brasil' : null;
   const novo = await sb('POST', 'times_mapeamento', {
-    nome_caixa: nomeLimpo, nome_popular: nomeLimpo, pais: 'Internacional',
-    nivel_nacional: 'media', fonte_dados: 'print_manual', ativo: true,
+    nome_caixa: nomeLimpo, nome_popular: nomeLimpo,
+    estado, pais, nivel_nacional: 'media', fonte_dados: 'html_caixa', ativo: true,
   });
   return novo[0].id;
 }
 
 async function criarConcursoDoPrint() {
   const numero = parseInt(document.getElementById('ncpNumero').value, 10);
-  const dataSorteio = document.getElementById('ncpData').value || null;
+  // Fallback: usa hoje se o campo de data não foi preenchido
+  const dataInput = document.getElementById('ncpData').value;
+  const dataSorteio = dataInput || new Date().toISOString().slice(0, 10);
   const competicaoLabel = document.getElementById('ncpCompeticao').value.trim() || 'Loteca';
   const linhas = parseLinhasGrade(document.getElementById('ncpTextarea').value);
 
@@ -1414,17 +1436,24 @@ async function criarConcursoDoPrint() {
   }
 
   const btn = document.getElementById('ncpCriarBtn');
+  const foot = document.getElementById('ncpFoot');
   btn.disabled = true;
   btn.textContent = 'Criando…';
 
-  try {
-    const existentes = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
-    if (existentes.length > 0) throw new Error(`Concurso ${numero} já existe no banco`);
+  // Mostra log de progresso no rodapé do popup (visível ao usuário)
+  function setLog(html) {
+    foot.innerHTML = `<div style="width:100%;font-family:var(--mono);font-size:10px;color:var(--ink-dim);line-height:1.8">${html}</div>`;
+  }
 
-    btn.textContent = 'Criando competição…';
+  try {
+    setLog('Verificando concurso…');
+    const existentes = await sb('GET', 'loteca_concursos', null, { numero: `eq.${numero}`, select: 'id' });
+    if (existentes.length > 0) throw new Error(`Concurso ${numero} já existe no banco (id: ${existentes[0].id})`);
+
+    setLog('Criando competição <strong style="color:var(--ink)">' + competicaoLabel + '</strong>…');
     const competicaoId = await upsertCompAdmin(competicaoLabel);
 
-    btn.textContent = 'Criando concurso…';
+    setLog('Criando concurso <strong style="color:var(--ink)">' + numero + '</strong>…');
     const concursoNovo = await sb('POST', 'loteca_concursos', {
       numero, data_sorteio: dataSorteio, status_analise: 'rascunho',
       acumulado: false, estimativa_premio: null, arrecadacao: null,
@@ -1432,9 +1461,10 @@ async function criarConcursoDoPrint() {
     });
     const concursoId = concursoNovo[0].id;
 
+    let jogosCriados = 0;
     for (let i = 0; i < linhas.length; i++) {
       const { casa, visit } = linhas[i];
-      btn.textContent = `Jogo ${i + 1}/${linhas.length}…`;
+      setLog(`Jogo ${i + 1}/${linhas.length}: <strong style="color:var(--ink)">${casa} × ${visit}</strong>`);
       const timeCasaId  = await upsertTimeAdmin(casa);
       const timeVisitId = await upsertTimeAdmin(visit);
       await sb('POST', 'loteca_jogos_analise', {
@@ -1445,18 +1475,22 @@ async function criarConcursoDoPrint() {
         classificacao: 'dificil', resultado_sugerido: 'coluna1', cobertura: 'triplo',
         resultado_real: null, revisado_editor: false,
         resumo: `${casa} x ${visit}`,
-        justificativa: JSON.stringify({ nomeEquipeUm: casa, nomeEquipeDois: visit, fonte: 'print_manual' }),
+        justificativa: JSON.stringify({ nomeEquipeUm: casa, nomeEquipeDois: visit, fonte: 'html_caixa' }),
       });
+      jogosCriados++;
     }
 
+    // Sucesso
     document.getElementById('ncpFormBody').style.display = 'none';
-    document.getElementById('ncpFoot').innerHTML = `
+    foot.innerHTML = `
       <div style="width:100%">
-        <div style="font-family:var(--mono);font-size:13px;color:var(--emerald);margin-bottom:8px">
-          ✓ Concurso ${numero} criado com ${linhas.length} jogo(s)
+        <div style="font-family:var(--mono);font-size:14px;color:var(--emerald);margin-bottom:10px">
+          ✓ Concurso ${numero} criado com sucesso!
         </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-bottom:14px">
-          Competição: <strong style="color:var(--ink)">${competicaoLabel}</strong> · ${linhas.length} jogos inseridos
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-dim);margin-bottom:16px;line-height:1.8">
+          <div>Competição: <strong style="color:var(--ink)">${competicaoLabel}</strong></div>
+          <div>Jogos inseridos: <strong style="color:var(--emerald)">${jogosCriados} de ${linhas.length}</strong></div>
+          <div>Data: <strong style="color:var(--ink)">${dataSorteio}</strong></div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px">
           <button class="btn" onclick="fecharPopupNovoConcurso()">Fechar</button>
@@ -1465,9 +1499,17 @@ async function criarConcursoDoPrint() {
       </div>`;
 
   } catch (err) {
-    toast('Erro ao criar concurso: ' + err.message, 'err');
-    btn.disabled = false;
-    btn.textContent = '✓ Criar concurso e jogos';
+    // Mostra erro DENTRO do popup (não depende do toast)
+    foot.innerHTML = `
+      <div style="width:100%">
+        <div style="font-family:var(--mono);font-size:11px;color:#e07060;margin-bottom:12px;line-height:1.6">
+          ✗ Erro: ${err.message}
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn" onclick="fecharPopupNovoConcurso()">Fechar</button>
+          <button class="btn btn-amber" id="ncpCriarBtn" onclick="criarConcursoDoPrint()">↺ Tentar novamente</button>
+        </div>
+      </div>`;
   }
 }
 
