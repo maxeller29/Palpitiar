@@ -757,18 +757,21 @@ function processarHtmlConcurso(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const jogosDetectados = parseGradeHtmlCaixa(e.target.result);
+      const html = e.target.result;
+      const temTabela = html.indexOf('tab-apostas') >= 0;
+      const temTbody  = html.indexOf('</tbody>') >= 0;
+      const jogosDetectados = parseGradeHtmlCaixa(html);
       if (jogosDetectados.length > 0) {
         document.getElementById('ncpTextarea').value = jogosDetectados.join('\n');
         msg.textContent = `✓ ${jogosDetectados.length} confronto(s) extraído(s) do HTML — revise antes de criar`;
       } else {
-        msg.textContent = '⚠ Não encontrei a grade nesse HTML — confira se é a página da Caixa salva com a grade aberta, ou use o print (OCR) abaixo';
+        msg.textContent = `⚠ Grade não encontrada (tab-apostas: ${temTabela}, tbody: ${temTbody}) — tamanho do arquivo: ${(html.length/1024).toFixed(0)}KB`;
       }
       atualizarContagemNCP();
     } catch (err) {
       msg.textContent = 'Erro ao ler HTML: ' + err.message;
     } finally {
-      setTimeout(() => status.classList.remove('show'), 4000);
+      setTimeout(() => status.classList.remove('show'), 8000);
     }
   };
   reader.onerror = () => { msg.textContent = 'Erro ao ler o arquivo'; setTimeout(() => status.classList.remove('show'), 3500); };
