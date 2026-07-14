@@ -1094,6 +1094,7 @@ async function iniciarConferir(timesMapAtual) {
   try {
     concursosDisponiveis = await sbGet('loteca_concursos', {
       select:'id,numero,data_sorteio,status_analise',
+      status_analise:'in.(preliminar,final,encerrado)',
       order:'numero.desc', limit:'20',
     });
     const sel = document.getElementById('confSelect');
@@ -1497,13 +1498,17 @@ function setStatus(cls, txt) {
   try {
     setMsg('Buscando concurso atual…');
 
-    // Priorizar concurso aberto
+    // Só mostra concurso analisado e publicado (preliminar/final). Rascunho,
+    // aguardando e coletando são estados internos do admin — nunca aparecem
+    // no site até o editor clicar em "Preliminar" ou "Final".
     let concursos = await sbGet('loteca_concursos', {
-      select:'*', status_analise:'in.(aguardando,coletando,rascunho,preliminar)',
+      select:'*', status_analise:'in.(preliminar,final)',
       order:'numero.desc', limit:1,
     });
     if (!concursos || concursos.length === 0) {
-      concursos = await sbGet('loteca_concursos', { select:'*', order:'numero.desc', limit:1 });
+      concursos = await sbGet('loteca_concursos', {
+        select:'*', status_analise:'eq.encerrado', order:'numero.desc', limit:1,
+      });
     }
     if (!concursos || concursos.length === 0) {
       document.getElementById('bootState').style.display = 'none';
