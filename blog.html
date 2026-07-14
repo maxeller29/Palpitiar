@@ -49,13 +49,9 @@
   .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 60px}
 
   /* NAV */
-  .site-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:48px;flex-wrap:wrap;gap:12px}
-  .site-nav-logo{font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none}
-  .site-nav-logo em{color:var(--gold);font-style:normal}.site-nav-logo img{height:32px;width:auto;display:block}
-  .site-nav-links{display:flex;gap:6px;flex-wrap:wrap}
-  .site-nav-link{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:7px 14px;border-radius:2px;text-decoration:none;color:var(--ink-dim);transition:all .2s;border:1px solid transparent}
-  .site-nav-link:hover{color:var(--ink);border-color:var(--line)}
-  .site-nav-link.blog-active{color:var(--gold);background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.3)}
+  .site-nav{display:flex;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:48px}
+  .home-btn{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;color:var(--ink);border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);font-weight:700;transition:all .2s}
+  .home-btn:hover{border-color:var(--line);background:rgba(255,255,255,0.10)}
 
   /* HERO */
   .blog-hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--line)}
@@ -120,7 +116,6 @@
     .articles-grid{grid-template-columns:1fr}
     .wrap{padding:0 16px 40px}
     .cta-btns{flex-direction:column;align-items:center}
-    .site-nav-link{padding:6px 10px;font-size:9px}
   }
 </style>
   <!-- Google Analytics -->
@@ -134,17 +129,7 @@
 <div class="wrap">
 
   <nav class="site-nav">
-    <a class="site-nav-logo" href="/index.html">
-    <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
-  </a>
-    <div class="site-nav-links">
-      <a class="site-nav-link" href="/index.html">← Início</a>
-      <a class="site-nav-link" href="/mega-sena.html">Mega-Sena</a>
-      <a class="site-nav-link" href="/lotofacil.html">Lotofácil</a>
-      <a class="site-nav-link" href="/quina.html">Quina</a>
-      <a class="site-nav-link" href="/analisar.html">Analisador</a>
-      <a class="site-nav-link blog-active" href="/blog.html">Blog</a>
-    </div>
+    <a class="home-btn" href="index.html">← INÍCIO</a>
   </nav>
 
   <header class="blog-hero">

@@ -105,6 +105,28 @@ const LOTERIAS = [
     }
   },
   {
+    id:      'milionaria',
+    slug:    'maismilionaria',
+    arquivo: 'milionaria-historico.json',
+    qtdDez:  6,
+    range:   { min: 1, max: 50 },
+    milionaria: true,
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      // faixas: sena+2t, sena+1t, sena+0t, quina+2t, quina+1t, quadra+2t, quadra+1t
+      const mF = { 0:'s2t',1:'s1t',2:'s0t',3:'q2t',4:'q1t',5:'qt2t',6:'qt1t' };
+      const mG = { 0:'gs2t',1:'gs1t',2:'gs0t',3:'gq2t',4:'gq1t',5:'gqt2t',6:'gqt1t' };
+      f.forEach((x,i) => {
+        if (mF[i]) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
+  },
+  {
     id:      'dupla-sena',
     slug:    'duplasena',
     arquivo: 'dupla-sena-historico.json',
@@ -115,6 +137,50 @@ const LOTERIAS = [
       const f = r.listaRateioPremio || r.premiacoes || [];
       const mF = { 0:'s1',1:'q1',2:'qt1',3:'t1',4:'s2',5:'q2',6:'qt2',7:'t2' };
       const mG = { 0:'gs1',1:'gq1',2:'gqt1',3:'gt1',4:'gs2',5:'gq2',6:'gqt2',7:'gt2' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
+  },
+  {
+    id:      'timemania',
+    slug:    'timemania',
+    arquivo: 'timemania-historico.json',
+    qtdDez:  7,
+    range:   { min: 1, max: 80 },
+    // Ordem do listaRateioPremio assumida como: 7,6,5,4,3 acertos + Time do Coração por último.
+    // Validar contra uma resposta real da API antes de confiar no detalhamento por faixa (dezenas/ganhadores principais não dependem disso).
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'7',1:'6',2:'5',3:'4',4:'3',5:'tc' };
+      const mG = { 0:'g7',1:'g6',2:'g5',3:'g4',4:'g3',5:'gtc' };
+      f.forEach((x,i) => {
+        if (mF[i] !== undefined) {
+          p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
+          p[mG[i]] = x.numeroDeGanhadores ?? x.numeradorGanhadores ?? x.ganhadores ?? 0;
+        }
+      });
+      return p;
+    }
+  },
+  {
+    id:      'dia-de-sorte',
+    slug:    'diadesorte',
+    arquivo: 'diadesorte-historico.json',
+    qtdDez:  7,
+    range:   { min: 1, max: 31 },
+    // Ordem do listaRateioPremio assumida como: 7,6,5,4 acertos + Mês da Sorte por último.
+    // Validar contra uma resposta real da API antes de confiar no detalhamento por faixa (dezenas/ganhadores principais não dependem disso).
+    premios(r) {
+      const p = {};
+      const f = r.listaRateioPremio || r.premiacoes || [];
+      const mF = { 0:'7',1:'6',2:'5',3:'4',4:'ms' };
+      const mG = { 0:'g7',1:'g6',2:'g5',3:'g4',4:'gms' };
       f.forEach((x,i) => {
         if (mF[i] !== undefined) {
           p[mF[i]] = x.valorPremio ?? x.valor ?? 0;
@@ -154,7 +220,7 @@ function fetchJSON(url) {
   });
 }
 
-function calcularStats(draws, qtdDez, range, dual) {
+function calcularStats(draws, qtdDez, range, dual, milionaria) {
   const lo = (range && range.min !== undefined) ? range.min : 1;
   const hi = (range && range.max !== undefined) ? range.max : (qtdDez===6?60:qtdDez===15?25:80);
   const freqMap={}, ultimoSorteio={};
@@ -162,8 +228,8 @@ function calcularStats(draws, qtdDez, range, dual) {
   let somaTotal=0, comAcert=0, semAcert=0;
   draws.forEach((d,idx) => {
     somaTotal += d[2].reduce((s,n)=>s+n,0);
-    // dual: d=[num,date,dez1[],dez2[],ganhadores,premios]; single: d=[num,date,dez[],ganhadores,premios]
-    const g = dual ? d[4] : d[3];
+    // dual/milionaria: d=[num,date,dez[],dez2[]/trevos[],ganhadores,...]; single: d=[num,date,dez[],ganhadores,...]
+    const g = (dual || milionaria) ? d[4] : d[3];
     if(g>0) comAcert++; else semAcert++;
     d[2].forEach(n => { freqMap[n]=(freqMap[n]||0)+1; ultimoSorteio[n]=idx; });
     if(dual && Array.isArray(d[3])) d[3].forEach(n => { freqMap[n]=(freqMap[n]||0)+1; ultimoSorteio[n]=idx; });
@@ -193,11 +259,11 @@ async function atualizarLoteria(cfg) {
 
   const existente = JSON.parse(fs.readFileSync(arquivo, 'utf8'));
   const draws = existente.draws;
-  const ultimoConcurso = draws[draws.length-1][0];
+  const ultimoConcurso = draws.length > 0 ? draws[draws.length-1][0] : 0;
   console.log('[' + cfg.id + '] Ultimo concurso: ' + ultimoConcurso);
 
   let proximo=ultimoConcurso+1, novos=0;
-  let ultimoProcessado=ultimoConcurso, ultimaData=draws[draws.length-1][1];
+  let ultimoProcessado=ultimoConcurso, ultimaData=draws.length>0?draws[draws.length-1][1]:null;
 
   while (true) {
     process.stdout.write('  -> Concurso ' + proximo + '... ');
@@ -208,7 +274,13 @@ async function atualizarLoteria(cfg) {
 
     const data=formatarData(resultado.dataApuracao||resultado.data);
 
-    if (cfg.dual) {
+    if (cfg.milionaria) {
+      const dezenas=(resultado.listaDezenas||[]).map(Number).sort((a,b)=>a-b);
+      const trevos=(resultado.trevosSorteados||resultado.listaTrevos||[]).map(Number).sort((a,b)=>a-b);
+      if (dezenas.length !== 6) { console.log('dezenas invalidas ('+dezenas.length+'). Abortando.'); break; }
+      const ganhadores=parseInt(resultado.listaRateioPremio?.[0]?.numeroDeGanhadores)||0;
+      draws.push([proximo, data, dezenas, trevos, ganhadores, cfg.premios(resultado)]);
+    } else if (cfg.dual) {
       const dez1=(resultado.listaDezenas||[]).map(Number).sort((a,b)=>a-b);
       const dez2=(resultado.listaDezenasSegundoSorteio||[]).map(Number).sort((a,b)=>a-b);
       if (dez1.length !== 6 || dez2.length !== 6) { console.log('dezenas invalidas ('+dez1.length+'/'+dez2.length+'). Abortando.'); break; }
@@ -229,7 +301,7 @@ async function atualizarLoteria(cfg) {
   if (novos === 0) { console.log('  Nenhum concurso novo.\n'); return false; }
 
   existente.draws = draws;
-  existente.stats = calcularStats(draws, cfg.qtdDez, cfg.range, cfg.dual);
+  existente.stats = calcularStats(draws, cfg.qtdDez, cfg.range, cfg.dual, cfg.milionaria);
   const hoje = new Date().toISOString().slice(0,10);
   existente.meta = Object.assign({}, existente.meta, {
     geradoEm:hoje, totalConcursos:draws.length,

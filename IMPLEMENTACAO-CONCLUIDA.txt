@@ -1,0 +1,25 @@
+=== DIA DE SORTE — IMPLEMENTAÇÃO CONCLUÍDA ===
+
+Arquivos criados/modificados em C:\Users\prsc\Documents\IA-MAX\Projetos\Loterias\
+
+NOVOS:
+  diadesorte.html                         — Gerador completo (1-31, 7 dezenas, R$2,50, cor rosa)
+  scripts/criar-historico-diadesorte.js  — Script para buscar histórico da API da Caixa
+
+ATUALIZADOS:
+  netlify/functions/resultado.js  — endpoint dia-de-sorte -> diadesorte adicionado
+  lotoia-db.js                    — PREMIOS_FIXOS, FAIXAS_PREMIADAS e ep para DDS
+  index.html                      — card desktop, tile mobile, mobile-btn e nav link
+  commit-todas-alteracoes.bat     — atualizado com TM + DDS
+
+TAMBÉM NA SESSÃO ANTERIOR (Timemania):
+  timemania.html
+  scripts/criar-historico-timemania.js
+
+=== PARA SUBIR AO NETLIFY ===
+
+  node scripts/criar-historico-timemania.js
+  node scripts/criar-historico-diadesorte.js
+  commit-todas-alteracoes.bat
+
+(Os scripts fazem requests à API da Caixa em batches — podem levar alguns minutos.)

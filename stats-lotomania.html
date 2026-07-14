@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lotomania · Relatório Estatístico Completo | Palpitiar</title>
+<meta name="description" content="Análise estatística completa da série histórica do Lotomania: frequência, atraso, distribuição de soma, paridade e conclusões. 2.600+ concursos analisados.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://palpitiar.com.br/stats-lotomania.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0400;
+  --bg-2: #160800;
+  --ink: #f5ebe0;
+  --ink-dim: rgba(245,235,224,0.62);
+  --ink-faint: rgba(245,235,224,0.28);
+  --accent: #e87722;
+  --accent-dim: rgba(232,119,34,0.35);
+  --gold: #d4a84b;
+  --line: rgba(245,235,224,0.11);
+  --display: 'Fraunces', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { background:var(--bg); color:var(--ink); font-family:var(--display); line-height:1.55; min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 900px 600px at 80% 5%, rgba(232,119,34,0.09), transparent 60%); pointer-events:none; z-index:0; }
+.wrap { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:16px 24px 96px; }
+
+/* NAV */
+.site-nav { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); margin-bottom:28px; gap:16px; flex-wrap:wrap; }
+.nav-logo { font-family:var(--display); font-weight:800; font-style:italic; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
+.nav-logo em { color:var(--gold); font-style:normal; }
+.nav-back { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; padding:8px 16px; border:1px solid var(--accent-dim); color:var(--accent); text-decoration:none; border-radius:2px; transition:all 0.2s; }
+.nav-back:hover { background:rgba(232,119,34,0.1); }
+
+/* BOOT */
+.boot { display:flex; flex-direction:column; align-items:center; gap:20px; padding:80px 0; }
+.spinner { width:52px; height:52px; border:1px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin 1.2s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.boot p { font-family:var(--mono); font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-dim); text-align:center; }
+
+/* APP */
+.app { display:none; }
+.app.ready { animation:fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* HEADER */
+.report-header { padding-bottom:24px; border-bottom:1px solid var(--line); margin-bottom:36px; }
+.report-tag { font-family:var(--mono); font-size:9px; letter-spacing:0.28em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+.report-title { font-family:var(--display); font-weight:300; font-style:italic; font-size:clamp(36px,6vw,60px); letter-spacing:-0.03em; line-height:0.95; }
+.report-title em { font-weight:800; color:var(--accent); font-style:normal; }
+.report-sub { font-family:var(--mono); font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--ink-dim); margin-top:10px; }
+
+/* SUMMARY STRIP */
+.summary-strip { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:0; border:1px solid var(--line); border-radius:2px; margin-bottom:40px; overflow:hidden; }
+.sum-card { padding:20px 22px; border-right:1px solid var(--line); background:rgba(0,0,0,0.25); }
+.sum-card:last-child { border-right:none; }
+.sum-label { font-family:var(--mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:6px; }
+.sum-val { font-family:var(--display); font-weight:600; font-size:26px; letter-spacing:-0.02em; color:var(--accent); }
+.sum-meta { font-family:var(--mono); font-size:10px; color:var(--ink-faint); margin-top:3px; }
+
+/* SECTIONS */
+.stat-section { margin-bottom:40px; }
+.section-title { font-family:var(--mono); font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); margin-bottom:18px; display:flex; align-items:center; gap:12px; }
+.section-title::after { content:''; flex:1; height:1px; background:var(--accent-dim); }
+.section-card { border:1px solid var(--line); background:rgba(0,0,0,0.25); padding:24px 28px; border-radius:2px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+/* HEATMAP */
+#heatmap, #recent-heatmap { display:grid; gap:4px; }
+.hm-cell { display:flex; align-items:center; justify-content:center; border-radius:3px; font-family:var(--mono); font-size:11px; font-weight:600; aspect-ratio:1; cursor:default; transition:transform 0.15s; min-width:28px; }
+.hm-cell:hover { transform:scale(1.15); z-index:10; }
+
+/* HISTOGRAM */
+.hist-stats { display:flex; gap:20px; flex-wrap:wrap; margin-top:16px; font-family:var(--mono); font-size:11px; color:var(--ink-dim); }
+.hist-stat strong { color:var(--ink); }
+
+/* PARITY */
+.pari-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.pari-label { font-family:var(--mono); font-size:11px; color:var(--ink); min-width:50px; }
+.pari-bar-wrap { flex:1; height:12px; background:rgba(245,235,224,0.08); border-radius:2px; overflow:hidden; }
+.pari-bar { height:100%; border-radius:2px; transition:width 0.4s; }
+.pari-pct { font-family:var(--mono); font-size:11px; color:var(--accent); min-width:46px; text-align:right; }
+.pari-count { font-family:var(--mono); font-size:10px; color:var(--ink-faint); min-width:55px; text-align:right; }
+
+/* GROUPS */
+.grp-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.grp-label { font-family:var(--mono); font-size:11px; color:var(--ink); min-width:56px; }
+.grp-bar-wrap { flex:1; height:14px; background:rgba(245,235,224,0.08); border-radius:2px; overflow:hidden; }
+.grp-bar { height:100%; border-radius:2px; transition:width 0.4s; }
+.grp-pct { font-family:var(--mono); font-size:11px; color:var(--accent); min-width:46px; text-align:right; }
+
+/* ATRASADOS */
+.atr-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.atr-num { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; font-family:var(--mono); font-size:12px; font-weight:700; flex-shrink:0; }
+.atr-bar-wrap { flex:1; height:10px; background:rgba(245,235,224,0.08); border-radius:2px; overflow:hidden; }
+.atr-bar { height:100%; border-radius:2px; }
+.atr-val { font-family:var(--mono); font-size:11px; color:var(--ink-dim); min-width:90px; text-align:right; }
+
+/* PAIRS */
+.pair-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.pair-nums { font-family:var(--mono); font-size:12px; color:var(--ink); min-width:80px; }
+.pair-bar-wrap { flex:1; height:10px; background:rgba(245,235,224,0.08); border-radius:2px; overflow:hidden; }
+.pair-bar { height:100%; border-radius:2px; }
+.pair-count { font-family:var(--mono); font-size:11px; color:var(--ink-faint); min-width:36px; text-align:right; }
+
+/* CONCLUSIONS */
+#conclusions p { font-size:15px; color:var(--ink-dim); line-height:1.8; margin-bottom:14px; }
+#conclusions p strong { color:var(--ink); }
+.disclaimer { margin-top:20px; padding:18px 22px; border:1px solid var(--accent-dim); border-radius:2px; font-family:var(--mono); font-size:11px; color:var(--ink-dim); line-height:1.7; }
+
+/* FOOTER */
+footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--ink-faint); flex-wrap:wrap; gap:10px; }
+.btn-back { display:inline-flex; align-items:center; gap:8px; padding:12px 24px; background:var(--accent); color:#111; border:none; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; text-decoration:none; border-radius:2px; margin-top:24px; transition:all 0.2s; }
+.btn-back:hover { opacity:0.88; transform:translateY(-1px); box-shadow:0 8px 24px rgba(232,119,34,0.3); }
+
+@media(max-width:640px) {
+  .two-col { grid-template-columns:1fr; }
+  .three-col { grid-template-columns:1fr 1fr; }
+  .summary-strip { grid-template-columns:1fr 1fr; }
+  .section-card { padding:18px; }
+}
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e87722">
+<script src="/stats-engine.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="site-nav">
+    <a class="nav-logo" href="index.html">Palpit<em>ia</em>r</a>
+    <a class="nav-back" href="lotomania.html">← Voltar ao gerador de Lotomania</a>
+  </nav>
+
+  <div class="boot" id="boot">
+    <div class="spinner"></div>
+    <p id="bootMsg">Carregando série histórica…</p>
+  </div>
+
+  <div class="app" id="app">
+
+    <header class="report-header">
+      <div class="report-tag">Relatório Estatístico · Série Histórica Completa</div>
+      <h1 class="report-title">Loto <em>mania</em></h1>
+      <div class="report-sub">2.600+ concursos · 0–99 · 20 dezenas sorteadas</div>
+    </header>
+
+    <!-- RESUMO -->
+    <section class="stat-section">
+      <div class="section-title">Resumo geral</div>
+      <div class="summary-strip">
+        <div class="sum-card">
+          <div class="sum-label">Concursos</div>
+          <div class="sum-val" id="stat-total">—</div>
+          <div class="sum-meta">série histórica</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Primeiro sorteio</div>
+          <div class="sum-val" style="font-size:16px;line-height:1.4" id="stat-first">—</div>
+          <div class="sum-meta" id="stat-last">até —</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Soma média</div>
+          <div class="sum-val" id="stat-soma">—</div>
+          <div class="sum-meta">por cartão sorteado</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Pares / cartão</div>
+          <div class="sum-val" id="stat-pares">—</div>
+          <div class="sum-meta">média histórica</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Concursos c/ ganhador</div>
+          <div class="sum-val" id="stat-winners">—</div>
+          <div class="sum-meta">do prêmio principal</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Status atual</div>
+          <div class="sum-val" style="font-size:14px;line-height:1.4" id="stat-streak">—</div>
+          <div class="sum-meta">acumulação</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAPA DE CALOR -->
+    <section class="stat-section">
+      <div class="section-title">Mapa de frequência — todos os números</div>
+      <div class="section-card">
+        <div id="heatmap" style="grid-template-columns:repeat(10,1fr)"></div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--ink-faint)">
+          <span>Frio (menos sorteado)</span>
+          <div style="flex:1;height:6px;background:linear-gradient(90deg,#1e1e28,#e87722);border-radius:3px"></div>
+          <span>Quente (mais sorteado)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUENTES vs FRIAS -->
+    <section class="stat-section">
+      <div class="section-title">Ranking de frequência</div>
+      <div class="two-col">
+        <div class="section-card">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:14px">🔥 Top 10 mais sorteados</div>
+          <div id="chart-hot"></div>
+        </div>
+        <div class="section-card">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:14px">❄️ Top 10 menos sorteados</div>
+          <div id="chart-cold"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ATRASADOS -->
+    <section class="stat-section">
+      <div class="section-title">Números mais atrasados</div>
+      <div class="section-card">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-bottom:16px">Concursos desde a última aparição de cada número</div>
+        <div id="atrasados-list"></div>
+      </div>
+    </section>
+
+    <!-- SOMA HISTOGRAM -->
+    <section class="stat-section">
+      <div class="section-title">Distribuição da soma por concurso</div>
+      <div class="section-card">
+        <div id="chart-hist"></div>
+        <div class="hist-stats">
+          <span>Min: <strong id="hist-min">—</strong></span>
+          <span>P25: <strong id="hist-p25">—</strong></span>
+          <span>Média: <strong id="hist-avg">—</strong></span>
+          <span>P75: <strong id="hist-p75">—</strong></span>
+          <span>Max: <strong id="hist-max">—</strong></span>
+          <span>Desvio padrão: <strong id="hist-std">—</strong></span>
+        </div>
+        <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--ink-faint)">
+          Faixa recomendada pelo gerador: P25–P75 (zona de maior concentração histórica)
+        </div>
+      </div>
+    </section>
+
+    <!-- PARIDADE E FAIXAS -->
+    <section class="stat-section">
+      <div class="section-title">Paridade e distribuição por faixa</div>
+      <div class="two-col">
+        <div class="section-card">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:14px">Combinações par/ímpar mais comuns</div>
+          <div id="parity-chart"></div>
+        </div>
+        <div class="section-card">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:14px">Frequência por faixa de números</div>
+          <div id="groups-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÚLTIMOS 100 -->
+    <section class="stat-section">
+      <div class="section-title">Mapa de frequência — últimos 100 concursos</div>
+      <div class="section-card">
+        <div id="recent-heatmap" style="grid-template-columns:repeat(10,1fr)"></div>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-faint)">
+          Compare com o mapa geral acima para identificar números em tendência recente
+        </div>
+      </div>
+    </section>
+
+    <!-- PARES MAIS FREQUENTES -->
+    <section class="stat-section">
+      <div class="section-title">Pares de números mais frequentes</div>
+      <div class="section-card">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-bottom:14px">Combinações de dois números que aparecem juntas com mais frequência nos últimos 5.000 concursos</div>
+        <div id="top-pairs"></div>
+      </div>
+    </section>
+
+    <!-- CONCLUSOES -->
+    <section class="stat-section">
+      <div class="section-title">Conclusões estatísticas</div>
+      <div class="section-card">
+        <div id="conclusions"></div>
+        <div class="disclaimer">
+          <strong>AVISO:</strong> Toda análise estatística apresentada aqui é baseada em dados históricos reais. 
+          Entretanto, cada sorteio de loteria é um evento <strong>completamente independente</strong> dos anteriores. 
+          Nenhuma análise estatística, por mais sofisticada que seja, pode prever ou aumentar a probabilidade de acerto. 
+          Use estas informações para construir cartões mais equilibrados e diversificados, não como garantia de premiação.
+          Aposte com responsabilidade.
+        </div>
+      </div>
+    </section>
+
+    <a class="btn-back" href="lotomania.html">⚡ Gerar combinações para Lotomania</a>
+
+    <footer>
+      <span>Dados · API oficial Caixa Econômica Federal</span>
+      <span>palpitiar.com.br · Aposte com responsabilidade · +18</span>
+    </footer>
+
+  </div><!-- /.app -->
+</div><!-- /.wrap -->
+
+<script>
+const CFG = {
+  name:       'Lotomania',
+  slug:       'lotomania',
+  jsonFile:   'lotomania-historico.json',
+  pageFile:   'lotomania.html',
+  accentColor:'#e87722',
+  accentRGB:  '232,119,34',
+  uMin:       0,
+  uMax:       99,
+  universo:   99,
+  sorteadas:  20,
+  groupSize:  10,
+  heatCols:   10,
+  isDupla:    false,
+};
+document.addEventListener('DOMContentLoaded', () => StatsEngine.init(CFG));
+</script>
+</body>
+</html>

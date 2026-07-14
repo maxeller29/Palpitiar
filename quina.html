@@ -174,6 +174,12 @@
   .site-nav-link.ds { color: rgba(0,180,204,0.7); }
   .site-nav-link.ds:hover, .site-nav-link.ds-active { color: #00b4cc !important; background: rgba(0,180,204,0.1) !important; border-color: rgba(0,180,204,0.35) !important; }
   .site-nav-link.ds-active { font-weight: 700; box-shadow: 0 2px 0 0 #00b4cc; }
+  /* Timemania */
+  .site-nav-link.tm { color: rgba(124,179,0,0.8); }
+  .site-nav-link.tm:hover { color: #7cb300; background: rgba(124,179,0,0.1); border-color: rgba(124,179,0,0.35); }
+  /* Dia de Sorte */
+  .site-nav-link.dds { color: rgba(196,64,110,0.9); }
+  .site-nav-link.dds:hover { color: #c4406e; background: rgba(196,64,110,0.1); border-color: rgba(196,64,110,0.35); }
   /* Loteca ativo */
   .site-nav-link.lc { color: rgba(15,122,58,0.75); }
   .site-nav-link.lc:hover, .site-nav-link.lc-active {
@@ -499,15 +505,23 @@
   @media (max-width: 720px) {
     .wrap { padding: 12px 16px 60px; }
     header { grid-template-columns: 1fr; text-align: center; gap: 16px; }
-    .site-nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .site-nav { flex-direction: row; align-items: center; }
+    .site-nav-logo { display: none; }
     .site-nav-links { flex-wrap: wrap; gap: 6px; }
+    .site-nav-link:not(.home-btn) { display: none; }
     .status { text-align: center; }
     .next-draw { padding: 24px; }
     .next-draw-grid { grid-template-columns: 1fr; gap: 20px; text-align: center; }
     .next-draw .info-block { text-align: center; }
-    .stats-strip, .loto-info { grid-template-columns: 1fr; }
-    .stat, .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
-    .stat:last-child, .loto-info-cell:last-child { border-bottom: none; }
+    .stats-strip { overflow-x: auto; }
+    .stat { padding: 12px 10px; }
+    .stat .value { font-size: 18px; }
+    .stat .label { font-size: 8px; }
+    .stat .meta { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-nav-link.home-btn { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.22) !important; color: var(--ink) !important; font-weight: 700 !important; }
+    .loto-info { grid-template-columns: 1fr; }
+    .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
+    .loto-info-cell:last-child { border-bottom: none; }
     .strategies { grid-template-columns: 1fr; }
     .controls { grid-template-columns: 1fr; padding: 22px; }
     .prob-panel { grid-template-columns: 1fr; }
@@ -774,7 +788,7 @@
   /* ===== BOTÃO RÁPIDO DENTRO DO CARD PRÓXIMO CONCURSO ===== */
   .next-draw-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid rgba(107,140,218,0.15);
@@ -924,6 +938,17 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+
+  /* Botão Ver Estatísticas */
+  .nd-stats-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 10px 18px; background: rgba(107,140,218,0.15); border: 1px solid rgba(107,140,218,0.55);
+    color: #6b8cda; text-decoration: none; border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nd-stats-btn:hover { background: rgba(107,140,218,0.28); border-color: #6b8cda; transform: translateY(-1px); }
 </style>
 
   <!-- PWA: Lotoia -->
@@ -950,13 +975,16 @@
     <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
   </a>
     <div class="site-nav-links">
-      <a class="site-nav-link" href="index.html">← Inicio</a>
+      <a class="site-nav-link home-btn" href="index.html">← INICIO</a>
       <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
       <a class="site-nav-link lf" href="lotofacil.html">Lotofacil</a>
       <a class="site-nav-link qn qn-active" href="quina.html">Quina</a>
-          <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
-          <a class="site-nav-link ds" href="dupla-sena.html">Dupla Sena</a>
-          <a class="site-nav-link lc" href="loteca.html">Loteca</a>
+      <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
+      <a class="site-nav-link ds" href="dupla-sena.html">Dupla Sena</a>
+      <a class="site-nav-link tm" href="timemania.html">Timemania</a>
+      <a class="site-nav-link dds" href="diadesorte.html">Dia de Sorte</a>
+      <a class="site-nav-link ml" href="milionaria.html">Milionária</a>
+      <a class="site-nav-link lc" href="loteca.html">Loteca</a>
           <a class="site-nav-link" href="/analisar.html">Analisador</a>
           <a class="site-nav-link" href="/blog.html">Blog</a>
     <a class="site-nav-link" href="termos.html">Termos</a>
@@ -1027,6 +1055,7 @@
         </div>
       </div>
       <div class="next-draw-footer">
+        <a class="nd-stats-btn" href="stats-quina.html">📊 Ver estatísticas</a>
         <button class="nd-gen-btn" id="quickGenBar" aria-label="Gerar combinações agora">
           ⚡ Gerar combinações
         </button>
@@ -1219,7 +1248,7 @@
       <div class="section-label">Perguntas frequentes</div>
       <details class="faq-item">
         <summary class="faq-q">Qual a diferenca entre a Quina e a Mega-Sena?</summary>
-        <div class="faq-a">A Quina tem um universo maior (1 a 80 vs 1 a 60) mas escolhe apenas 5 dezenas (vs 6). O resultado e uma dificuldade intermediaria: 1 em 24 milhoes na Quina vs 1 em 50 milhoes na Mega-Sena. O preco minimo e menor (R$ 2,00 vs R$ 6,00) e ha premios tambem para 2 e 3 acertos.</div>
+        <div class="faq-a">A Quina tem um universo maior (1 a 80 vs 1 a 60) mas escolhe apenas 5 dezenas (vs 6). O resultado e uma dificuldade intermediaria: 1 em 24 milhoes na Quina vs 1 em 50 milhoes na Mega-Sena. O preco minimo e menor (R$ 3,00 vs R$ 5,00) e ha premios tambem para 2 e 3 acertos.</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">A Quina premia quantas faixas?</summary>
@@ -1227,7 +1256,7 @@
       </details>
       <details class="faq-item">
         <summary class="faq-q">Quantas dezenas devo apostar?</summary>
-        <div class="faq-a">A aposta minima e 5 dezenas (R$ 2,00). Cada dezena adicional aumenta o custo e a cobertura: 6 dezenas (R$ 12,00) equivale a 6 jogos simples; 15 dezenas (R$ 6.006,00) equivale a 3.003 jogos. Aposte conforme seu orcamento.</div>
+        <div class="faq-a">A aposta minima e 5 dezenas (R$ 3,00). Cada dezena adicional aumenta o custo e a cobertura: 6 dezenas (R$ 18,00) equivale a 6 jogos simples; 15 dezenas (R$ 9.009,00) equivale a 3.003 jogos. Aposte conforme seu orcamento.</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">Com que frequencia a Quina acumula?</summary>
@@ -1263,10 +1292,11 @@ const API_BASE   = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina'
 const CACHE_KEY  = 'quina_serie_v1';
 const CACHE_META = 'quina_meta_v1';
 
+/* Precos oficiais Caixa = C(k,5) × R$ 3,00 */
 const PRICE_TABLE = {
-   5: 2.00,    6: 12.00,    7: 42.00,    8: 112.00,
-   9: 252.00, 10: 504.00,  11: 924.00,  12: 1584.00,
-  13: 2574.00, 14: 4004.00, 15: 6006.00,
+   5:    3.00,   6:   18.00,   7:   63.00,   8:  168.00,
+   9:  378.00,  10:  756.00,  11: 1386.00,  12: 2376.00,
+  13: 3861.00,  14: 6006.00,  15: 9009.00,
 };
 
 /* Parametros calibrados pela analise dos 7.031 sorteios */
@@ -1718,7 +1748,7 @@ document.querySelectorAll('.strategy').forEach(btn=>{
 });
 // ── SISTEMA DE ANÁLISE COM PROGRESSO ────────────────────────
 const STEPS_QUINA = [
-  n => `Carregando ${(7031).toLocaleString('pt-BR')} concursos históricos da Quina...`,
+  n => `Carregando ${STATS ? STATS.totalAnalisado.toLocaleString('pt-BR') : '7.000+'} concursos históricos da Quina...`,
   n => `Calculando frequência histórica das 80 dezenas...`,
   n => `Aplicando filtros: soma ${120}–${285}, paridade 1–4 pares...`,
   n => `Verificando distribuição nas 4 faixas (1-20, 21-40, 41-60, 61-80)...`,

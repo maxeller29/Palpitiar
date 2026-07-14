@@ -1,391 +1,9 @@
-#!/usr/bin/env node
-// scripts/gerar-cards.js
-// Uso: node scripts/gerar-cards.js
-// Gera cards/cards-YYYY-MM-DD.html com dados em tempo real da API da Caixa.
-// Apenas loterias com sorteio no dia atual recebem card.
-
-const https = require('https');
-const fs    = require('fs');
-const path  = require('path');
-
-// ─── API ────────────────────────────────────────────────────────────────────
-function fetchCaixa(endpoint) {
-  return new Promise((resolve) => {
-    const url = `https://servicebus2.caixa.gov.br/portaldeloterias/api/${endpoint}/`;
-    const req = https.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0',
-        'Accept':     'application/json',
-        'Referer':    'https://loterias.caixa.gov.br/',
-        'Origin':     'https://loterias.caixa.gov.br',
-      }
-    }, (res) => {
-      let raw = '';
-      res.on('data', c => raw += c);
-      res.on('end', () => {
-        try { resolve(JSON.parse(raw)); }
-        catch { resolve(null); }
-      });
-    });
-    req.on('error', (e) => {
-      console.error(`  ⚠ Erro ${endpoint}: ${e.message}`);
-      resolve(null);
-    });
-    req.setTimeout(10000, () => { req.destroy(); resolve(null); });
-  });
-}
-
-// ─── FORMATADORES ────────────────────────────────────────────────────────────
-function formatPremio(valor) {
-  if (!valor || valor <= 0) return '—';
-  if (valor >= 1_000_000_000) {
-    const b = valor / 1_000_000_000;
-    return `${b % 1 === 0 ? b : b.toFixed(1).replace('.', ',')} bilhão`;
-  }
-  if (valor >= 1_000_000) return `${Math.round(valor / 1_000_000)} milhões`;
-  return `R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 0})}`;
-}
-
-function ptbrDate(d) {
-  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
-}
-
-// ─── CONTA CONCURSOS ACUMULADOS DO HISTORICO JSON ────────────────────────────
-function contarAcumulados(historicoPath, ultimoConcursoAPI) {
-  try {
-    const h = JSON.parse(fs.readFileSync(historicoPath, 'utf8'));
-    const draws = h.draws;
-    if (!draws) return 0;
-    const keys = Object.keys(draws).map(Number).sort((a,b) => a-b);
-    let count = 0;
-    for (let i = keys.length - 1; i >= 0; i--) {
-      const entry = draws[keys[i]]; // [numero, data, dezenas, ?, {premios}]
-      const p = entry[4];
-      let ganhadores = 0;
-      if (p && typeof p === 'object') {
-        ganhadores = p.gs ?? p.g5 ?? p.g15 ?? 0;
-      }
-      if (ganhadores === 0) count++;
-      else break;
-    }
-    if (ultimoConcursoAPI) count++;
-    return count;
-  } catch {
-    return 0;
-  }
-}
-
-// ─── EXTRAI DADOS DA RESPOSTA DA CAIXA ───────────────────────────────────────
-function extrairDados(json, nome, historicoFile) {
-  if (!json) return { ok: false, nome };
-  const acumulado = !!json.acumulado;
-  let acumHa = 0;
-  if (acumulado && historicoFile) {
-    const fullPath = path.join(process.cwd(), historicoFile);
-    if (fs.existsSync(fullPath)) {
-      acumHa = contarAcumulados(fullPath, true);
-    }
-  }
-  return {
-    ok:       true,
-    nome,
-    concurso: json.numero || 0,
-    proximo:  json.numeroConcursoProximo || (json.numero + 1),
-    dataProx: json.dataProximoConcurso   || '',
-    acumulado,
-    acumHa,
-    premio:   json.valorEstimadoProximoConcurso || json.valorAcumuladoProximoConcurso || 0,
-  };
-}
-
-// ─── VERIFICA SE HÁ CONCURSO HOJE ────────────────────────────────────────────
-function hasDrawToday(dados, today) {
-  if (!dados.ok || !dados.dataProx) return false;
-  return dados.dataProx === ptbrDate(today);
-}
-
-// ─── TEMPLATE HTML ───────────────────────────────────────────────────────────
-function gerarHTML(dados, today) {
-  const { ms, lf, qn, lm, ds, tm, dds, ml } = dados;
-  const todayStr = ptbrDate(today);
-
-  const show = {
-    ms:  ms.ok  && hasDrawToday(ms,  today),
-    lf:  lf.ok  && hasDrawToday(lf,  today),
-    qn:  qn.ok  && hasDrawToday(qn,  today),
-    lm:  lm.ok  && hasDrawToday(lm,  today),
-    ds:  ds.ok  && hasDrawToday(ds,  today),
-    tm:  tm.ok  && hasDrawToday(tm,  today),
-    dds: dds.ok && hasDrawToday(dds, today),
-    ml:  ml.ok  && hasDrawToday(ml,  today),
-  };
-
-  const totalCards = Object.values(show).filter(Boolean).length + 1; // +1 analisador
-
-  function badgeText(d) {
-    if (!d.acumulado) return 'Sorteio hoje';
-    if (d.acumHa > 0) return `Acumulada · há ${d.acumHa} concurso${d.acumHa !== 1 ? 's' : ''}`;
-    return 'Acumulada';
-  }
-
-  let cardNum = 0;
-  function mkLabel(nome, concurso) {
-    return `<p class="card-label">Card ${++cardNum} · ${nome} · Concurso ${concurso}</p>`;
-  }
-
-  // ─── Seções por loteria ───────────────────────────────────────────────────
-
-  const megaSection = !show.ms ? '' : (() => {
-    const badge = badgeText(ms);
-    const title = ms.acumulado
-      ? `O prêmio<br>está <em>acumulado.</em><br>Você gerou<br>seus números?`
-      : `Mega-Sena<br><em>sorteio hoje.</em><br>Gere seus<br>números grátis.`;
-    return `
-${mkLabel('Mega-Sena', ms.proximo)}
-<div class="card card-mega">
-  <div class="mega-glow-tl"></div>
-  <div class="mega-glow-br"></div>
-  <div class="mega-grid"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Mega-Sena · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="mega-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${ms.proximo} · ${ms.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(ms.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/mega-sena</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const facilSection = !show.lf ? '' : (() => {
-    const badge = badgeText(lf);
-    return `
-${mkLabel('Lotofácil', lf.proximo)}
-<div class="card card-facil">
-  <div class="facil-glow-tr"></div>
-  <div class="facil-glow-bl"></div>
-  <div class="facil-dots"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Lotofácil · ${badge}</div>
-    <div class="headline">Lotofácil<br><em>sorteio hoje.</em></div>
-    <div class="sub">15 dezenas geradas por IA com análise de 3.700+ concursos — grátis e sem cadastro.</div>
-  </div>
-  <div class="facil-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${lf.proximo} · ${lf.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(lf.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/lotofacil</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar dezenas agora →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const quinaSection = !show.qn ? '' : (() => {
-    const badge = badgeText(qn);
-    const title = qn.acumulado
-      ? `Quina acumulada.<br><em>Gere seus<br>números.</em>`
-      : `Quina<br><em>sorteio hoje.</em>`;
-    return `
-${mkLabel('Quina', qn.proximo)}
-<div class="card card-quina">
-  <div class="quina-glow-tl"></div>
-  <div class="quina-glow-br"></div>
-  <div class="quina-lines"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Quina · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="quina-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${qn.proximo} · ${qn.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(qn.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/quina</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const lmSection = !show.lm ? '' : (() => {
-    const badge = badgeText(lm);
-    const title = lm.acumulado
-      ? `Lotomania<br><em>acumulada.</em><br>Gere seus<br>números.`
-      : `Loto<em>mania</em><br><em>sorteio hoje.</em>`;
-    return `
-${mkLabel('Lotomania', lm.proximo)}
-<div class="card card-lm">
-  <div class="lm-glow-tl"></div>
-  <div class="lm-glow-br"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Lotomania · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="lm-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${lm.proximo} · ${lm.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(lm.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/lotomania</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const dsSection = !show.ds ? '' : (() => {
-    const badge = badgeText(ds);
-    const title = ds.acumulado
-      ? `Dupla Sena<br><em>acumulada.</em><br>Gere seus<br>números.`
-      : `Dupla<em>Sena</em><br><em>sorteio hoje.</em>`;
-    return `
-${mkLabel('Dupla Sena', ds.proximo)}
-<div class="card card-ds">
-  <div class="ds-glow-tl"></div>
-  <div class="ds-glow-br"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Dupla Sena · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="ds-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${ds.proximo} · ${ds.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(ds.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/dupla-sena</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const tmSection = !show.tm ? '' : (() => {
-    const badge = badgeText(tm);
-    const title = tm.acumulado
-      ? `Timemania<br><em>acumulada.</em><br>Gere seus<br>números.`
-      : `Time<em>mania</em><br><em>sorteio hoje.</em>`;
-    return `
-${mkLabel('Timemania', tm.proximo)}
-<div class="card card-tm">
-  <div class="tm-glow-tl"></div>
-  <div class="tm-glow-br"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Timemania · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="tm-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${tm.proximo} · ${tm.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(tm.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/timemania</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const ddsSection = !show.dds ? '' : (() => {
-    const badge = badgeText(dds);
-    const title = dds.acumulado
-      ? `Dia de Sorte<br><em>acumulado.</em><br>Gere seus<br>números.`
-      : `Dia de<br><em>Sorte hoje.</em>`;
-    return `
-${mkLabel('Dia de Sorte', dds.proximo)}
-<div class="card card-dds">
-  <div class="dds-glow-tl"></div>
-  <div class="dds-glow-br"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Dia de Sorte · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="dds-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${dds.proximo} · ${dds.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(dds.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/diadesorte</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const mlSection = !show.ml ? '' : (() => {
-    const badge = badgeText(ml);
-    const title = ml.acumulado
-      ? `O prêmio<br>está <em>acumulado.</em><br>Você gerou<br>seus números?`
-      : `A Mais<br><em>Milionária</em><br>sorteio hoje.`;
-    return `
-${mkLabel('Milionária', ml.proximo)}
-<div class="card card-ml">
-  <div class="ml-glow-tl"></div>
-  <div class="ml-glow-br"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Milionária · ${badge}</div>
-    <div class="headline">${title}</div>
-  </div>
-  <div class="ml-prize-block">
-    <div class="prize-label">Prêmio estimado · Concurso ${ml.proximo} · ${ml.dataProx || todayStr}</div>
-    <div class="prize-value"><span class="rs">R$</span>&nbsp;${formatPremio(ml.premio)}</div>
-    <div class="prize-sub">palpitiar.com.br/milionaria</div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  const analisaSection = (() => {
-    return `
-${mkLabel('Analisador', 'Análise')}
-<div class="card card-analisa">
-  <div class="analisa-glow-c"></div>
-  <div class="analisa-glow-bl"></div>
-  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
-  <div class="top">
-    <div class="badge"><span class="badge-dot"></span>Palpitiar · Analisador</div>
-    <div class="headline">Seus números<br><em>são bons<br>de verdade?</em></div>
-  </div>
-  <div class="analisa-mockup">
-    <div class="mockup-hint">Sua combinação analisada</div>
-    <div class="mockup-balls">
-      <div class="num-ball hot">07</div>
-      <div class="num-ball mid">14</div>
-      <div class="num-ball hot">23</div>
-      <div class="num-ball cold">31</div>
-      <div class="num-ball mid">42</div>
-      <div class="num-ball hot">58</div>
-    </div>
-    <div class="mockup-bars">
-      <div>
-        <div class="bar-label">Frequência</div>
-        <div class="bar-track"><div class="bar-fill good"></div></div>
-        <div class="bar-value good">Ótima · 78%</div>
-      </div>
-      <div>
-        <div class="bar-label">Distribuição</div>
-        <div class="bar-track"><div class="bar-fill blue"></div></div>
-        <div class="bar-value blue">Boa · 70%</div>
-      </div>
-      <div>
-        <div class="bar-label">Paridade</div>
-        <div class="bar-track"><div class="bar-fill mid"></div></div>
-        <div class="bar-value mid">Regular · 3×3</div>
-      </div>
-    </div>
-  </div>
-  <div class="bottom"><div class="cta-btn">Testar meus números →</div></div>
-  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
-</div>`;
-  })();
-
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cards Palpitiar — ${todayStr}</title>
+<title>Cards Palpitiar — 11/07/2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,600;9..144,0,800;9..144,1,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -877,87 +495,169 @@ body {
 <body>
 
 <div class="guide">
-  <h2>📸 CARDS PALPITIAR — ${todayStr}</h2>
-  Gerado automaticamente em ${new Date().toLocaleTimeString('pt-BR')} · Dados em tempo real da API da Caixa.<br>
-  Total de cards gerados hoje: <strong>${totalCards}</strong> (loterias com sorteio + analisador).<br><br>
+  <h2>📸 CARDS PALPITIAR — 11/07/2026</h2>
+  Gerado automaticamente em 12:58:46 · Dados em tempo real da API da Caixa.<br>
+  Total de cards gerados hoje: <strong>7</strong> (loterias com sorteio + analisador).<br><br>
   <strong>Como capturar:</strong> No Chrome, pressione <strong>F12 → ⋮ → More tools → Capture node screenshot</strong> em cada .card,<br>
   ou use a extensão <strong>GoFullPage</strong> para capturar todos de uma vez e cortar depois.<br>
   Cada card mede <strong>1080 × 1080 px</strong> — pronto para Instagram e Facebook.
 </div>
 
-${megaSection}
-${facilSection}
-${quinaSection}
-${lmSection}
-${dsSection}
-${tmSection}
-${ddsSection}
-${mlSection}
-${analisaSection}
+
+<p class="card-label">Card 1 · Mega-Sena · Concurso 3030</p>
+<div class="card card-mega">
+  <div class="mega-glow-tl"></div>
+  <div class="mega-glow-br"></div>
+  <div class="mega-grid"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Mega-Sena · Sorteio hoje</div>
+    <div class="headline">Mega-Sena<br><em>sorteio hoje.</em><br>Gere seus<br>números grátis.</div>
+  </div>
+  <div class="mega-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 3030 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;20 milhões</div>
+    <div class="prize-sub">palpitiar.com.br/mega-sena</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+<p class="card-label">Card 2 · Lotofácil · Concurso 3733</p>
+<div class="card card-facil">
+  <div class="facil-glow-tr"></div>
+  <div class="facil-glow-bl"></div>
+  <div class="facil-dots"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Lotofácil · Sorteio hoje</div>
+    <div class="headline">Lotofácil<br><em>sorteio hoje.</em></div>
+    <div class="sub">15 dezenas geradas por IA com análise de 3.700+ concursos — grátis e sem cadastro.</div>
+  </div>
+  <div class="facil-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 3733 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;2 milhões</div>
+    <div class="prize-sub">palpitiar.com.br/lotofacil</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar dezenas agora →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+<p class="card-label">Card 3 · Quina · Concurso 7063</p>
+<div class="card card-quina">
+  <div class="quina-glow-tl"></div>
+  <div class="quina-glow-br"></div>
+  <div class="quina-lines"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Quina · Sorteio hoje</div>
+    <div class="headline">Quina<br><em>sorteio hoje.</em></div>
+  </div>
+  <div class="quina-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 7063 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;R$ 600.000</div>
+    <div class="prize-sub">palpitiar.com.br/quina</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+
+
+<p class="card-label">Card 4 · Timemania · Concurso 2414</p>
+<div class="card card-tm">
+  <div class="tm-glow-tl"></div>
+  <div class="tm-glow-br"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Timemania · Acumulada</div>
+    <div class="headline">Timemania<br><em>acumulada.</em><br>Gere seus<br>números.</div>
+  </div>
+  <div class="tm-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 2414 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;3 milhões</div>
+    <div class="prize-sub">palpitiar.com.br/timemania</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+<p class="card-label">Card 5 · Dia de Sorte · Concurso 1243</p>
+<div class="card card-dds">
+  <div class="dds-glow-tl"></div>
+  <div class="dds-glow-br"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Dia de Sorte · Acumulada</div>
+    <div class="headline">Dia de Sorte<br><em>acumulado.</em><br>Gere seus<br>números.</div>
+  </div>
+  <div class="dds-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 1243 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;R$ 800.000</div>
+    <div class="prize-sub">palpitiar.com.br/diadesorte</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+<p class="card-label">Card 6 · Milionária · Concurso 371</p>
+<div class="card card-ml">
+  <div class="ml-glow-tl"></div>
+  <div class="ml-glow-br"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Milionária · Acumulada</div>
+    <div class="headline">O prêmio<br>está <em>acumulado.</em><br>Você gerou<br>seus números?</div>
+  </div>
+  <div class="ml-prize-block">
+    <div class="prize-label">Prêmio estimado · Concurso 371 · 11/07/2026</div>
+    <div class="prize-value"><span class="rs">R$</span>&nbsp;72 milhões</div>
+    <div class="prize-sub">palpitiar.com.br/milionaria</div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Gerar combinações grátis →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
+
+<p class="card-label">Card 7 · Analisador · Concurso Análise</p>
+<div class="card card-analisa">
+  <div class="analisa-glow-c"></div>
+  <div class="analisa-glow-bl"></div>
+  <img class="brand-icon" src="../icon-512.png" alt="Palpitiar">
+  <div class="top">
+    <div class="badge"><span class="badge-dot"></span>Palpitiar · Analisador</div>
+    <div class="headline">Seus números<br><em>são bons<br>de verdade?</em></div>
+  </div>
+  <div class="analisa-mockup">
+    <div class="mockup-hint">Sua combinação analisada</div>
+    <div class="mockup-balls">
+      <div class="num-ball hot">07</div>
+      <div class="num-ball mid">14</div>
+      <div class="num-ball hot">23</div>
+      <div class="num-ball cold">31</div>
+      <div class="num-ball mid">42</div>
+      <div class="num-ball hot">58</div>
+    </div>
+    <div class="mockup-bars">
+      <div>
+        <div class="bar-label">Frequência</div>
+        <div class="bar-track"><div class="bar-fill good"></div></div>
+        <div class="bar-value good">Ótima · 78%</div>
+      </div>
+      <div>
+        <div class="bar-label">Distribuição</div>
+        <div class="bar-track"><div class="bar-fill blue"></div></div>
+        <div class="bar-value blue">Boa · 70%</div>
+      </div>
+      <div>
+        <div class="bar-label">Paridade</div>
+        <div class="bar-track"><div class="bar-fill mid"></div></div>
+        <div class="bar-value mid">Regular · 3×3</div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom"><div class="cta-btn">Testar meus números →</div></div>
+  <div class="mascot-bubble"><img src="../coruja.png" alt="Coruja Palpitiar"></div>
+</div>
 
 </body>
-</html>`;
-}
-
-// ─── MAIN ────────────────────────────────────────────────────────────────────
-async function main() {
-  console.log('\n🎲 Gerador de Cards Palpitiar\n');
-  console.log('⏳ Buscando dados em tempo real...\n');
-
-  const [megaRaw, facilRaw, quinaRaw, lmRaw, dsRaw, tmRaw, ddsRaw, mlRaw] = await Promise.all([
-    fetchCaixa('megasena'),
-    fetchCaixa('lotofacil'),
-    fetchCaixa('quina'),
-    fetchCaixa('lotomania'),
-    fetchCaixa('duplasena'),
-    fetchCaixa('timemania'),
-    fetchCaixa('diadesorte'),
-    fetchCaixa('maismilionaria'),
-  ]);
-
-  const ms  = extrairDados(megaRaw,  'Mega-Sena',    'mega-sena-historico.json');
-  const lf  = extrairDados(facilRaw, 'Lotofácil',    'lotofacil-historico.json');
-  const qn  = extrairDados(quinaRaw, 'Quina',        'quina-historico.json');
-  const lm  = extrairDados(lmRaw,    'Lotomania',    null);
-  const ds  = extrairDados(dsRaw,    'Dupla Sena',   null);
-  const tm  = extrairDados(tmRaw,    'Timemania',    null);
-  const dds = extrairDados(ddsRaw,   'Dia de Sorte', null);
-  const ml  = extrairDados(mlRaw,    'Milionária',   null);
-
-  const today = new Date();
-
-  // Relatório
-  console.log('  Loteria        Concurso     Prêmio         Hoje?   Próximo concurso');
-  console.log('  ' + '─'.repeat(72));
-  [ms, lf, qn, lm, ds, tm, dds, ml].forEach(d => {
-    if (!d.ok) {
-      console.log(`  ❌ ${d.nome.padEnd(14)} —`);
-      return;
-    }
-    const sorteioHoje = hasDrawToday(d, today);
-    const icon = sorteioHoje ? '✅' : '⬜';
-    console.log(`  ${icon} ${d.nome.padEnd(14)} #${String(d.proximo).padEnd(6)} ${formatPremio(d.premio).padStart(14)}  ${sorteioHoje ? 'SIM' : 'não'}   ${d.dataProx || '?'}`);
-  });
-  console.log();
-
-  const cardsDir = path.join(process.cwd(), 'cards');
-  if (!fs.existsSync(cardsDir)) fs.mkdirSync(cardsDir, { recursive: true });
-
-  const fileDate = today.toISOString().slice(0, 10);
-  const filename = path.join(cardsDir, `cards-${fileDate}.html`);
-
-  const html = gerarHTML({ ms, lf, qn, lm, ds, tm, dds, ml }, today);
-  fs.writeFileSync(filename, html, 'utf8');
-
-  console.log(`✅ Arquivo gerado: cards/cards-${fileDate}.html`);
-  console.log(`\n📸 Como capturar:`);
-  console.log(`   1. Abra o arquivo no Chrome`);
-  console.log(`   2. F12 → clique com botão direito em .card → "Capture node screenshot"`);
-  console.log(`   3. Repita para cada card`);
-  console.log(`   Cada card: 1080×1080 px — pronto para Instagram e Facebook.\n`);
-}
-
-main().catch((e) => {
-  console.error('Erro:', e.message);
-  process.exit(1);
-});
+</html>

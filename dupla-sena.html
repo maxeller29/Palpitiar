@@ -94,6 +94,12 @@
   .site-nav-link.ds { color: rgba(0,180,204,0.8); }
   .site-nav-link.ds:hover, .site-nav-link.ds-active { color: var(--cyan) !important; background: rgba(0,180,204,0.1) !important; border-color: rgba(0,180,204,0.35) !important; }
   .site-nav-link.ds-active { font-weight: 700; box-shadow: 0 2px 0 0 var(--cyan); }
+  .site-nav-link.tm { color: rgba(124,179,0,0.8); }
+  .site-nav-link.tm:hover { color: #7cb300; background: rgba(124,179,0,0.1); border-color: rgba(124,179,0,0.35); }
+  .site-nav-link.dds { color: rgba(196,64,110,0.9); }
+  .site-nav-link.dds:hover { color: #c4406e; background: rgba(196,64,110,0.1); border-color: rgba(196,64,110,0.35); }
+  .site-nav-link.ml { color: rgba(147,51,234,0.85); }
+  .site-nav-link.ml:hover { color: #9333ea; background: rgba(147,51,234,0.1); border-color: rgba(147,51,234,0.35); }
 
   /* BOOT */
   .boot { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 80px 0; }
@@ -329,15 +335,23 @@
   @media (max-width: 720px) {
     .wrap { padding: 12px 16px 60px; }
     header { grid-template-columns: 1fr; text-align: center; gap: 16px; }
-    .site-nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .site-nav { flex-direction: row; align-items: center; }
+    .site-nav-logo { display: none; }
     .site-nav-links { flex-wrap: wrap; gap: 6px; }
+    .site-nav-link:not(.home-btn) { display: none; }
     .status { text-align: center; }
     .next-draw { padding: 24px; }
     .next-draw-grid { grid-template-columns: 1fr; gap: 20px; text-align: center; }
     .next-draw .info-block { text-align: center; }
-    .stats-strip, .loto-info { grid-template-columns: 1fr; }
-    .stat, .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
-    .stat:last-child, .loto-info-cell:last-child { border-bottom: none; }
+    .stats-strip { overflow-x: auto; }
+    .stat { padding: 12px 10px; }
+    .stat .value { font-size: 18px; }
+    .stat .label { font-size: 8px; }
+    .stat .meta { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .site-nav-link.home-btn { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.22) !important; color: var(--ink) !important; font-weight: 700 !important; }
+    .loto-info { grid-template-columns: 1fr; }
+    .loto-info-cell { border-right: none; border-bottom: 1px solid var(--line); }
+    .loto-info-cell:last-child { border-bottom: none; }
     .dual-draw-info { grid-template-columns: 1fr; }
     .dual-draw-info .ddi-side:first-child { border-right: none; border-bottom: 1px solid rgba(0,180,204,0.15); }
     .strategies { grid-template-columns: 1fr; }
@@ -414,10 +428,26 @@
   .qg-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--ink-dim); font-size: 20px; cursor: pointer; padding: 4px 8px; }
   .qg-note { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); text-align: center; margin-bottom: 16px; letter-spacing: 0.08em; }
 
+  /* DUAL SORTEIO CARDS */
+  .ds-sorteio-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cyan); margin: 0 0 6px; }
+  .ds-sorteio-label.s2 { margin-top: 14px; color: rgba(0,180,204,0.6); }
+  .ball-s2 { background: rgba(0,180,204,0.15); color: var(--cyan); border: 1px solid rgba(0,180,204,0.45); }
+
   /* NEXT DRAW FOOTER */
-  .next-draw-footer { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(0,180,204,0.15); }
+  .next-draw-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
   .nd-gen-btn { background: var(--cyan); color: var(--bg); border: none; border-radius: 2px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
   .nd-gen-btn:hover { background: var(--cyan-bright); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,180,204,0.3); }
+
+  /* Botão Ver Estatísticas */
+  .nd-stats-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 10px 18px; background: rgba(0,180,204,0.15); border: 1px solid rgba(0,180,204,0.55);
+    color: #00b4cc; text-decoration: none; border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .nd-stats-btn:hover { background: rgba(0,180,204,0.28); border-color: #00b4cc; transform: translateY(-1px); }
 </style>
 
   <link rel="manifest" href="/manifest.json">
@@ -440,12 +470,15 @@
       <img src="logo-horizontal.png" alt="Palpitiar" style="height:32px;width:auto;display:block;vertical-align:middle" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-family:var(--display);font-weight:800;font-style:italic;font-size:22px;letter-spacing:-.02em;color:var(--ink)">Palpit<em style="color:var(--gold);font-style:normal">ia</em>r</span>
     </a>
     <div class="site-nav-links">
-      <a class="site-nav-link" href="index.html">← Inicio</a>
+      <a class="site-nav-link home-btn" href="index.html">← INICIO</a>
       <a class="site-nav-link ms" href="mega-sena.html">Mega-Sena</a>
       <a class="site-nav-link lf" href="lotofacil.html">Lotofacil</a>
       <a class="site-nav-link qn" href="quina.html">Quina</a>
       <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
       <a class="site-nav-link ds ds-active" href="dupla-sena.html">Dupla Sena</a>
+      <a class="site-nav-link tm" href="timemania.html">Timemania</a>
+      <a class="site-nav-link dds" href="diadesorte.html">Dia de Sorte</a>
+      <a class="site-nav-link ml" href="milionaria.html">Milionária</a>
       <a class="site-nav-link" href="loteca.html">Loteca</a>
       <a class="site-nav-link" href="/analisar.html">Analisador</a>
       <a class="site-nav-link" href="/blog.html">Blog</a>
@@ -499,30 +532,47 @@
     </div>
 
     <section class="next-draw" id="nextDraw">
-      <div class="next-draw-tag">Proximo Concurso</div>
+      <div class="next-draw-tag">⬢ Próximo Concurso</div>
       <div class="next-draw-grid">
         <div>
-          <div class="prize">Premio estimado
-            <span class="prize-value" id="nextPrize">-</span>
+          <div class="prize">Prêmio estimado
+            <span class="prize-value" id="nextPrize">—</span>
           </div>
         </div>
         <div class="info-block">
-          <div class="info-label">Concurso n</div>
-          <div class="info-value" id="nextNumber">-</div>
-          <div class="info-meta">proximo sorteio</div>
+          <div class="info-label">Concurso nº</div>
+          <div class="info-value" id="nextNumber">—</div>
+          <div class="info-meta">após o último sorteio</div>
         </div>
         <div class="info-block">
-          <div class="info-label">Data</div>
-          <div class="info-value" id="nextDate">-</div>
-          <div class="info-meta" id="nextDays">-</div>
+          <div class="info-label">Data do sorteio</div>
+          <div class="info-value" id="nextDate">—</div>
+          <div class="info-meta" id="nextDays">—</div>
         </div>
       </div>
       <div class="next-draw-footer">
+        <a class="nd-stats-btn" href="stats-dupla-sena.html">📊 Ver estatísticas</a>
         <button class="nd-gen-btn" id="ndGenBtn">⚡ Gerar combinações</button>
       </div>
     </section>
 
-    <div id="adTop" class="ad-slot empty"></div>
+    <div class="stats-strip" id="statsStrip">
+      <div class="stat">
+        <div class="label">Concursos analisados</div>
+        <div class="value" id="statTotal">—</div>
+        <div class="meta" id="statTotalMeta">série histórica</div>
+      </div>
+      <div class="stat">
+        <div class="label">Último sorteio</div>
+        <div class="value" id="statLastNum" style="font-size:13px;letter-spacing:0;line-height:1.6">—</div>
+        <div class="meta" id="statLastData">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Status do Prêmio</div>
+        <div class="value" id="statStatus" style="font-size:20px">—</div>
+        <div class="meta" id="statStatusMeta">—</div>
+      </div>
+    </div>
 
     <a class="caixa-banner" href="https://loterias.caixa.gov.br/Pages/Dupla-Sena.aspx" target="_blank" rel="noopener">
       <div class="caixa-banner-icon">🍀</div>
@@ -532,24 +582,6 @@
       </div>
       <div class="caixa-banner-arrow">→</div>
     </a>
-
-    <div class="stats-strip" id="statsStrip">
-      <div class="stat">
-        <div class="label">Concursos analisados</div>
-        <div class="value" id="statTotal">-</div>
-        <div class="meta">série histórica</div>
-      </div>
-      <div class="stat">
-        <div class="label">Com acertador(es)</div>
-        <div class="value" id="statAcert">-</div>
-        <div class="meta">pelo menos 1 ganhador</div>
-      </div>
-      <div class="stat">
-        <div class="label">Soma média 1º sorteio</div>
-        <div class="value" id="statSoma">-</div>
-        <div class="meta">dos 6 números sorteados</div>
-      </div>
-    </div>
 
     <div class="dual-draw-info">
       <div class="ddi-side">
@@ -562,43 +594,18 @@
       </div>
     </div>
 
-    <div class="loto-info">
-      <div class="loto-info-cell">
-        <div class="li-value">01–50</div>
-        <div class="li-label">universo de números</div>
-      </div>
-      <div class="loto-info-cell">
-        <div class="li-value">6–15</div>
-        <div class="li-label">dezenas por cartão</div>
-      </div>
-      <div class="loto-info-cell">
-        <div class="li-value">R$ 2,50</div>
-        <div class="li-label">por jogo simples (6 dez.)</div>
-      </div>
-    </div>
-
     <div class="strategy-section">
-      <div class="section-label">Estratégia</div>
+      <div class="section-label">Estratégia de geração</div>
       <div class="strategies">
         <button class="strategy active" data-strat="equilibrado" type="button">
-          <div class="strat-name">Equilibrado</div>
-          <div class="strat-desc">Mescla números quentes e frios respeitando paridade e distribuição. Ideal para jogadores que buscam equilíbrio estatístico.</div>
-          <div class="strat-tag">Recomendado</div>
+          <div class="strat-name">Equilibrada</div>
+          <div class="strat-desc">Mescla números quentes e frios respeitando paridade e distribuição histórica dos dois sorteios. Cartões balanceados e diversificados.</div>
+          <div class="strat-tag">Recomendada</div>
         </button>
-        <button class="strategy" data-strat="quente" type="button">
-          <div class="strat-name">Quentes</div>
-          <div class="strat-desc">Favorece os números com maior frequência histórica nos dois sorteios combinados.</div>
-          <div class="strat-tag">Alta frequência</div>
-        </button>
-        <button class="strategy" data-strat="frio" type="button">
-          <div class="strat-name">Frios</div>
-          <div class="strat-desc">Prioriza dezenas em longa ausência, apostando na regressão à média.</div>
-          <div class="strat-tag">Maior atraso</div>
-        </button>
-        <button class="strategy" data-strat="aleatorio" type="button">
-          <div class="strat-name">Aleatório</div>
-          <div class="strat-desc">Seleção puramente aleatória sem viés estatístico. Para quem prefere o acaso puro.</div>
-          <div class="strat-tag">Sem filtros</div>
+        <button class="strategy" data-strat="contrarian" type="button">
+          <div class="strat-name">Arrojada</div>
+          <div class="strat-desc">Privilegia dezenas frias e atrasadas nos últimos concursos. Menos apostadores jogam esses números — reduz rateio caso acerte.</div>
+          <div class="strat-tag">Menos rateio</div>
         </button>
       </div>
     </div>
@@ -608,7 +615,7 @@
         <label for="combos">Cartões</label>
         <div class="num-input">
           <button type="button" id="combosDown">−</button>
-          <input id="combos" type="number" min="1" max="20" value="5" readonly>
+          <input id="combos" type="number" min="1" max="50" value="5">
           <button type="button" id="combosUp">+</button>
         </div>
         <div class="hint" id="combosHint">5 cartões</div>
@@ -617,10 +624,10 @@
         <label for="dezenas">Dezenas por cartão</label>
         <div class="num-input">
           <button type="button" id="dezenasDown">−</button>
-          <input id="dezenas" type="number" min="6" max="15" value="6" readonly>
+          <input id="dezenas" type="number" min="6" max="15" value="6">
           <button type="button" id="dezenasUp">+</button>
         </div>
-        <div class="hint" id="dezenasHint">6 dezenas · 1 jogo · R$ 2,50</div>
+        <div class="hint" id="dezenasHint">6 dezenas · 2 jogos/cartão · R$ 5,00</div>
       </div>
       <button class="generate" id="generateBtn">⚡ Gerar</button>
     </div>
@@ -629,17 +636,17 @@
       <div class="prob-cell highlight">
         <div class="prob-label">Sena (6 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probSena">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probSenaMeta">prob. por cartão</div>
       </div>
       <div class="prob-cell">
         <div class="prob-label">Quina (5 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probQuina">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probQuinaMeta">prob. por cartão</div>
       </div>
       <div class="prob-cell">
         <div class="prob-label">Quadra (4 acertos) em ≥1 sorteio</div>
         <div class="prob-value" id="probQuadra">–</div>
-        <div class="prob-meta">prob. por cartão</div>
+        <div class="prob-meta" id="probQuadraMeta">prob. por cartão</div>
       </div>
     </div>
 
@@ -656,7 +663,7 @@
           <label>Cotas no bolão</label>
           <div class="num-input compact">
             <button type="button" id="cotasDown">−</button>
-            <input id="cotas" type="number" min="2" max="100" value="10" readonly>
+            <input id="cotas" type="number" min="2" max="100" value="2">
             <button type="button" id="cotasUp">+</button>
           </div>
         </div>
@@ -664,12 +671,12 @@
       </div>
     </div>
 
-    <div id="adMid" class="ad-slot empty"></div>
-
-    <div class="cost-bar" id="costBar" style="display:none">
+    <div class="cost-bar" id="costBar">
       <div class="breakdown" id="costBreakdown"></div>
-      <div class="total">Investimento<strong id="costTotal">R$ 0,00</strong></div>
+      <div class="total">Valor total da aposta<strong id="costTotal">R$ 0,00</strong></div>
     </div>
+
+    <div id="adMid" class="ad-slot empty"></div>
 
     <div class="results" id="resultsSection" style="display:none">
       <div class="results-header">
@@ -746,7 +753,7 @@
       </details>
       <details class="faq-item">
         <summary class="faq-q">Quanto custa apostar na Dupla Sena?</summary>
-        <p class="faq-a">A aposta mínima com 6 dezenas custa R$ 2,50. Ao marcar mais números, o sistema gera automaticamente todas as combinações possíveis de 6: 7 dezenas = 7 jogos (R$ 17,50), 8 dezenas = 28 jogos (R$ 70,00), e assim por diante.</p>
+        <p class="faq-a">A aposta mínima com 6 dezenas custa R$ 3,00 (bilhete com 2 sorteios). Ao marcar mais números, o sistema gera automaticamente todas as combinações possíveis de 6: 7 dezenas = 7 bilhetes (R$ 21,00), 8 dezenas = 28 bilhetes (R$ 84,00), e assim por diante.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-q">O gerador garante que vou ganhar?</summary>
@@ -792,7 +799,8 @@
 /* ===== CONSTANTES ===== */
 const CACHE_KEY     = 'ds-hist-v2';
 const DATA_URL      = '/dupla-sena-historico.json';
-const PRICE_TICKET  = 2.50;
+/* R$ 1,50 por sorteio × 2 sorteios/bilhete = R$ 3,00 por bilhete de 6 dezenas */
+const PRICE_TICKET  = 1.50;
 const DEZ_MIN       = 6;
 const DEZ_MAX       = 15;
 const C50_6         = 15890700; // C(50,6)
@@ -836,7 +844,7 @@ function probK(playerK, drawnK, N, k) {
 
 /* ===== ESTADO ===== */
 let stats = null, draws = [], estrategia = 'equilibrado', lastCartoes = [];
-let dezPorCartao = 6;
+let dezPorCartao = 6, proximoConcurso = null;
 
 /* ===== DOM ===== */
 const $ = id => document.getElementById(id);
@@ -848,25 +856,27 @@ const statusTx = $('statusText');
 
 /* ===== BOOT / CARGA ===== */
 async function carregarDados() {
-  // Tenta cache local
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.draws && parsed.draws.length >= 1500 && parsed.stats) {
-        iniciarApp(parsed);
-        return;
-      }
-    }
-  } catch (_) {}
   bootMsg.textContent = 'Buscando dados históricos...';
   try {
-    const resp = await fetch(DATA_URL);
+    const resp = await fetch(DATA_URL + '?v=' + Date.now());
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const json = await resp.json();
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(json)); } catch (_) {}
     iniciarApp(json);
   } catch (e) {
+    // fallback para cache local
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.draws && parsed.draws.length >= 100 && parsed.stats &&
+            Array.isArray(parsed.draws[0]?.[2])) {
+          bootMsg.textContent = 'Usando cache local...';
+          iniciarApp(parsed);
+          return;
+        }
+      }
+    } catch (_) {}
     bootMsg.textContent = 'Erro ao carregar dados: ' + e.message;
   }
 }
@@ -879,44 +889,73 @@ function iniciarApp(json) {
   statusEl.classList.add('live');
   statusTx.textContent = `${json.meta.totalConcursos} concursos · até ${fmtData(json.meta.ultimaData)}`;
 
-  $('statTotal').textContent = json.meta.totalConcursos.toLocaleString('pt-BR');
-  $('statAcert').textContent  = stats.percentualComAcertadores + '%';
-  $('statSoma').textContent   = stats.somaMedia;
+  $('statTotal').textContent = json.meta.ultimoConcurso.toLocaleString('pt-BR');
+  $('statTotalMeta').textContent = `até o concurso ${json.meta.ultimoConcurso}`;
   $('footerConcurso').textContent = `Última série: concurso ${json.meta.ultimoConcurso}`;
+  const ultDraw = draws[draws.length - 1];
+  if (ultDraw) {
+    const dez1 = (ultDraw[2] || []).map(n => String(n).padStart(2,'0')).join(' · ');
+    const dez2 = (ultDraw[3] || []).map(n => String(n).padStart(2,'0')).join(' · ');
+    $('statLastNum').innerHTML = `<span style="opacity:.7;font-size:9px;letter-spacing:.12em;text-transform:uppercase">1.º</span> ${dez1}<br><span style="opacity:.7;font-size:9px;letter-spacing:.12em;text-transform:uppercase">2.º</span> ${dez2}`;
+    $('statLastData').textContent = `concurso ${ultDraw[0]} · ${fmtData(ultDraw[1])}`;
+    // Status do prêmio
+    const ganhadores = ultDraw[4] ?? 0;
+    if (ganhadores > 0) {
+      $('statStatus').textContent = 'Teve ganhador';
+      $('statStatus').style.color = 'var(--cyan)';
+      $('statStatus').style.fontSize = '18px';
+      $('statStatusMeta').textContent = `${ganhadores} ganhador${ganhadores !== 1 ? 'es' : ''} no concurso ${ultDraw[0]}`;
+    } else {
+      // Conta concursos acumulados consecutivos
+      let acum = 0;
+      for (let i = draws.length - 1; i >= 0; i--) {
+        if ((draws[i][4] ?? 0) === 0) acum++; else break;
+      }
+      $('statStatus').textContent = 'Acumulada';
+      $('statStatus').style.color = 'var(--gold)';
+      $('statStatusMeta').textContent = `há ${acum} concurso${acum !== 1 ? 's' : ''} sem ganhador`;
+    }
+  }
+
+  // Pré-preenche o card do próximo concurso com dados do JSON (API atualiza em seguida)
+  $('nextNumber').textContent = json.meta.ultimoConcurso + 1;
 
   atualizarDeAPI();
   atualizarProbabilidades();
   atualizarBolao();
+  updateCostBar();
   autoTrigger();
 }
 
 async function atualizarDeAPI() {
-  const BASE = '/.netlify/functions/resultado';
+  const API_BASE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/duplasena/';
   try {
-    // Busca o último concurso disponível (sem número → retorna o mais recente)
-    const r = await fetch(`${BASE}?loteria=dupla-sena`);
+    const r = await fetch(API_BASE, { cache: 'no-store' });
     if (!r.ok) return;
     const d = await r.json();
-    if (!d.concurso) return;
+    if (!d.numero) return;
 
     // Exibe o próximo concurso
-    const proxNum = d.proximoNumero || (d.concurso + 1);
+    const proxNum = d.numeroConcursoProximo || (d.numero + 1);
+    proximoConcurso = proxNum;
     $('nextNumber').textContent = proxNum;
-    const dataISO = d.proximaData ? d.proximaData.split('/').reverse().join('-') : null;
+    const dataISO = d.dataProximoConcurso ? d.dataProximoConcurso.split('/').reverse().join('-') : null;
     $('nextDate').textContent = fmtData(dataISO);
     $('nextDays').textContent = diasAte(dataISO);
 
     // Prêmio estimado: usa valorEstimadoProximoConcurso da API (combina os dois sorteios)
-    if (d.proximoValor > 0) {
-      $('nextPrize').textContent = fmtBRL(d.proximoValor);
-    } else if (d.acumulado && d.rateio?.[0]?.valor > 0) {
-      $('nextPrize').textContent = fmtBRL(d.rateio[0].valor);
+    if (d.valorEstimadoProximoConcurso > 0) {
+      $('nextPrize').textContent = fmtBRL(d.valorEstimadoProximoConcurso);
+    } else if (d.listaRateioPremio?.length > 0 && d.listaRateioPremio[0].valorPremio > 0) {
+      $('nextPrize').textContent = fmtBRL(d.listaRateioPremio[0].valorPremio);
+    } else {
+      $('nextPrize').textContent = 'consulte na Caixa';
     }
 
     // Avisa se há concursos mais recentes que o JSON local
     const latestInDraws = draws[draws.length - 1]?.[0] || 0;
-    if (d.concurso > latestInDraws) {
-      const missing = d.concurso - latestInDraws;
+    if (d.numero > latestInDraws) {
+      const missing = d.numero - latestInDraws;
       statusTx.textContent = `${draws.length} concursos · até #${latestInDraws} · +${missing} novos`;
     }
   } catch (_) {}
@@ -925,17 +964,30 @@ async function atualizarDeAPI() {
 /* ===== PROBABILIDADES ===== */
 function atualizarProbabilidades() {
   const k = dezPorCartao;
-  const pSena   = probAtLeastOne(probK(k, 6, 50, 6));
-  const pQuina  = probAtLeastOne(probK(k, 6, 50, 5));
-  const pQuadra = probAtLeastOne(probK(k, 6, 50, 4));
+  const numCards = parseInt($('combos').value, 10) || 1;
+
+  // Probabilidade de UM cartão (já considerando os 2 sorteios independentes)
+  const pSenaCard   = probAtLeastOne(probK(k, 6, 50, 6));
+  const pQuinaCard  = probAtLeastOne(probK(k, 6, 50, 5));
+  const pQuadraCard = probAtLeastOne(probK(k, 6, 50, 4));
+
+  // Combinando N cartões: 1 - (1 - p)^N
+  const pSena   = 1 - Math.pow(1 - pSenaCard,   numCards);
+  const pQuina  = 1 - Math.pow(1 - pQuinaCard,  numCards);
+  const pQuadra = 1 - Math.pow(1 - pQuadraCard, numCards);
+
   function fmt(p) {
     if (p === 0) return '<strong>0</strong>';
     const inv = Math.round(1 / p);
     return `1 em <strong>${inv.toLocaleString('pt-BR')}</strong>`;
   }
+  const meta = `${numCards} cartão${numCards > 1 ? 'ões' : ''} de ${k} dezena${k > 1 ? 's' : ''}`;
   $('probSena').innerHTML   = fmt(pSena);
+  $('probSenaMeta').textContent = meta;
   $('probQuina').innerHTML  = fmt(pQuina);
+  $('probQuinaMeta').textContent = meta;
   $('probQuadra').innerHTML = fmt(pQuadra);
+  $('probQuadraMeta').textContent = meta;
 }
 
 /* ===== ANÁLISE ESTATÍSTICA ===== */
@@ -971,12 +1023,16 @@ function sampleSemReposicao(pesos, qtd) {
   const pool = pesos.map((p, i) => ({ i: i + 1, p }));
   const res = [];
   for (let q = 0; q < qtd; q++) {
+    if (!pool.length) break;
     const total = pool.reduce((s, x) => s + x.p, 0);
     let r = Math.random() * total;
+    let picked = pool.length - 1; // fallback: último elemento
     for (let j = 0; j < pool.length; j++) {
       r -= pool[j].p;
-      if (r <= 0) { res.push(pool[j].i); pool.splice(j, 1); break; }
+      if (r <= 0) { picked = j; break; }
     }
+    res.push(pool[picked].i);
+    pool.splice(picked, 1);
   }
   return res.sort((a, b) => a - b);
 }
@@ -991,8 +1047,8 @@ function gerarCartoes(qtd, analiseData, strat) {
     const pesos = [];
     for (let n = 1; n <= 50; n++) {
       let w;
-      if (strat === 'quente')    w = Math.max(1, freq[n]);
-      else if (strat === 'frio') w = Math.max(1, atraso[n]);
+      if (strat === 'quente')         w = Math.max(1, freq[n]);
+      else if (strat === 'frio' || strat === 'contrarian') w = Math.max(1, atraso[n]);
       else if (strat === 'aleatorio') w = 1;
       else {
         const fNorm = freq[n] / (Math.max(...Object.values(freq)) || 1);
@@ -1009,48 +1065,58 @@ function gerarCartoes(qtd, analiseData, strat) {
 }
 
 /* ===== RENDERIZAÇÃO ===== */
-function renderCartoes(cartoes) {
+function renderCartoes(seqs, numCards) {
   const grid = $('cardsGrid');
   grid.innerHTML = '';
-  cartoes.forEach((dz, i) => {
+  for (let i = 0; i < numCards; i++) {
+    const dz1 = seqs[i * 2];
+    const dz2 = seqs[i * 2 + 1] || seqs[i * 2];
+    if (!dz1) break;
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = (i * 0.05) + 's';
-    const soma = dz.reduce((s, n) => s + n, 0);
-    const pares = dz.filter(n => n % 2 === 0).length;
-    const k = dz.length;
+    const k = dz1.length;
     const jogos = comb(k, 6);
+    const soma1 = dz1.reduce((s, n) => s + n, 0);
+    const pares1 = dz1.filter(n => n % 2 === 0).length;
+    const soma2 = dz2.reduce((s, n) => s + n, 0);
+    const pares2 = dz2.filter(n => n % 2 === 0).length;
+    const balls1 = dz1.map((n, ii) => `<div class="ball" style="animation-delay:${ii * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('');
+    const balls2 = dz2.map((n, ii) => `<div class="ball ball-s2" style="animation-delay:${(ii + k) * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('');
     card.innerHTML = `
       <div class="card-head">
         <div class="idx">Cartão <strong>#${i + 1}</strong></div>
-        <div class="card-meta">${k} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''}</div>
+        <div class="card-meta">${k} dezenas · ${jogos * 2} jogos</div>
       </div>
-      <div class="balls">${dz.map((n, ii) => `<div class="ball" style="animation-delay:${ii * 0.04}s">${String(n).padStart(2,'0')}</div>`).join('')}</div>
+      <div class="ds-sorteio-label">1.º Sorteio</div>
+      <div class="balls">${balls1}</div>
+      <div class="card-stats" style="margin-bottom:10px">
+        <span>Soma: <strong>${soma1}</strong></span>
+        <span>Pares: <strong>${pares1}</strong></span>
+      </div>
+      <div class="ds-sorteio-label s2">2.º Sorteio</div>
+      <div class="balls">${balls2}</div>
       <div class="card-stats">
-        <span>Soma: <strong>${soma}</strong></span>
-        <span>Pares: <strong>${pares}</strong></span>
-        <span>Ímpares: <strong>${k - pares}</strong></span>
-        <span>Custo: <strong>${fmtBRL(jogos * PRICE_TICKET)}</strong></span>
+        <span>Soma: <strong>${soma2}</strong></span>
+        <span>Pares: <strong>${pares2}</strong></span>
       </div>`;
     grid.appendChild(card);
-  });
-  $('resultCount').textContent = cartoes.length;
+  }
+  $('resultCount').textContent = numCards;
   $('resultsSection').style.display = '';
 }
 
-function renderReport(cartoes, analiseData) {
+function renderReport(seqs, analiseData, numCards) {
   const report = $('reportSection');
-  const { freq } = analiseData;
-  const todos = cartoes.flat();
+  const todos = seqs.flat();
   const contagem = {};
   todos.forEach(n => { contagem[n] = (contagem[n] || 0) + 1; });
   const sorted = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
   const mais = sorted.slice(0, 8).map(([n]) => n);
-  const menos = sorted.slice(-8).reverse().map(([n]) => n);
-  const quentes = stats.quentes.slice(0, 8);
-  const frias   = stats.frias.slice(0, 8);
+  const quentes = stats.quentes.filter(n => n <= 50).slice(0, 8);
+  const frias   = stats.frias.filter(n => n <= 50).slice(0, 8);
 
-  $('reportDate').textContent = `${cartoes.length} cartões · estratégia: ${estrategia} · ${dezPorCartao} dezenas · gerado em ${new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
+  $('reportDate').textContent = `${numCards} cartão${numCards > 1 ? 's' : ''} (${seqs.length} sequências) · ${estrategia} · ${dezPorCartao} dez · ${new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`;
 
   $('reportGrid').innerHTML = `
     <div class="report-item"><h4>Mais usados nesta geração</h4><p>Os números que apareceram com maior frequência entre os cartões gerados:</p>
@@ -1060,8 +1126,8 @@ function renderReport(cartoes, analiseData) {
     <div class="report-item"><h4>Números frios (hist.)</h4><p>Com menor frequência histórica — podem estar em momento de retorno:</p>
       <div class="freq-list">${frias.map(n => `<span class="freq-pill cold">${String(n).padStart(2,'0')}</span>`).join('')}</div></div>
     <div class="report-item"><h4>Distribuição dos cartões</h4><p>Paridade e soma médias nos cartões gerados nesta sessão:</p>
-      <p style="margin-top:8px">Soma média: <strong>${(cartoes.reduce((s, dz) => s + dz.reduce((a, b) => a + b, 0), 0) / cartoes.length).toFixed(1)}</strong><br>
-      Média pares: <strong>${(cartoes.reduce((s, dz) => s + dz.filter(n => n % 2 === 0).length, 0) / cartoes.length).toFixed(1)}</strong></p></div>`;
+      <p style="margin-top:8px">Soma média: <strong>${(seqs.reduce((s, dz) => s + dz.reduce((a, b) => a + b, 0), 0) / seqs.length).toFixed(1)}</strong><br>
+      Média pares: <strong>${(seqs.reduce((s, dz) => s + dz.filter(n => n % 2 === 0).length, 0) / seqs.length).toFixed(1)}</strong></p></div>`;
 
   report.classList.add('show');
 }
@@ -1087,54 +1153,63 @@ async function gerarComOverlay(qtd, strat) {
     steps[i].classList.add('done');
   };
 
-  await activate(0, 25);
-  const analiseData = analisar();
-  counter.textContent = `${draws.length} concursos lidos`;
+  try {
+    await activate(0, 25);
+    const analiseData = analisar();
+    counter.textContent = `${draws.length} concursos lidos`;
 
-  await activate(1, 50);
-  await delay(100);
+    await activate(1, 50);
+    await delay(100);
 
-  await activate(2, 75);
-  await delay(80);
+    await activate(2, 75);
+    await delay(80);
 
-  steps[3].classList.add('active');
-  bar.style.width = '90%';
-  const cartoes = gerarCartoes(qtd, analiseData, strat);
-  counter.textContent = `${cartoes.length} cartões gerados`;
-  await delay(200);
-  steps[3].classList.remove('active');
-  steps[3].classList.add('done');
-  bar.style.width = '100%';
+    steps[3].classList.add('active');
+    bar.style.width = '90%';
+    // Gera 2 sequências por cartão (1.º e 2.º sorteio)
+    const seqs = gerarCartoes(qtd * 2, analiseData, strat);
+    counter.textContent = `${qtd} cartão${qtd > 1 ? 's' : ''} gerados`;
+    await delay(200);
+    steps[3].classList.remove('active');
+    steps[3].classList.add('done');
+    bar.style.width = '100%';
 
-  await delay(300);
-  overlay.classList.remove('show');
+    await delay(300);
+    overlay.classList.remove('show');
 
-  lastCartoes = cartoes;
-  renderCartoes(cartoes);
-  renderReport(cartoes, analiseData);
-  renderCostBar(cartoes);
-  $('saveSection').style.display = '';
+    lastCartoes = seqs;
+    renderCartoes(seqs, qtd);
+    renderReport(seqs, analiseData, qtd);
+    updateCostBar();
+    $('saveSection').style.display = '';
+    // Salvamento automático (mesmo padrão das demais loterias): não depende mais do clique manual.
+    aguardarDB(() => salvarCombinacoes());
+  } catch (e) {
+    overlay.classList.remove('show');
+    console.error('Erro ao gerar:', e);
+  }
 }
 
-function renderCostBar(cartoes) {
+function updateCostBar() {
+  const numCards = parseInt($('combos').value, 10) || 0;
   const k = dezPorCartao;
-  const jogos = comb(k, 6);
-  const totalJogos = cartoes.length * jogos;
+  const jogosPorSeq = comb(k, 6);
+  const totalJogos = numCards * 2 * jogosPorSeq;
   const totalCusto = totalJogos * PRICE_TICKET;
   $('costBreakdown').innerHTML =
-    `${cartoes.length} cartão${cartoes.length > 1 ? 's' : ''} × ${jogos} jogo${jogos > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo`;
+    `${numCards} cartão${numCards > 1 ? 's' : ''} × ${jogosPorSeq * 2} jogo${jogosPorSeq * 2 > 1 ? 's' : ''} × ${fmtBRL(PRICE_TICKET)} por jogo<br>` +
+    `cada cartão de ${k} dezenas equivale a ${jogosPorSeq} jogos simples por sorteio (2 sorteios)`;
   $('costTotal').textContent = fmtBRL(totalCusto);
-  $('costBar').style.display = '';
 }
 
 /* ===== BOLÃO ===== */
 function atualizarBolao() {
   if (!$('bolaoToggle').checked) return;
-  const cotas = parseInt($('cotas').value) || 10;
+  const cotas = parseInt($('cotas').value) || 2;
   const k = dezPorCartao;
   const jogos = comb(k, 6);
   const qtd = parseInt($('combos').value) || 5;
-  const totalJogos = qtd * jogos;
+  const totalJogos = qtd * 2 * jogos; // 2 sequências por cartão
   const totalCusto = totalJogos * PRICE_TICKET;
   const cotaVal = totalCusto / cotas;
   $('bolaoResult').innerHTML = `
@@ -1149,6 +1224,11 @@ function atualizarBolao() {
 }
 
 /* ===== SAVE / SUPABASE ===== */
+function aguardarDB(fn, t = 40) {
+  if (window.LotoiaDB?.configurado()) { fn(); return; }
+  if (t <= 0) return;
+  setTimeout(() => aguardarDB(fn, t - 1), 300);
+}
 async function salvarCombinacoes() {
   if (!window.LotoiaDB) return;
   const btn = $('btnSave');
@@ -1158,7 +1238,9 @@ async function salvarCombinacoes() {
   status.className = 'save-status show';
   status.textContent = 'Enviando combinações...';
   try {
-    await window.LotoiaDB.salvarCombinacoes('dupla-sena', lastCartoes);
+    const concurso = proximoConcurso || (draws[draws.length - 1]?.[0] + 1) || null;
+    const cartoes = lastCartoes.map(dz => ({ dezenas: dz }));
+    await window.LotoiaDB.salvarCombinacoes(cartoes, 'dupla-sena', concurso, dezPorCartao, estrategia);
     status.className = 'save-status show ok';
     status.textContent = `✓ ${lastCartoes.length} combinações salvas. Serão conferidas automaticamente após o próximo sorteio.`;
     btn.textContent = '✓ Salvo';
@@ -1184,16 +1266,18 @@ function bindNumInput(downId, upId, inputId, min, max, onChange) {
   $(upId).addEventListener('click', inc);
 }
 
+function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
 function atualizarHintDezenas(k) {
   const jogos = comb(k, 6);
-  const custo = fmtBRL(jogos * PRICE_TICKET);
-  $('dezenasHint').textContent = `${k} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''} · ${custo}`;
+  const custo = fmtBRL(jogos * 2 * PRICE_TICKET);
+  $('dezenasHint').textContent = `${k} dezenas · ${jogos * 2} jogos/cartão · ${custo}`;
 }
 
 function autoTrigger() {
   const params = new URLSearchParams(window.location.search);
   if (!params.get('autogerar')) return;
-  const combos = Math.min(20, Math.max(1, parseInt(params.get('combos')) || 5));
+  const combos = Math.min(50, Math.max(1, parseInt(params.get('combos')) || 5));
   const dez    = Math.min(DEZ_MAX, Math.max(DEZ_MIN, parseInt(params.get('dezenas')) || 6));
   $('combos').value  = combos;
   $('combosHint').textContent = `${combos} cartão${combos > 1 ? 's' : ''}`;
@@ -1207,8 +1291,8 @@ function autoTrigger() {
 /* ===== BOTTOM SHEET ===== */
 let qgCombos = 5, qgDez = 6;
 function updateQGNote() {
-  const jogos = comb(qgDez, 6);
-  $('qgNote').textContent = `${qgDez} dezenas · ${jogos} jogo${jogos > 1 ? 's' : ''} · ${fmtBRL(jogos * PRICE_TICKET)} por cartão`;
+  const jogos = comb(qgDez, 6) * 2;
+  $('qgNote').textContent = `${qgDez} dezenas · ${jogos} jogos/cartão · ${fmtBRL(jogos * PRICE_TICKET)}`;
 }
 
 function abrirSheet() {
@@ -1228,15 +1312,18 @@ function fecharSheet() {
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   // controles principais
-  bindNumInput('combosDown', 'combosUp', 'combos', 1, 20, v => {
+  bindNumInput('combosDown', 'combosUp', 'combos', 1, 50, v => {
     $('combosHint').textContent = `${v} cartão${v > 1 ? 's' : ''}`;
+    atualizarProbabilidades();
     atualizarBolao();
+    updateCostBar();
   });
   bindNumInput('dezenasDown', 'dezenasUp', 'dezenas', DEZ_MIN, DEZ_MAX, v => {
     dezPorCartao = v;
     atualizarHintDezenas(v);
     atualizarProbabilidades();
     atualizarBolao();
+    updateCostBar();
   });
 
   // estratégias
@@ -1246,6 +1333,33 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       estrategia = btn.dataset.strat;
     });
+  });
+
+  // permite digitar diretamente nos campos numéricos (cartões e dezenas)
+  document.getElementById('combos').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || 1, 1, 50);
+    $('combosHint').textContent = `${el.value} cartão${el.value > 1 ? 's' : ''}`;
+    atualizarProbabilidades();
+    atualizarBolao();
+    updateCostBar();
+  });
+  document.getElementById('dezenas').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || DEZ_MIN, DEZ_MIN, DEZ_MAX);
+    dezPorCartao = parseInt(el.value, 10);
+    atualizarHintDezenas(dezPorCartao);
+    atualizarProbabilidades();
+    atualizarBolao();
+    updateCostBar();
+  });
+  document.getElementById('cotas').addEventListener('input', e => {
+    const el = e.target;
+    if (el.value === '') return;
+    el.value = clampNum(parseInt(el.value, 10) || 2, 2, 100);
+    atualizarBolao();
   });
 
   // gerar
@@ -1259,7 +1373,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btnClear').addEventListener('click', () => {
     $('cardsGrid').innerHTML = '';
     $('resultsSection').style.display = 'none';
-    $('costBar').style.display = 'none';
     $('reportSection').classList.remove('show');
     $('saveSection').style.display = 'none';
     lastCartoes = [];
@@ -1284,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const qgCombosDown = $('qgCombosDown'), qgCombosUp = $('qgCombosUp');
   const qgDezDown = $('qgDezDown'), qgDezUp = $('qgDezUp');
   qgCombosDown.addEventListener('click', () => { if (qgCombos > 1) { qgCombos--; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
-  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 20) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
+  qgCombosUp.addEventListener('click',   () => { if (qgCombos < 50) { qgCombos++; $('qgCombosVal').textContent = qgCombos; updateQGNote(); } });
   qgDezDown.addEventListener('click',    () => { if (qgDez > DEZ_MIN) { qgDez--; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
   qgDezUp.addEventListener('click',      () => { if (qgDez < DEZ_MAX) { qgDez++; $('qgDezVal').textContent = qgDez; updateQGNote(); } });
 

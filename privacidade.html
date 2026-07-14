@@ -57,13 +57,9 @@
   .wrap { position:relative; z-index:1; max-width: 820px; margin: 0 auto; padding: 0 24px 80px; }
 
   /* NAV */
-  .site-nav { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); margin-bottom:48px; }
-  .site-nav-logo { font-family:var(--display); font-weight:800; font-style:italic; font-size:22px; letter-spacing:-.02em; color:var(--ink); text-decoration:none; }
-  .site-nav-logo:hover { opacity:.8; }
-  .site-nav-logo em { color:var(--gold); font-style:normal; }
-  .site-nav-links { display:flex; gap:6px; }
-  .site-nav-link { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; padding:7px 14px; border-radius:2px; text-decoration:none; color:var(--ink-dim); transition:all .2s; border:1px solid transparent; }
-  .site-nav-link:hover { color:var(--ink); border-color:var(--line); }
+  .site-nav { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); margin-bottom:48px; }
+  .home-btn { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; padding:8px 16px; border-radius:2px; text-decoration:none; color:var(--ink); border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); font-weight:700; transition:all .2s; }
+  .home-btn:hover { border-color:var(--line); background:rgba(255,255,255,0.10); }
 
   /* HERO da página */
   .page-hero { padding: 56px 0 48px; border-bottom: 1px solid var(--line); margin-bottom: 48px; }
@@ -90,8 +86,6 @@
 
   @media (max-width:600px) {
     .wrap { padding:0 16px 60px; }
-    .site-nav-links { gap:2px; }
-    .site-nav-link { padding:6px 10px; font-size:9px; }
   }
 </style>
 
@@ -105,16 +99,7 @@
 <div class="wrap">
 
 <nav class="site-nav">
-  <a class="site-nav-logo" href="/">Palpit<em>ia</em>r</a>
-  <div class="site-nav-links">
-    <a class="site-nav-link" href="/">Início</a>
-    <a class="site-nav-link" href="/mega-sena.html">Mega-Sena</a>
-    <a class="site-nav-link" href="/lotofacil.html">Lotofácil</a>
-    <a class="site-nav-link" href="/quina.html">Quina</a>
-    <a class="site-nav-link" href="/lotomania.html">Lotomania</a>
-    <a class="site-nav-link" href="/dupla-sena.html">Dupla Sena</a>
-    <a class="site-nav-link" href="/blog.html">Blog</a>
-  </div>
+  <a class="home-btn" href="index.html">← INÍCIO</a>
 </nav>
 
 <div class="page-hero">

@@ -106,6 +106,29 @@ body {
 .site-nav-link.lm:hover { color: #e87722; background: rgba(232,119,34,0.08); border-color: rgba(232,119,34,0.3); }
 .site-nav-link.ds { color: rgba(0,180,204,0.7); }
 .site-nav-link.ds:hover { color: #00b4cc; background: rgba(0,180,204,0.08); border-color: rgba(0,180,204,0.3); }
+.site-nav-link.tm { color: rgba(124,179,0,0.7); }
+.site-nav-link.tm:hover { color: #7cb300; background: rgba(124,179,0,0.08); border-color: rgba(124,179,0,0.3); }
+.site-nav-link.dds { color: rgba(196,64,110,0.7); }
+.site-nav-link.dds:hover { color: #c4406e; background: rgba(196,64,110,0.08); border-color: rgba(196,64,110,0.3); }
+.site-nav-link.mil { color: rgba(147,51,234,0.7); }
+.site-nav-link.mil:hover { color: #9333ea; background: rgba(147,51,234,0.08); border-color: rgba(147,51,234,0.3); }
+
+/* ─── FREQUÊNCIA COMPACTA (50 dezenas) ───── */
+.freq-bars-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+}
+.freq-bars-compact .freq-row { margin-bottom: 0; }
+.freq-bars-compact .freq-bar-wrap { height: 4px; }
+.freq-bars-compact .freq-num { width: 22px; font-size: 10px; }
+.freq-bars-compact .freq-pct { width: 30px; font-size: 9px; }
+
+/* ─── GRID COMPACTO (80–100 números) ─────── */
+.number-grid.compact .num-ball { width: 36px; height: 36px; font-size: 11px; }
+@media (max-width: 680px) {
+  .number-grid.compact .num-ball { width: 30px; height: 30px; font-size: 10px; }
+}
 
 /* ─── HERO ────────────────────────────────── */
 .hero {
@@ -1049,6 +1072,9 @@ footer a:hover { color: var(--gold); }
     <a class="site-nav-link qn" href="quina.html">Quina</a>
     <a class="site-nav-link lm" href="lotomania.html">Lotomania</a>
     <a class="site-nav-link ds" href="dupla-sena.html">Dupla Sena</a>
+    <a class="site-nav-link tm" href="timemania.html">Timemania</a>
+    <a class="site-nav-link dds" href="diadesorte.html">Dia de Sorte</a>
+    <a class="site-nav-link mil" href="milionaria.html">Milionária</a>
     <div class="site-nav-spacer"></div>
     <a class="site-nav-link" href="blog.html">Blog</a>
     <a class="site-nav-link" href="termos.html">Termos</a>
@@ -1074,15 +1100,35 @@ footer a:hover { color: var(--gold); }
     <div class="lottery-selector">
       <button class="lottery-btn" id="btn-mega" onclick="selectLoteria('mega')">
         <div class="lb-name">Mega-Sena</div>
-        <div class="lb-info">6 dezenas · 1–60 · 3.009 concursos</div>
+        <div class="lb-info">6 dezenas · 1–60 · ~3.050 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-lotofacil" onclick="selectLoteria('lotofacil')">
         <div class="lb-name">Lotofácil</div>
-        <div class="lb-info">15 dezenas · 1–25 · 3.690 concursos</div>
+        <div class="lb-info">15 dezenas · 1–25 · ~3.730 concursos</div>
       </button>
       <button class="lottery-btn" id="btn-quina" onclick="selectLoteria('quina')">
         <div class="lb-name">Quina</div>
-        <div class="lb-info">5 dezenas · 1–80 · 7.031 concursos</div>
+        <div class="lb-info">5 dezenas · 1–80 · ~7.060 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-lotomania" onclick="selectLoteria('lotomania')">
+        <div class="lb-name">Lotomania</div>
+        <div class="lb-info">50 dezenas · 0–99 · ~2.945 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-dupla" onclick="selectLoteria('dupla')">
+        <div class="lb-name">Dupla Sena</div>
+        <div class="lb-info">6 dezenas · 1–60 · ~2.980 concursos · 2 sorteios</div>
+      </button>
+      <button class="lottery-btn" id="btn-timemania" onclick="selectLoteria('timemania')">
+        <div class="lb-name">Timemania</div>
+        <div class="lb-info">7 dezenas · 1–80 · ~2.410 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-diadesorte" onclick="selectLoteria('diadesorte')">
+        <div class="lb-name">Dia de Sorte</div>
+        <div class="lb-info">7 dezenas · 1–31 · ~1.237 concursos</div>
+      </button>
+      <button class="lottery-btn" id="btn-milionaria" onclick="selectLoteria('milionaria')">
+        <div class="lb-name">Milionária</div>
+        <div class="lb-info">6 dezenas · 1–50 · ~369 concursos</div>
       </button>
     </div>
   </div>
@@ -1250,7 +1296,127 @@ const LOTERIAS = {
     grupos: 8,
     descFaixas: ['1–10', '11–20', '21–30', '31–40', '41–50', '51–60', '61–70', '71–80'],
     grupoTam: 10,
-  }
+    premioIndex: 4,
+  },
+  lotomania: {
+    id: 'lotomania',
+    nome: 'Lotomania',
+    arquivo: 'lotomania-historico.json',
+    min: 0, max: 99,
+    qtd: 50,
+    caixaSlug: 'lotomania',
+    faixas: { 20: '20 acertos', 19: '19 acertos', 18: '18 acertos', 17: '17 acertos', 16: '16 acertos', 0: '0 acertos' },
+    minAcertos: 16,
+    somaIdeal: [2300, 2650],
+    parIdeal: [24, 26],
+    parOk: [22, 28],
+    consecMax: 8,
+    maxSeqHard: 20,
+    gruposMin: 8,
+    gruposIdeal: 10,
+    ampIdeal: [85, 99],
+    termMax: 7,
+    grupos: 10,
+    descFaixas: ['0–9','10–19','20–29','30–39','40–49','50–59','60–69','70–79','80–89','90–99'],
+    grupoTam: 10,
+    isLotomania: true,
+    compactFreq: true,
+    premioIndex: 4,
+  },
+  dupla: {
+    id: 'dupla',
+    nome: 'Dupla Sena',
+    arquivo: 'dupla-sena-historico.json',
+    min: 1, max: 60,
+    qtd: 6,
+    caixaSlug: 'duplasena',
+    faixas: { 6: 'Sena', 5: 'Quina', 4: 'Quadra', 3: 'Terno' },
+    minAcertos: 3,
+    somaIdeal: [130, 175],
+    parIdeal: [3, 3],
+    parOk: [2, 4],
+    consecMax: 1,
+    maxSeqHard: 4,
+    gruposMin: 4,
+    gruposIdeal: 5,
+    ampIdeal: [31, 42],
+    termMax: 2,
+    grupos: 6,
+    descFaixas: ['1–10','11–20','21–30','31–40','41–50','51–60'],
+    grupoTam: 10,
+    dualDraw: true,
+    premioIndex: 5,
+  },
+  timemania: {
+    id: 'timemania',
+    nome: 'Timemania',
+    arquivo: 'timemania-historico.json',
+    min: 1, max: 80,
+    qtd: 7,
+    caixaSlug: 'timemania',
+    faixas: { 7: '7 acertos', 6: '6 acertos', 5: '5 acertos', 4: '4 acertos', 3: '3 acertos' },
+    minAcertos: 3,
+    somaIdeal: [244, 323],
+    parIdeal: [3, 4],
+    parOk: [2, 5],
+    consecMax: 2,
+    maxSeqHard: 5,
+    gruposMin: 5,
+    gruposIdeal: 7,
+    ampIdeal: [54, 69],
+    termMax: 2,
+    grupos: 8,
+    descFaixas: ['1–10','11–20','21–30','31–40','41–50','51–60','61–70','71–80'],
+    grupoTam: 10,
+    premioIndex: 4,
+  },
+  diadesorte: {
+    id: 'diadesorte',
+    nome: 'Dia de Sorte',
+    arquivo: 'diadesorte-historico.json',
+    min: 1, max: 31,
+    qtd: 7,
+    caixaSlug: 'diadesorte',
+    faixas: { 7: '7 acertos', 6: '6 acertos', 5: '5 acertos', 4: '4 acertos' },
+    minAcertos: 4,
+    somaIdeal: [97, 127],
+    parIdeal: [3, 4],
+    parOk: [2, 5],
+    consecMax: 2,
+    maxSeqHard: 5,
+    gruposMin: 3,
+    gruposIdeal: 4,
+    ampIdeal: [21, 27],
+    termMax: 2,
+    grupos: 4,
+    descFaixas: ['1–8','9–16','17–24','25–31'],
+    grupoTam: 8,
+    premioIndex: 4,
+  },
+  milionaria: {
+    id: 'milionaria',
+    nome: 'Milionária',
+    arquivo: 'milionaria-historico.json',
+    min: 1, max: 50,
+    qtd: 6,
+    caixaSlug: 'milionaria',
+    faixas: { 6: 'Sena', 5: 'Quina', 4: 'Quadra', 3: 'Terno', 2: 'Duque' },
+    minAcertos: 4,
+    somaIdeal: [128, 178],
+    parIdeal: [3, 3],
+    parOk: [2, 4],
+    consecMax: 1,
+    maxSeqHard: 4,
+    gruposMin: 4,
+    gruposIdeal: 5,
+    ampIdeal: [31, 42],
+    termMax: 2,
+    grupos: 5,
+    descFaixas: ['1–10','11–20','21–30','31–40','41–50'],
+    grupoTam: 10,
+    hasTrevos: true,
+    premioIndex: 5,
+  },
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1286,10 +1452,11 @@ async function sincronizarHistorico(cfg, historico) {
   }
 
   // ── Passo 1: detecta draws existentes com premiosJson vazio ──
+  const premioIdx = cfg.premioIndex || 4;
   const drawsVazios = draws.filter(d =>
-    Array.isArray(d) && d.length >= 5 &&
-    typeof d[4] === 'object' && d[4] !== null &&
-    Object.keys(d[4]).length === 0
+    Array.isArray(d) && d.length >= premioIdx + 1 &&
+    typeof d[premioIdx] === 'object' && d[premioIdx] !== null &&
+    Object.keys(d[premioIdx]).length === 0
   );
 
   // ── Passo 2: último concurso local (igual ao ultimoAtual calculado acima) ──
@@ -1342,7 +1509,20 @@ async function sincronizarHistorico(cfg, historico) {
         const rateio = dados.listaRateioPremio || dados.rateio || [];
         const premiosJson = construirPremiosJson(cfg.id, rateio);
 
-        draws.push([proximo, dataFmt, dezenasNum, ganhadores, premiosJson]);
+        // Monta o entry correto conforme o formato de cada loteria
+        let entry;
+        if (cfg.dualDraw) {
+          const dez2Raw = dados.listaDezenasSegundoSorteio || [];
+          const dez2Num = dez2Raw.map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
+          entry = [proximo, dataFmt, dezenasNum, dez2Num, ganhadores, premiosJson];
+        } else if (cfg.hasTrevos) {
+          const trevRaw = dados.listaTrevos || [];
+          const trevNum = trevRaw.map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
+          entry = [proximo, dataFmt, dezenasNum, trevNum, ganhadores, premiosJson];
+        } else {
+          entry = [proximo, dataFmt, dezenasNum, ganhadores, premiosJson];
+        }
+        draws.push(entry);
         novosInjetados++;
 
         if (historico.meta) {
@@ -1373,7 +1553,7 @@ async function sincronizarHistorico(cfg, historico) {
       const rateio = dadosR.rateio || [];
       const premiosJson = construirPremiosJson(cfg.id, rateio);
       if (Object.keys(premiosJson).length > 0) {
-        d[4] = premiosJson;
+        d[premioIdx] = premiosJson;
         remendados++;
       }
     } catch (_) { /* falha individual: mantém {} */ }
@@ -1394,11 +1574,11 @@ function construirPremiosJson(loteriaId, rateio) {
   const p = {};
   if (!rateio || rateio.length === 0) return p;
 
-  // Normaliza ID: 'mega' e 'megasena' -> 'mega'
-  const id = loteriaId === 'megasena' ? 'mega' : loteriaId;
+  // Normaliza ID: caixaSlug → id interno
+  const normMap = { megasena: 'mega', duplasena: 'dupla' };
+  const id = normMap[loteriaId] || loteriaId;
 
   // Mapeamento por descricaoFaixa (robusto, independente de ordem)
-  // Chave = texto que aparece no campo descricaoFaixa da API Caixa
   const mapaFaixa = {
     mega: {
       '6 acertos': { f: 's',   g: 'gs'  },
@@ -1409,40 +1589,76 @@ function construirPremiosJson(loteriaId, rateio) {
       'quadra':    { f: 'qd',  g: 'gqd' },
     },
     lotofacil: {
-      '15 acertos': { f: '15', g: 'g15' },
-      '14 acertos': { f: '14', g: 'g14' },
-      '13 acertos': { f: '13', g: 'g13' },
-      '12 acertos': { f: '12', g: 'g12' },
-      '11 acertos': { f: '11', g: 'g11' },
-      // variações sem espaço
-      '15acertos':  { f: '15', g: 'g15' },
-      '14acertos':  { f: '14', g: 'g14' },
-      '13acertos':  { f: '13', g: 'g13' },
-      '12acertos':  { f: '12', g: 'g12' },
-      '11acertos':  { f: '11', g: 'g11' },
+      '15 acertos': { f: '15', g: 'g15' }, '15acertos': { f: '15', g: 'g15' },
+      '14 acertos': { f: '14', g: 'g14' }, '14acertos': { f: '14', g: 'g14' },
+      '13 acertos': { f: '13', g: 'g13' }, '13acertos': { f: '13', g: 'g13' },
+      '12 acertos': { f: '12', g: 'g12' }, '12acertos': { f: '12', g: 'g12' },
+      '11 acertos': { f: '11', g: 'g11' }, '11acertos': { f: '11', g: 'g11' },
     },
     quina: {
-      '5 acertos':  { f: '5', g: 'g5' },
-      'quina':      { f: '5', g: 'g5' },
-      '4 acertos':  { f: '4', g: 'g4' },
-      'quadra':     { f: '4', g: 'g4' },
-      '3 acertos':  { f: '3', g: 'g3' },
-      'terno':      { f: '3', g: 'g3' },
-      '2 acertos':  { f: '2', g: 'g2' },
-      'duque':      { f: '2', g: 'g2' },
-      // variações sem espaço
-      '5acertos':   { f: '5', g: 'g5' },
-      '4acertos':   { f: '4', g: 'g4' },
-      '3acertos':   { f: '3', g: 'g3' },
-      '2acertos':   { f: '2', g: 'g2' },
-    }
+      '5 acertos': { f: '5', g: 'g5' }, 'quina':  { f: '5', g: 'g5' }, '5acertos': { f: '5', g: 'g5' },
+      '4 acertos': { f: '4', g: 'g4' }, 'quadra': { f: '4', g: 'g4' }, '4acertos': { f: '4', g: 'g4' },
+      '3 acertos': { f: '3', g: 'g3' }, 'terno':  { f: '3', g: 'g3' }, '3acertos': { f: '3', g: 'g3' },
+      '2 acertos': { f: '2', g: 'g2' }, 'duque':  { f: '2', g: 'g2' }, '2acertos': { f: '2', g: 'g2' },
+    },
+    lotomania: {
+      '20 acertos': { f: '20', g: 'g20' }, '20acertos': { f: '20', g: 'g20' },
+      '19 acertos': { f: '19', g: 'g19' }, '19acertos': { f: '19', g: 'g19' },
+      '18 acertos': { f: '18', g: 'g18' }, '18acertos': { f: '18', g: 'g18' },
+      '17 acertos': { f: '17', g: 'g17' }, '17acertos': { f: '17', g: 'g17' },
+      '16 acertos': { f: '16', g: 'g16' }, '16acertos': { f: '16', g: 'g16' },
+      '0 acertos':  { f: '0',  g: 'g0'  }, '0acertos':  { f: '0',  g: 'g0'  },
+      'nenhum':     { f: '0',  g: 'g0'  },
+    },
+    timemania: {
+      '7 acertos': { f: '7', g: 'g7' }, '7acertos': { f: '7', g: 'g7' },
+      '6 acertos': { f: '6', g: 'g6' }, '6acertos': { f: '6', g: 'g6' },
+      '5 acertos': { f: '5', g: 'g5' }, '5acertos': { f: '5', g: 'g5' },
+      '4 acertos': { f: '4', g: 'g4' }, '4acertos': { f: '4', g: 'g4' },
+      '3 acertos': { f: '3', g: 'g3' }, '3acertos': { f: '3', g: 'g3' },
+    },
+    diadesorte: {
+      '7 acertos': { f: '7', g: 'g7' }, '7acertos': { f: '7', g: 'g7' },
+      '6 acertos': { f: '6', g: 'g6' }, '6acertos': { f: '6', g: 'g6' },
+      '5 acertos': { f: '5', g: 'g5' }, '5acertos': { f: '5', g: 'g5' },
+      '4 acertos': { f: '4', g: 'g4' }, '4acertos': { f: '4', g: 'g4' },
+      'mes da sorte': { f: 'mes', g: 'gmes' }, 'mes': { f: 'mes', g: 'gmes' },
+    },
+    dupla: {
+      '1 sorteio - 6 acertos': { f: 's1', g: 'gs1' }, '1o sorteio - sena': { f: 's1', g: 'gs1' },
+      '1 sorteio - 5 acertos': { f: 'q1', g: 'gq1' }, '1o sorteio - quina': { f: 'q1', g: 'gq1' },
+      '1 sorteio - 4 acertos': { f: 'qt1', g: 'gqt1' }, '1o sorteio - quadra': { f: 'qt1', g: 'gqt1' },
+      '1 sorteio - 3 acertos': { f: 't1', g: 'gt1' }, '1o sorteio - terno': { f: 't1', g: 'gt1' },
+      '2 sorteio - 6 acertos': { f: 's2', g: 'gs2' }, '2o sorteio - sena': { f: 's2', g: 'gs2' },
+      '2 sorteio - 5 acertos': { f: 'q2', g: 'gq2' }, '2o sorteio - quina': { f: 'q2', g: 'gq2' },
+      '2 sorteio - 4 acertos': { f: 'qt2', g: 'gqt2' }, '2o sorteio - quadra': { f: 'qt2', g: 'gqt2' },
+      '2 sorteio - 3 acertos': { f: 't2', g: 'gt2' }, '2o sorteio - terno': { f: 't2', g: 'gt2' },
+    },
+    milionaria: {
+      '6 acertos + 2 trevos': { f: 's2t', g: 'gs2t' },
+      '6 acertos + 1 trevo':  { f: 's1t', g: 'gs1t' },
+      '5 acertos + 2 trevos': { f: 'q2t', g: 'gq2t' },
+      '5 acertos + 1 trevo':  { f: 'q1t', g: 'gq1t' },
+      '4 acertos + 2 trevos': { f: 'qt2t', g: 'gqt2t' },
+      '4 acertos + 1 trevo':  { f: 'qt1t', g: 'gqt1t' },
+      '3 acertos + 2 trevos': { f: 't2t', g: 'gt2t' },
+      '3 acertos + 1 trevo':  { f: 't1t', g: 'gt1t' },
+      '2 acertos + 2 trevos': { f: 'd2t', g: 'gd2t' },
+      '2 acertos + 1 trevo':  { f: 'd1t', g: 'gd1t' },
+    },
   };
 
   // Fallback posicional (caso descricaoFaixa não esteja disponível)
   const mapaPos = {
-    mega:      { f: ['s','qn','qd'],        g: ['gs','gqn','gqd']       },
-    lotofacil: { f: ['15','14','13','12','11'], g: ['g15','g14','g13','g12','g11'] },
-    quina:     { f: ['5','4','3','2'],       g: ['g5','g4','g3','g2']    }
+    mega:       { f: ['s','qn','qd'],            g: ['gs','gqn','gqd'] },
+    lotofacil:  { f: ['15','14','13','12','11'],  g: ['g15','g14','g13','g12','g11'] },
+    quina:      { f: ['5','4','3','2'],            g: ['g5','g4','g3','g2'] },
+    lotomania:  { f: ['20','19','18','17','16','0'], g: ['g20','g19','g18','g17','g16','g0'] },
+    dupla:      { f: ['s1','q1','qt1','t1','s2','q2','qt2','t2'], g: ['gs1','gq1','gqt1','gt1','gs2','gq2','gqt2','gt2'] },
+    timemania:  { f: ['7','6','5','4','3'],        g: ['g7','g6','g5','g4','g3'] },
+    diadesorte: { f: ['7','6','5','4','mes'],       g: ['g7','g6','g5','g4','gmes'] },
+    milionaria: { f: ['s2t','s1t','q2t','q1t','qt2t','qt1t','t2t','t1t','d2t','d1t'],
+                  g: ['gs2t','gs1t','gq2t','gq1t','gqt2t','gqt1t','gt2t','gt1t','gd2t','gd1t'] },
   };
 
   const mapF = mapaFaixa[id];
@@ -1480,7 +1696,7 @@ function selectLoteria(id) {
   loteriaAtual = id;
   selNumeros.clear();
   document.querySelectorAll('.lottery-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + (id === 'lotofacil' ? 'lotofacil' : id)).classList.add('active');
+  document.getElementById('btn-' + id).classList.add('active');
   buildGrid();
   document.getElementById('step-numbers').style.display = 'block';
   document.getElementById('report-section').classList.remove('visible');
@@ -1495,6 +1711,9 @@ function buildGrid() {
   const cfg = LOTERIAS[loteriaAtual];
   const grid = document.getElementById('number-grid');
   grid.innerHTML = '';
+  // Grade compacta para universos grandes (>= 80 números) ou seleção grande (Lotomania)
+  const totalBalls = cfg.max - cfg.min + 1;
+  grid.className = 'number-grid' + (totalBalls >= 80 ? ' compact' : '');
   for (let n = cfg.min; n <= cfg.max; n++) {
     const btn = document.createElement('button');
     btn.className = 'num-ball';
@@ -1647,6 +1866,10 @@ function analisarCombo(combo, historico, cfg) {
     const dezenas = Array.isArray(d) ? d[2] : (d.dezenas || d.numeros);
     if (!dezenas) continue;
     for (const n of dezenas) freqMap[n] = (freqMap[n] || 0) + 1;
+    // Dupla Sena: conta também o 2° sorteio
+    if (cfg.dualDraw && Array.isArray(d) && Array.isArray(d[3])) {
+      for (const n of d[3]) freqMap[n] = (freqMap[n] || 0) + 1;
+    }
   }
   const maxFreq = Math.max(...Object.values(freqMap));
   const minFreq = Math.min(...Object.values(freqMap));
@@ -1780,31 +2003,55 @@ function analisarCombo(combo, historico, cfg) {
   else classificacao = 'fraca';
 
   // ── 7. Buscar premiações na série histórica ───────────
+  const premioIdx = cfg.premioIndex || 4;
   const premiados = [];
   for (const d of draws) {
-    let numConcurso, dataSorteio, dezenas;
+    let numConcurso, dataSorteio;
     if (Array.isArray(d)) {
-      [numConcurso, dataSorteio, dezenas] = d;
+      numConcurso = d[0];
+      dataSorteio = d[1];
     } else {
       numConcurso = d.concurso || d.numero;
       dataSorteio = d.data || d.dataApuracao;
-      dezenas = d.dezenas || d.numeros;
     }
-    if (!dezenas) continue;
-    const dezenasNum = dezenas.map(Number);
-    const acertos = combo.filter(n => dezenasNum.includes(n)).length;
-    if (acertos >= cfg.minAcertos) {
-      const premiosJson = Array.isArray(d) ? (d[4] || null) : null;
-      premiados.push({ concurso: numConcurso, data: dataSorteio, acertos, dezenas, premiosJson });
+    const premiosJson = Array.isArray(d) ? (d[premioIdx] || null) : null;
+
+    if (cfg.dualDraw) {
+      // Dupla Sena: verifica os dois sorteios independentemente
+      const dez1 = Array.isArray(d) ? d[2] : (d.dezenas || d.numeros);
+      const dez2 = Array.isArray(d) ? d[3] : null;
+      if (dez1 && Array.isArray(dez1)) {
+        const num1 = dez1.map(Number);
+        const ac1 = combo.filter(n => num1.includes(n)).length;
+        if (ac1 >= cfg.minAcertos) {
+          premiados.push({ concurso: numConcurso, data: dataSorteio, acertos: ac1, dezenas: dez1, premiosJson, draw: 1 });
+        }
+      }
+      if (dez2 && Array.isArray(dez2)) {
+        const num2 = dez2.map(Number);
+        const ac2 = combo.filter(n => num2.includes(n)).length;
+        if (ac2 >= cfg.minAcertos) {
+          premiados.push({ concurso: numConcurso, data: dataSorteio, acertos: ac2, dezenas: dez2, premiosJson, draw: 2 });
+        }
+      }
+    } else {
+      const dezenas = Array.isArray(d) ? d[2] : (d.dezenas || d.numeros);
+      if (!dezenas) continue;
+      const dezenasNum = dezenas.map(Number);
+      const acertos = combo.filter(n => dezenasNum.includes(n)).length;
+      const isPremio = cfg.isLotomania
+        ? (acertos === 0 || acertos >= cfg.minAcertos)
+        : acertos >= cfg.minAcertos;
+      if (isPremio) {
+        premiados.push({ concurso: numConcurso, data: dataSorteio, acertos, dezenas, premiosJson });
+      }
     }
   }
 
   // Detecta se JSON já tem prêmios embutidos (v2 enriquecido)
-  // Requer ao menos um draw com objeto de prêmios NÃO-VAZIO no índice [4]
-  // Draws recentes têm d[4]={} (vazio) enquanto conferir.js ainda não processou
   const temPremiosNoJson = draws.some(d =>
-    Array.isArray(d) && d.length >= 5 && d[4] !== null &&
-    typeof d[4] === 'object' && Object.keys(d[4]).length > 0
+    Array.isArray(d) && d.length >= premioIdx + 1 && d[premioIdx] !== null &&
+    typeof d[premioIdx] === 'object' && Object.keys(d[premioIdx]).length > 0
   );
 
   // Para Quina: remove duques (2 acertos) com valor zero quando JSON tem prêmios
@@ -1908,6 +2155,7 @@ function renderReport(combo, r, cfg) {
 
   // Barras de frequência
   const freqBars = document.getElementById('freq-bars');
+  freqBars.className = cfg.compactFreq ? 'freq-bars-compact' : '';
   // Normaliza em relação ao máximo do universo
   freqBars.innerHTML = r.freqCombo.map(f => {
     const pctWidth = (f.freq / r.maxFreq * 100).toFixed(1);
@@ -1968,6 +2216,21 @@ function renderReport(combo, r, cfg) {
       <div class="ar-label">Base histórica</div>
       <div class="ar-val" style="color:var(--ink-faint)" id="base-historica-info">${r.total.toLocaleString('pt-BR')} concursos analisados · até conc. ${r.ultimoConcurso} <span id="sync-status" style="color:var(--amber);font-size:9px"></span></div>
     </div>
+    ${cfg.isLotomania ? `
+    <div class="analysis-row">
+      <div class="ar-label">Nota Lotomania</div>
+      <div class="ar-val" style="color:var(--ink-faint);font-size:10px">Você marca 50 dezenas; prêmio em 16–20 acertos com os 20 sorteados ou com 0 acertos (nenhum dos 20 cai nas suas 50).</div>
+    </div>` : ''}
+    ${cfg.hasTrevos ? `
+    <div class="analysis-row">
+      <div class="ar-label">Nota Milionária</div>
+      <div class="ar-val" style="color:var(--ink-faint);font-size:10px">Análise das 6 dezenas (1–50). Prêmios reais exigem também acertar 1 ou 2 trevos (1–6) — trevos não são analisados aqui.</div>
+    </div>` : ''}
+    ${cfg.dualDraw ? `
+    <div class="analysis-row">
+      <div class="ar-label">Nota Dupla Sena</div>
+      <div class="ar-val" style="color:var(--ink-faint);font-size:10px">Dois sorteios independentes por concurso. Premiações do 1° e 2° sorteio são registradas separadamente.</div>
+    </div>` : ''}
   `;
 
   // PREMIAÇÕES HISTÓRICAS
@@ -1979,9 +2242,14 @@ function renderReport(combo, r, cfg) {
     histBadge.textContent = 'Nenhuma premiação encontrada';
     document.getElementById('total-premiado-wrap').innerHTML = '';
     document.getElementById('history-controls').style.display = 'none';
+    const prizeNote = cfg.isLotomania
+      ? 'A Lotomania premia com 16–20 acertos nos 20 sorteados, ou com 0 acertos (raríssimo: todos os 20 fora das suas 50).'
+      : cfg.hasTrevos
+        ? 'Para a Milionária, premiações reais exigem também acertar trevos. Esta busca considera apenas as dezenas.'
+        : 'Combinações exatas raramente se repetem — isso é estatisticamente esperado.';
     histResults.innerHTML = `<div class="history-empty">
       Esta combinação não registrou premiação nos ${r.total.toLocaleString('pt-BR')} concursos históricos analisados (até o concurso ${r.ultimoConcurso}).<br>
-      <span style="color:var(--ink-faint);font-size:10px">Combinações exatas raramente se repetem — isso é estatisticamente esperado. Sorteios mais recentes podem ainda não constar na base.</span>
+      <span style="color:var(--ink-faint);font-size:10px">${prizeNote} Sorteios recentes podem ainda não constar na base.</span>
     </div>`;
   } else {
     histBadge.className = 'history-badge found';
@@ -1999,16 +2267,21 @@ function renderReport(combo, r, cfg) {
     window._cfgAtual = cfg;
     window._expandido = false;
     window._comboAtual = combo;
-    // Mapas auxiliares para buscarRateioUnico
+    // Mapas auxiliares para buscarRateioUnico — indexados por cardKey = "concurso-draw"
     window._dezenasMap    = {};
     window._datasMap      = {};
     window._acertosMap    = {};
-    window._premiosMemMap = {};
+    window._drawMemMap    = {};
+    window._premiosMemMap = {}; // indexado por concurso (não por draw)
     for (const p of r.premiados) {
-      window._dezenasMap[p.concurso]    = p.dezenas;
-      window._datasMap[p.concurso]      = p.data || null;
-      window._acertosMap[p.concurso]    = p.acertos;
-      window._premiosMemMap[p.concurso] = p.premiosJson || null;
+      const key = `${p.concurso}-${p.draw || 0}`;
+      window._dezenasMap[key]    = p.dezenas;
+      window._datasMap[key]      = p.data || null;
+      window._acertosMap[key]    = p.acertos;
+      window._drawMemMap[key]    = p.draw || null;
+      if (!window._premiosMemMap[p.concurso] && p.premiosJson) {
+        window._premiosMemMap[p.concurso] = p.premiosJson;
+      }
     }
 
     renderListaPremiados('antigo');
@@ -2028,15 +2301,26 @@ function sortPremiados(modo) {
 
 function getValorPremiado(p, cfg) {
   if (!p.premiosJson) return 0;
-  const chaveUsuario = getChaveAcertos(p.acertos, cfg);
+  const chaveUsuario = getChaveAcertos(p.acertos, cfg, p.draw);
   return chaveUsuario ? (p.premiosJson[chaveUsuario] || 0) : 0;
 }
 
-function getChaveAcertos(acertos, cfg) {
+function getChaveAcertos(acertos, cfg, draw) {
+  if (cfg.id === 'dupla') {
+    const s = draw === 2 ? '2' : '1';
+    return { 6:`s${s}`, 5:`q${s}`, 4:`qt${s}`, 3:`t${s}` }[acertos] || null;
+  }
+  if (cfg.id === 'milionaria') {
+    // destaque para melhor caso (2 trevos); sem trevos = sem prêmio real
+    return { 6:'s2t', 5:'q2t', 4:'qt2t', 3:'t2t', 2:'d2t' }[acertos] || null;
+  }
   const mapa = {
-    mega:      { 6:'s', 5:'qn', 4:'qd' },
-    lotofacil: { 15:'15', 14:'14', 13:'13', 12:'12', 11:'11' },
-    quina:     { 5:'5', 4:'4', 3:'3', 2:'2' }
+    mega:       { 6:'s', 5:'qn', 4:'qd' },
+    lotofacil:  { 15:'15', 14:'14', 13:'13', 12:'12', 11:'11' },
+    quina:      { 5:'5', 4:'4', 3:'3', 2:'2' },
+    lotomania:  { 20:'20', 19:'19', 18:'18', 17:'17', 16:'16', 0:'0' },
+    timemania:  { 7:'7', 6:'6', 5:'5', 4:'4', 3:'3' },
+    diadesorte: { 7:'7', 6:'6', 5:'5', 4:'4' },
   };
   return (mapa[cfg.id] || {})[acertos] || null;
 }
@@ -2058,8 +2342,10 @@ function renderListaPremiados(modo) {
   const histResults = document.getElementById('history-results');
 
   histResults.innerHTML = lista.slice(0, limite).map(p => {
+    const cardKey = `${p.concurso}-${p.draw || 0}`;
     const faixaNome = getNomeFaixa(p.acertos, cfg);
     const faixaClass = getFaixaColor(p.acertos, cfg);
+    const drawLabel = cfg.dualDraw && p.draw ? ` · ${p.draw}° Sorteio` : '';
 
     // Card das dezenas sorteadas — vai dentro do rateio-grid
     const userSet = new Set(window._comboAtual || []);
@@ -2068,19 +2354,19 @@ function renderListaPremiados(modo) {
     // premiosJson={} significa que conferir.js ainda não processou: usa fallback API
     const temPremioNesteConcurso = p.premiosJson && Object.keys(p.premiosJson).length > 0;
     const rateioHtml = (temPremios && temPremioNesteConcurso)
-      ? renderRateioDoJson(p.premiosJson, p.acertos, cfg, dezenasHtml, p.data)
-      : `<div class="award-loading" id="rateio-loading-${p.concurso}">
+      ? renderRateioDoJson(p.premiosJson, p.acertos, cfg, dezenasHtml, p.data, p.draw)
+      : `<div class="award-loading" id="rateio-loading-${cardKey}">
            <div class="mini-spinner"></div>
            <span>Buscando valores do rateio...</span>
          </div>
-         <div class="award-rateio" id="rateio-data-${p.concurso}" style="display:none"></div>`;
+         <div class="award-rateio" id="rateio-data-${cardKey}" style="display:none"></div>`;
 
     return `
-      <div class="award-card" id="award-${p.concurso}">
+      <div class="award-card" id="award-${cardKey}">
         <div class="award-top">
           <div class="award-concurso">Concurso ${p.concurso}</div>
           <div class="award-date">${formatarData(p.data)}</div>
-          <div class="award-faixa ${faixaClass}">${p.acertos} acertos · ${faixaNome}</div>
+          <div class="award-faixa ${faixaClass}">${faixaNome.toLowerCase().includes('acertos') ? faixaNome : `${p.acertos} acertos · ${faixaNome}`}${drawLabel}</div>
         </div>
         ${rateioHtml}
       </div>`;
@@ -2095,7 +2381,7 @@ function renderListaPremiados(modo) {
 
   // Fallback API para os cards sem prêmio no JSON
   if (!temPremios) {
-    lista.slice(0, limite).forEach(p => buscarRateioUnico(p.concurso, cfg));
+    lista.slice(0, limite).forEach(p => buscarRateioUnico(p.concurso, cfg, p.draw));
   }
 }
 
@@ -2109,7 +2395,7 @@ function renderDezenasCard(dezenas, userSet, cfg) {
   return `
     <div class="rateio-item dezenas-card">
       <div class="rateio-faixa">Dezenas sorteadas</div>
-      <div class="rateio-balls-row" data-qtd="${cfg.qtd}">${balls}</div>
+      <div class="rateio-balls-row" data-qtd="${sorted.length}">${balls}</div>
     </div>`;
 }
 
@@ -2196,10 +2482,17 @@ function getNomeFaixa(acertos, cfg) {
 }
 
 function getFaixaColor(acertos, cfg) {
+  // Lotomania: 16–20 e 0 acertos são todos prêmios — usa range de faixas do jogo
+  if (cfg.isLotomania) {
+    if (acertos === 0) return 'award-faixa badge-warn'; // 0 acertos é raro mas paga pouco
+    if (acertos >= 19) return 'award-faixa badge-ok';
+    if (acertos >= 17) return 'award-faixa badge-warn';
+    return 'award-faixa badge-bad';
+  }
   const total = cfg.qtd;
   const ratio = acertos / total;
-  if (ratio >= 0.9) return 'award-faixa' + ' badge-ok';
-  if (ratio >= 0.7) return 'award-faixa' + ' badge-warn';
+  if (ratio >= 0.9) return 'award-faixa badge-ok';
+  if (ratio >= 0.7) return 'award-faixa badge-warn';
   return 'award-faixa badge-bad';
 }
 
@@ -2217,22 +2510,37 @@ function formatarData(data) {
 
 // Mapa de chaves curtas → nome legível por loteria
 const NOMES_FAIXA = {
-  mega:       { s:'Sena', qn:'Quina', qd:'Quadra', gs:'gs', gqn:'gqn', gqd:'gqd' },
+  mega:       { s:'Sena', qn:'Quina', qd:'Quadra' },
   lotofacil:  { '15':'15 acertos','14':'14 acertos','13':'13 acertos','12':'12 acertos','11':'11 acertos' },
-  quina:      { '5':'Quina','4':'Quadra','3':'Terno','2':'Duque' }
+  quina:      { '5':'Quina','4':'Quadra','3':'Terno','2':'Duque' },
+  lotomania:  { '20':'20 acertos','19':'19 acertos','18':'18 acertos','17':'17 acertos','16':'16 acertos','0':'0 acertos' },
+  dupla:      { s1:'Sena (1°)',q1:'Quina (1°)',qt1:'Quadra (1°)',t1:'Terno (1°)',s2:'Sena (2°)',q2:'Quina (2°)',qt2:'Quadra (2°)',t2:'Terno (2°)' },
+  timemania:  { '7':'7 acertos','6':'6 acertos','5':'5 acertos','4':'4 acertos','3':'3 acertos' },
+  diadesorte: { '7':'7 acertos','6':'6 acertos','5':'5 acertos','4':'4 acertos','mes':'Mês da Sorte' },
+  milionaria: { s2t:'Sena+2T',s1t:'Sena+1T',q2t:'Quina+2T',q1t:'Quina+1T',qt2t:'Quadra+2T',qt1t:'Quadra+1T',t2t:'Terno+2T',t1t:'Terno+1T',d2t:'Duque+2T',d1t:'Duque+1T' },
 };
 const CHAVES_PREMIO = {
-  mega:      ['s','qn','qd'],
-  lotofacil: ['15','14','13','12','11'],
-  quina:     ['5','4','3','2']
+  mega:       ['s','qn','qd'],
+  lotofacil:  ['15','14','13','12','11'],
+  quina:      ['5','4','3','2'],
+  lotomania:  ['20','19','18','17','16','0'],
+  dupla:      ['s1','q1','qt1','t1','s2','q2','qt2','t2'],
+  timemania:  ['7','6','5','4','3'],
+  diadesorte: ['7','6','5','4','mes'],
+  milionaria: ['s2t','s1t','q2t','q1t','qt2t','qt1t','t2t','t1t','d2t','d1t'],
 };
 const CHAVES_GANHADORES = {
-  mega:      { s:'gs', qn:'gqn', qd:'gqd' },
-  lotofacil: { '15':'g15','14':'g14','13':'g13','12':'g12','11':'g11' },
-  quina:     { '5':'g5','4':'g4','3':'g3','2':'g2' }
+  mega:       { s:'gs', qn:'gqn', qd:'gqd' },
+  lotofacil:  { '15':'g15','14':'g14','13':'g13','12':'g12','11':'g11' },
+  quina:      { '5':'g5','4':'g4','3':'g3','2':'g2' },
+  lotomania:  { '20':'g20','19':'g19','18':'g18','17':'g17','16':'g16','0':'g0' },
+  dupla:      { s1:'gs1',q1:'gq1',qt1:'gqt1',t1:'gt1',s2:'gs2',q2:'gq2',qt2:'gqt2',t2:'gt2' },
+  timemania:  { '7':'g7','6':'g6','5':'g5','4':'g4','3':'g3' },
+  diadesorte: { '7':'g7','6':'g6','5':'g5','4':'g4','mes':'gmes' },
+  milionaria: { s2t:'gs2t',s1t:'gs1t',q2t:'gq2t',q1t:'gq1t',qt2t:'gqt2t',qt1t:'gqt1t',t2t:'gt2t',t1t:'gt1t',d2t:'gd2t',d1t:'gd1t' },
 };
 
-function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml, data) {
+function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml, data, draw) {
   if (!premiosJson || Object.keys(premiosJson).length === 0) {
     return `<div class="award-rateio" style="display:block">
       <div class="rateio-grid">${dezenasHtml || ''}
@@ -2247,7 +2555,7 @@ function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml, data)
   const preReal = data && data < DATA_PLANO_REAL;
 
   // Determina a chave correspondente à faixa do usuário
-  const chaveUsuario = getChaveAcertos(acertosUsuario, cfg);
+  const chaveUsuario = getChaveAcertos(acertosUsuario, cfg, draw);
 
   // Aviso de moeda pré-Real (valor já convertido em formatarMoeda)
   const avisoMoeda = preReal
@@ -2281,39 +2589,49 @@ function renderRateioDoJson(premiosJson, acertosUsuario, cfg, dezenasHtml, data)
 // Fallback via API Netlify — só usado se JSON não for enriquecido
 async function buscarRateios(premiados, cfg) {
   for (const p of premiados.slice(0, 20)) {
-    await buscarRateioUnico(p.concurso, cfg);
+    await buscarRateioUnico(p.concurso, cfg, p.draw);
     await sleep(300);
   }
 }
 
 function netlifyLoteria(caixaSlug) {
-  // Netlify Function usa 'mega-sena', API Caixa usa 'megasena'
-  return caixaSlug === 'megasena' ? 'mega-sena' : caixaSlug;
+  const mapa = {
+    megasena:   'mega-sena',
+    lotomania:  'lotomania',
+    lotofacil:  'lotofacil',
+    quina:      'quina',
+    duplasena:  'dupla-sena',
+    timemania:  'timemania',
+    diadesorte: 'dia-de-sorte',
+    milionaria: null, // não suportado pelo proxy Netlify — usa só Caixa direta
+  };
+  return (caixaSlug in mapa) ? mapa[caixaSlug] : caixaSlug;
 }
 
-async function buscarRateioUnico(concurso, cfg) {
-  const loadingEl = document.getElementById('rateio-loading-' + concurso);
-  const dataEl    = document.getElementById('rateio-data-'    + concurso);
+async function buscarRateioUnico(concurso, cfg, draw) {
+  const cardKey   = `${concurso}-${draw || 0}`;
+  const loadingEl = document.getElementById('rateio-loading-' + cardKey);
+  const dataEl    = document.getElementById('rateio-data-'    + cardKey);
   if (!loadingEl || !dataEl) return;
 
   const userSet      = new Set(window._comboAtual || []);
-  const dezenas      = (window._dezenasMap    || {})[concurso] || [];
-  const dataEntry    = (window._datasMap      || {})[concurso] || null;
-  const acertos      = (window._acertosMap    || {})[concurso] || 0;
+  const dezenas      = (window._dezenasMap    || {})[cardKey] || [];
+  const dataEntry    = (window._datasMap      || {})[cardKey] || null;
+  const acertos      = (window._acertosMap    || {})[cardKey] || 0;
+  // premiosJson é indexado por concurso (cobre ambos os sorteios da Dupla Sena)
   const premiosInMem = (window._premiosMemMap || {})[concurso];
   const dezenasHtml  = renderDezenasCard(dezenas, userSet, cfg);
 
   function mostrar(premiosJson) {
-    // Atualiza objeto premiado para recalcular total
-    const premiado = (window._premiadosAtual || []).find(p => p.concurso === concurso);
+    const premiado = (window._premiadosAtual || []).find(p =>
+      p.concurso === concurso && (p.draw || 0) === (draw || 0)
+    );
     if (premiado && premiosJson && Object.keys(premiosJson).length > 0) {
       premiado.premiosJson = premiosJson;
       renderTotalPremiado(window._premiadosAtual, true, cfg);
     }
     loadingEl.style.display = 'none';
-    const html = renderRateioDoJson(premiosJson, acertos, cfg, dezenasHtml, dataEntry);
-    // renderRateioDoJson retorna <div class="award-rateio"...>conteudo</div>
-    // Queremos só o conteúdo interno
+    const html = renderRateioDoJson(premiosJson, acertos, cfg, dezenasHtml, dataEntry, draw);
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     const inner = tmp.querySelector('.award-rateio');
@@ -2344,17 +2662,20 @@ async function buscarRateioUnico(concurso, cfg) {
     }
   } catch(_) { /* fallback Netlify */ }
 
-  // 3. Netlify Function (fallback para concursos antigos)
+  // 3. Netlify Function (fallback — não suporta milionaria)
   try {
-    const url = `/.netlify/functions/resultado?loteria=${netlifyLoteria(cfg.caixaSlug)}&concurso=${concurso}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (res.ok) {
-      const data   = await res.json();
-      const rateio = data.listaRateioPremio || data.premiacoes || [];
-      if (rateio.length > 0) {
-        const premios = construirPremiosJson(cfg.id, rateio);
-        mostrar(premios);
-        return;
+    const netlifySlug = netlifyLoteria(cfg.caixaSlug);
+    if (netlifySlug) {
+      const url = `/.netlify/functions/resultado?loteria=${netlifySlug}&concurso=${concurso}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (res.ok) {
+        const data   = await res.json();
+        const rateio = data.listaRateioPremio || data.premiacoes || [];
+        if (rateio.length > 0) {
+          const premios = construirPremiosJson(cfg.id, rateio);
+          mostrar(premios);
+          return;
+        }
       }
     }
   } catch(_) {}

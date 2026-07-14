@@ -1,8 +1,10 @@
 'use strict';
-// scripts/criar-historico-lotomania.js
-// Busca TODA a série histórica da Lotomania (concursos 1-N) da API oficial da Caixa.
-// Usa batches paralelos para ser rápido. Salva em lotomania-historico.json na raiz.
-// Uso: node scripts/criar-historico-lotomania.js
+// scripts/preencher-lacunas-lotomania.js
+// Lê o lotomania-historico.json já existente, identifica quais concursos estão
+// faltando dentro do intervalo [primeiro..ultimo], e busca SÓ esses — bem mais
+// devagar e sequencial — para não disparar o bloqueio 403 do WAF (Azion) que
+// aconteceu na corrida original com paralelismo alto.
+// Uso: node scripts/preencher-lacunas-lotomania.js
 
 const fs     = require('fs');
 const path   = require('path');
@@ -10,15 +12,11 @@ const https  = require('https');
 const crypto = require('crypto');
 const zlib   = require('zlib');
 
-const BASE_URL        = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotomania';
-const CONCURSO_INICIO = 1;
-const CONCURSO_FIM    = 2950; // atualizar se houver mais — próximo concurso real era 2946 em 04/07/2026
-const BATCH_SIZE  = 15;  // requisições paralelas por batch
-const DELAY_BATCH = 600; // ms entre batches
-const OUT_FILE    = path.join(process.cwd(), 'lotomania-historico.json');
-const DEBUG_FILE  = path.join(process.cwd(), 'debug-lotomania.log');
+const BASE_URL   = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotomania';
+const ARQUIVO    = path.join(process.cwd(), 'lotomania-historico.json');
+const DEBUG_FILE = path.join(process.cwd(), 'debug-lotomania-lacunas.log');
+const DELAY_MS   = 2000; // bem mais devagar que a corrida original (que usava batch 15 / 600ms)
 
-// Servidor da Caixa exige legacy renegotiation TLS em alguns ambientes Node 18+/OpenSSL 3
 const agent = new https.Agent({
   keepAlive: true,
   secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
@@ -45,10 +43,7 @@ function lerCorpo(res) {
 }
 
 function logDiag(tag, texto) {
-  const chave = '__diag_' + tag;
-  if (global[chave]) return;
-  global[chave] = true;
-  fs.appendFileSync(DEBUG_FILE, '=== ' + tag + ' (primeira ocorrencia) ===\n' + texto + '\n================================\n', 'utf8');
+  fs.appendFileSync(DEBUG_FILE, '=== ' + tag + ' (' + new Date().toISOString() + ') ===\n' + texto + '\n================================\n', 'utf8');
 }
 
 function fetchConcurso(num, tentativa = 0) {
@@ -77,9 +72,9 @@ function fetchConcurso(num, tentativa = 0) {
       if (res.statusCode !== 200) {
         let corpoErro = '';
         try { corpoErro = await lerCorpo(res); } catch (e) { corpoErro = '[erro ao descomprimir: ' + e.message + ']'; }
-        logDiag('HTTP_NAO_200', 'concurso: ' + num + '\nstatus: ' + res.statusCode + '\nheaders: ' + JSON.stringify(res.headers, null, 2) + '\ncorpo: ' + corpoErro.slice(0, 1500));
-        if (tentativa < 3) {
-          const espera = res.statusCode === 403 ? 5000 * (tentativa + 1) : 1500 * (tentativa + 1);
+        logDiag('HTTP_' + res.statusCode, 'concurso: ' + num + ' tentativa: ' + tentativa + '\ncorpo: ' + corpoErro.slice(0, 800));
+        if (tentativa < 5) {
+          const espera = res.statusCode === 403 ? 8000 * (tentativa + 1) : 2000 * (tentativa + 1);
           return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), espera);
         }
         return resolve({ _erro: res.statusCode, _num: num });
@@ -88,26 +83,20 @@ function fetchConcurso(num, tentativa = 0) {
       let body = '';
       try { body = await lerCorpo(res); }
       catch (e) {
-        logDiag('ERRO_DESCOMPRIMIR', 'concurso: ' + num + '\ncontent-encoding: ' + res.headers['content-encoding'] + '\nerro: ' + e.message);
-        if (tentativa < 3) {
-          return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
-        }
+        logDiag('ERRO_DESCOMPRIMIR', 'concurso: ' + num + '\nerro: ' + e.message);
         return resolve({ _erro: 'descompressao', _num: num });
       }
 
       try { resolve(JSON.parse(body)); }
       catch(e) {
-        logDiag('JSON_INVALIDO', 'concurso: ' + num + '\nstatus: ' + res.statusCode + '\nheaders: ' + JSON.stringify(res.headers, null, 2) + '\ncorpo bruto:\n' + body.slice(0, 2000));
-        if (tentativa < 3) {
-          return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
-        }
+        logDiag('JSON_INVALIDO', 'concurso: ' + num + '\ncorpo bruto:\n' + body.slice(0, 1000));
         resolve({ _erro: 'parse', _num: num });
       }
     });
     req.on('error', (err) => {
       logDiag('ERRO_DE_REDE', 'concurso: ' + num + '\ncode: ' + err.code + '\nmessage: ' + err.message);
-      if (tentativa < 3) {
-        return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 1500 * (tentativa + 1));
+      if (tentativa < 5) {
+        return setTimeout(() => fetchConcurso(num, tentativa + 1).then(resolve), 2000 * (tentativa + 1));
       }
       resolve({ _erro: 'network:' + (err.code || err.message), _num: num });
     });
@@ -121,7 +110,6 @@ function parseDezenas(raw) {
 
 function parsePremios(r) {
   const f = r.listaRateioPremio || [];
-  // Faixas: [0]=20ac [1]=19ac [2]=18ac [3]=17ac [4]=16ac [5]=0ac
   const mF = { 0:'20', 1:'19', 2:'18', 3:'17', 4:'16', 5:'0' };
   const mG = { 0:'g20',1:'g19',2:'g18',3:'g17',4:'g16',5:'g0' };
   const p = {};
@@ -141,7 +129,6 @@ function formatarData(d) {
 }
 
 function calcularStats(draws) {
-  // Lotomania: números 00-99 (0 a 99), 20 dezenas sorteadas
   const MAX = 99;
   const freqMap = {}, ultimoSorteio = {};
   for (let n = 0; n <= MAX; n++) freqMap[n] = 0;
@@ -184,84 +171,84 @@ function calcularStats(draws) {
 }
 
 async function main() {
-  console.log('=== Criar histórico Lotomania ===');
-  console.log('Concursos: ' + CONCURSO_INICIO + ' a ' + CONCURSO_FIM);
-  console.log('Batch size: ' + BATCH_SIZE + ' | Delay: ' + DELAY_BATCH + 'ms\n');
+  console.log('=== Preencher lacunas — Lotomania ===');
 
-  const draws = [];
-  const erros = [];
-  const total = CONCURSO_FIM - CONCURSO_INICIO + 1;
-  let processados = 0;
+  if (!fs.existsSync(ARQUIVO)) {
+    console.error('Arquivo não encontrado: ' + ARQUIVO);
+    process.exit(1);
+  }
 
-  for (let inicio = CONCURSO_INICIO; inicio <= CONCURSO_FIM; inicio += BATCH_SIZE) {
-    const fim = Math.min(inicio + BATCH_SIZE - 1, CONCURSO_FIM);
-    const nums = [];
-    for (let n = inicio; n <= fim; n++) nums.push(n);
+  const json = JSON.parse(fs.readFileSync(ARQUIVO, 'utf8'));
+  const existentes = new Set(json.draws.map(d => d[0]));
+  const primeiro = Math.min(...json.draws.map(d => d[0]));
+  const ultimo   = Math.max(...json.draws.map(d => d[0]));
 
-    const resultados = await Promise.all(nums.map(n => fetchConcurso(n)));
+  const faltando = [];
+  for (let n = primeiro; n <= ultimo; n++) {
+    if (!existentes.has(n)) faltando.push(n);
+  }
 
-    resultados.forEach((r, i) => {
-      const num = nums[i];
-      if (!r) { erros.push({ num, erro: 'not_found' }); return; }
-      if (r._erro) { erros.push({ num, erro: r._erro }); return; }
+  console.log('Intervalo no arquivo: ' + primeiro + ' a ' + ultimo);
+  console.log('Concursos existentes: ' + json.draws.length);
+  console.log('Concursos faltando:   ' + faltando.length);
 
+  if (faltando.length === 0) {
+    console.log('Nenhuma lacuna encontrada — nada a fazer.');
+    return;
+  }
+
+  console.log('Buscando sequencialmente (delay ' + DELAY_MS + 'ms, até 5 tentativas por concurso)...\n');
+
+  const novosRegistros = [];
+  const aindaFaltando = [];
+
+  for (let i = 0; i < faltando.length; i++) {
+    const num = faltando[i];
+    const r = await fetchConcurso(num);
+
+    if (!r || r._erro) {
+      aindaFaltando.push({ num, erro: r ? r._erro : 'not_found' });
+    } else {
       const dezenas = parseDezenas(r.listaDezenas);
-      if (dezenas.length !== 20) { erros.push({ num, erro: 'dezenas_invalidas_' + dezenas.length }); return; }
+      if (dezenas.length !== 20) {
+        aindaFaltando.push({ num, erro: 'dezenas_invalidas_' + dezenas.length });
+      } else {
+        const data = formatarData(r.dataApuracao);
+        const ganhadores = r.listaRateioPremio?.[0]?.numeroDeGanhadores ?? r.numeroDeGanhadores ?? r.ganhadores ?? 0;
+        novosRegistros.push([num, data, dezenas, parseInt(ganhadores, 10) || 0, parsePremios(r)]);
+      }
+    }
 
-      const data = formatarData(r.dataApuracao);
-      const ganhadores = r.listaRateioPremio?.[0]?.numeroDeGanhadores ?? r.numeroDeGanhadores ?? r.ganhadores ?? 0;
-      draws.push([num, data, dezenas, parseInt(ganhadores, 10) || 0, parsePremios(r)]);
-      processados++;
-    });
+    process.stdout.write('\r  [' + (i + 1) + '/' + faltando.length + '] concurso ' + num + ' | preenchidos: ' + novosRegistros.length + ' | ainda faltando: ' + aindaFaltando.length + '   ');
 
-    const pct = Math.round((fim / CONCURSO_FIM) * 100);
-    process.stdout.write('\r  [' + pct + '%] ' + fim + '/' + CONCURSO_FIM + ' | OK:' + processados + ' Erros:' + erros.length + '   ');
-
-    if (fim < CONCURSO_FIM) await sleep(DELAY_BATCH);
+    if (i < faltando.length - 1) await sleep(DELAY_MS);
   }
 
-  console.log('\n\nOrdenando...');
-  draws.sort((a, b) => a[0] - b[0]);
+  console.log('\n\nMesclando com o histórico existente...');
+  const todosDraws = json.draws.concat(novosRegistros);
+  todosDraws.sort((a, b) => a[0] - b[0]);
 
-  if (erros.length > 0) {
-    console.log('AVISOS — ' + erros.length + ' erros:');
-    erros.slice(0, 20).forEach(e => console.log('  Concurso ' + e.num + ': ' + e.erro));
-  }
+  console.log('Recalculando estatísticas...');
+  json.draws = todosDraws;
+  json.stats = calcularStats(todosDraws);
+  json.meta.totalConcursos = todosDraws.length;
+  json.meta.primeiroConcurso = todosDraws[0][0];
+  json.meta.ultimoConcurso = todosDraws[todosDraws.length - 1][0];
+  json.meta.primeiraData = todosDraws[0][1];
+  json.meta.ultimaData = todosDraws[todosDraws.length - 1][1];
+  json.meta.enriquecidoEm = new Date().toISOString().slice(0, 10);
 
-  console.log('Calculando estatísticas...');
-  const stats = calcularStats(draws);
-  const hoje  = new Date().toISOString().slice(0, 10);
+  fs.writeFileSync(ARQUIVO, JSON.stringify(json), 'utf8');
 
-  const json = {
-    meta: {
-      loteria: 'Lotomania',
-      fonte: 'Caixa Econômica Federal — série histórica oficial',
-      geradoEm: hoje,
-      totalConcursos: draws.length,
-      primeiroConcurso: draws[0][0],
-      ultimoConcurso: draws[draws.length - 1][0],
-      primeiraData: draws[0][1],
-      ultimaData: draws[draws.length - 1][1],
-      formato: '[numero, "YYYY-MM-DD", [dezenas_00_a_99], ganhadores_20ac, {premios}]',
-      regras: {
-        universo: '00-99 (100 números)',
-        dezenasSorteadas: 20,
-        dezenasAposta: 50,
-        faixas: ['20ac','19ac','18ac','17ac','16ac','0ac']
-      },
-      enriquecidoEm: hoje
-    },
-    stats,
-    draws
-  };
-
-  fs.writeFileSync(OUT_FILE, JSON.stringify(json), 'utf8');
   console.log('\n=== CONCLUÍDO ===');
-  console.log('Arquivo: ' + OUT_FILE);
-  console.log('Total concursos: ' + draws.length);
-  console.log('Primeiro: ' + draws[0][0] + ' (' + draws[0][1] + ')');
-  console.log('Último:   ' + draws[draws.length-1][0] + ' (' + draws[draws.length-1][1] + ')');
-  console.log('Tamanho: ' + (fs.statSync(OUT_FILE).size / 1024 / 1024).toFixed(2) + ' MB');
+  console.log('Arquivo atualizado: ' + ARQUIVO);
+  console.log('Total de concursos agora: ' + todosDraws.length);
+  console.log('Preenchidos nesta rodada: ' + novosRegistros.length);
+  if (aindaFaltando.length > 0) {
+    console.log('\nAinda faltando (' + aindaFaltando.length + ') — rode este script de novo mais tarde:');
+    aindaFaltando.slice(0, 20).forEach(e => console.log('  Concurso ' + e.num + ': ' + e.erro));
+  }
+  console.log('Tamanho: ' + (fs.statSync(ARQUIVO).size / 1024 / 1024).toFixed(2) + ' MB');
 }
 
 main().catch(e => { console.error('\nERRO FATAL:', e.message); process.exit(1); });
