@@ -287,7 +287,8 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
             <span id="edStatus"></span>
           </div>
           <div class="toolbar-actions">
-            <button class="btn" id="btnAnaliseAuto" onclick="dispararAnaliseAuto()" title="Coleta força, forma, mando, H2H e odds das APIs externas via GitHub Actions">⟳ Análise automática</button>
+            <button class="btn" id="btnAnaliseAuto" onclick="dispararAnaliseAuto(false)" title="Coleta força, forma, mando, H2H e odds das APIs externas via GitHub Actions">⟳ Análise automática</button>
+            <button class="btn btn-sm" onclick="dispararAnaliseAuto(true)" title="Reanalisa mesmo jogos já marcados como revisados (revisado_editor=true) — use se o concurso já passou por Salvar tudo/Publicar sem dados reais">↻ forçar</button>
             <button class="btn btn-amber" onclick="calcularTudoComPopup()">⚙ Calcular análise</button>
             <button class="btn" onclick="salvarTudo()">💾 Salvar tudo</button>
             <button class="btn btn-green" onclick="publicar('preliminar')">▶ Preliminar</button>
@@ -1036,10 +1037,13 @@ function pararProgressoAnalise(sucesso) {
   }
 }
 
-async function dispararAnaliseAuto() {
+async function dispararAnaliseAuto(forcar) {
   if (!concursoAtivo) { toast('Abra um concurso primeiro', 'err'); return; }
   const numero = concursoAtivo.numero;
-  if (!confirm(`Disparar análise automática do concurso ${numero}?\n\nO robô coleta força, forma, mando, H2H e odds das APIs externas (~2–4 min). Jogos marcados como revisados não são sobrescritos.`)) return;
+  const msgForcar = forcar
+    ? `\n\n⚠ MODO FORÇAR: reanalisa mesmo jogos já marcados como revisados (revisado_editor=true) — sobrescreve o que estiver salvo.`
+    : `\n\nJogos marcados como revisados não são sobrescritos (use "↻ forçar" se o concurso já passou por Salvar tudo/Publicar sem dados reais).`;
+  if (!confirm(`Disparar análise automática do concurso ${numero}?\n\nO robô coleta força, forma, mando, H2H e odds das APIs externas (~2–4 min).${msgForcar}`)) return;
 
   const btn = document.getElementById('btnAnaliseAuto');
   btn.disabled = true;
@@ -1051,7 +1055,7 @@ async function dispararAnaliseAuto() {
     const res = await fetch(base + '/.netlify/functions/analisar-loteca', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },
-      body: JSON.stringify({ numero }),
+      body: JSON.stringify({ numero, forcar: !!forcar }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);

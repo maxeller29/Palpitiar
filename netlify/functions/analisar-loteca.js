@@ -32,11 +32,12 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'GITHUB_TOKEN não configurado no Netlify' }) };
   }
 
-  let numero, skipOdds;
+  let numero, skipOdds, forcar;
   try {
     const body = JSON.parse(event.body || '{}');
     numero = parseInt(body.numero, 10);
     skipOdds = !!body.skip_odds;
+    forcar = !!body.forcar;
   } catch {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Body inválido' }) };
   }
@@ -59,7 +60,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         ref: 'main',
-        inputs: { numero: String(numero), skip_odds: skipOdds ? 'true' : 'false' },
+        inputs: { numero: String(numero), skip_odds: skipOdds ? 'true' : 'false', forcar: forcar ? 'true' : 'false' },
       }),
     });
 

@@ -13,6 +13,10 @@ on:
         description: 'Pular busca de odds de mercado'
         required: false
         default: 'false'
+      forcar:
+        description: 'Reanalisar mesmo jogos já marcados como revisados pelo editor'
+        required: false
+        default: 'false'
 
 jobs:
   analisar:
@@ -39,4 +43,5 @@ jobs:
         run: |
           FLAGS="--skip-sofascore"
           if [ "${{ github.event.inputs.skip_odds }}" = "true" ]; then FLAGS="$FLAGS --skip-odds"; fi
+          if [ "${{ github.event.inputs.forcar }}" = "true" ]; then FLAGS="$FLAGS --force"; fi
           node Loteca/loteca-analisar.js ${{ github.event.inputs.numero }} $FLAGS
