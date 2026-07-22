@@ -9,6 +9,9 @@ import { ReturnTimeReport } from './pages/reports/ReturnTimeReport'
 import { TreatmentsReport } from './pages/reports/TreatmentsReport'
 import { BirthdayReport } from './pages/reports/BirthdayReport'
 import { EvolutionReport } from './pages/reports/EvolutionReport'
+import { Ultrasound } from './pages/Ultrasound'
+import { UltrasoundPatient } from './pages/UltrasoundPatient'
+import { UltrasoundReport } from './pages/UltrasoundReport'
 
 export default function App() {
   return (
@@ -26,6 +29,9 @@ export default function App() {
           <Route path="/relatorios/tratamentos" element={<TreatmentsReport />} />
           <Route path="/relatorios/aniversariantes" element={<BirthdayReport />} />
           <Route path="/relatorios/evolucao" element={<EvolutionReport />} />
+          <Route path="/ultrassom" element={<Ultrasound />} />
+          <Route path="/ultrassom/relatorio" element={<UltrasoundReport />} />
+          <Route path="/ultrassom/:id" element={<UltrasoundPatient />} />
         </Routes>
       </div>
     </BrowserRouter>

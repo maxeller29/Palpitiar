@@ -1,5 +1,5 @@
 // Persistence layer using localStorage as fallback when Supabase is not configured
-import type { Patient, TreatmentSession, PatientPhoto, Appointment, Treatment } from '../types'
+import type { Patient, TreatmentSession, PatientPhoto, Appointment, Treatment, UltrasoundApplication, UltrasoundTip } from '../types'
 import { PREDEFINED_TREATMENTS } from '../types'
 
 const KEYS = {
@@ -8,6 +8,7 @@ const KEYS = {
   photos: 'clinic_photos',
   appointments: 'clinic_appointments',
   treatments: 'clinic_treatments_v2',
+  ultrasoundApplications: 'clinic_ultrasound_applications',
 }
 
 function getAll<T>(key: string): T[] {
@@ -167,4 +168,51 @@ export function saveAppointment(data: Omit<Appointment, 'id' | 'created_at' | 'p
 
 export function deleteAppointment(id: string): void {
   saveAll(KEYS.appointments, getAll<Appointment>(KEYS.appointments).filter(a => a.id !== id))
+}
+
+// ── Ultrassom Microfocado ─────────────────────────────────────────────────────
+
+function sortByCreatedAtDesc(apps: UltrasoundApplication[]): UltrasoundApplication[] {
+  return [...apps].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
+export function getUltrasoundApplications(): UltrasoundApplication[] {
+  const patients = getAll<Patient>(KEYS.patients)
+  return sortByCreatedAtDesc(getAll<UltrasoundApplication>(KEYS.ultrasoundApplications))
+    .map(a => ({ ...a, patient: patients.find(p => p.id === a.patient_id) }))
+}
+
+export function getUltrasoundApplicationsForPatient(patientId: string): UltrasoundApplication[] {
+  return getUltrasoundApplications().filter(a => a.patient_id === patientId)
+}
+
+// Last device counter reading recorded for a tip, across all patients (0 if never used)
+export function getLastUltrasoundCounter(tip: UltrasoundTip): number {
+  const all = sortByCreatedAtDesc(getAll<UltrasoundApplication>(KEYS.ultrasoundApplications))
+  return all.find(a => a.tip === tip)?.counter_reading ?? 0
+}
+
+export function addUltrasoundApplication(
+  patientId: string, tip: UltrasoundTip, counterReading: number, sessionDate: string
+): UltrasoundApplication {
+  const all = getAll<UltrasoundApplication>(KEYS.ultrasoundApplications)
+  const shots = Math.max(0, counterReading - getLastUltrasoundCounter(tip))
+  const application: UltrasoundApplication = {
+    id: uuid(), patient_id: patientId, tip, counter_reading: counterReading, shots,
+    session_date: sessionDate, created_at: new Date().toISOString(),
+  }
+  saveAll(KEYS.ultrasoundApplications, [...all, application])
+  return application
+}
+
+// Only the most recent application for a tip can be safely removed (it restores the counter baseline)
+export function isLatestUltrasoundApplicationForTip(id: string): boolean {
+  const all = sortByCreatedAtDesc(getAll<UltrasoundApplication>(KEYS.ultrasoundApplications))
+  const target = all.find(a => a.id === id)
+  if (!target) return false
+  return all.find(a => a.tip === target.tip)?.id === id
+}
+
+export function deleteUltrasoundApplication(id: string): void {
+  saveAll(KEYS.ultrasoundApplications, getAll<UltrasoundApplication>(KEYS.ultrasoundApplications).filter(a => a.id !== id))
 }

@@ -2,7 +2,7 @@
  * Abstraction layer: uses Supabase when env vars are set, localStorage otherwise.
  * This lets the app work locally without any config, and in production with full cloud sync.
  */
-import type { Patient, TreatmentSession, PatientPhoto, Appointment, Treatment } from '../types'
+import type { Patient, TreatmentSession, PatientPhoto, Appointment, Treatment, UltrasoundApplication, UltrasoundTip } from '../types'
 import * as local from './localStorage'
 
 const USE_SUPABASE = !!(
@@ -182,4 +182,77 @@ export async function deleteAppointment(id: string): Promise<void> {
   if (!USE_SUPABASE) { local.deleteAppointment(id); return }
   const client = await sb()
   await client.from('appointments').delete().eq('id', id)
+}
+
+// ── Ultrassom Microfocado ─────────────────────────────────────────────────────
+
+export async function getUltrasoundApplications(): Promise<UltrasoundApplication[]> {
+  if (!USE_SUPABASE) return local.getUltrasoundApplications()
+  const client = await sb()
+  const { data } = await client
+    .from('ultrasound_applications')
+    .select('*, patient:patients(id,name)')
+    .order('created_at', { ascending: false })
+  return (data || []) as unknown as UltrasoundApplication[]
+}
+
+export async function getUltrasoundApplicationsForPatient(patientId: string): Promise<UltrasoundApplication[]> {
+  if (!USE_SUPABASE) return local.getUltrasoundApplicationsForPatient(patientId)
+  const client = await sb()
+  const { data } = await client
+    .from('ultrasound_applications')
+    .select('*, patient:patients(id,name)')
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false })
+  return (data || []) as unknown as UltrasoundApplication[]
+}
+
+// Last device counter reading recorded for a tip, across all patients (0 if never used)
+export async function getLastUltrasoundCounter(tip: UltrasoundTip): Promise<number> {
+  if (!USE_SUPABASE) return local.getLastUltrasoundCounter(tip)
+  const client = await sb()
+  const { data } = await client
+    .from('ultrasound_applications')
+    .select('counter_reading')
+    .eq('tip', tip)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data?.counter_reading ?? 0
+}
+
+export async function addUltrasoundApplication(
+  patientId: string, tip: UltrasoundTip, counterReading: number, sessionDate: string
+): Promise<UltrasoundApplication> {
+  if (!USE_SUPABASE) return local.addUltrasoundApplication(patientId, tip, counterReading, sessionDate)
+  const client = await sb()
+  const shots = Math.max(0, counterReading - (await getLastUltrasoundCounter(tip)))
+  const { data: row } = await client
+    .from('ultrasound_applications')
+    .insert({ patient_id: patientId, tip, counter_reading: counterReading, shots, session_date: sessionDate })
+    .select()
+    .single()
+  return row as UltrasoundApplication
+}
+
+// Only the most recent application for a tip can be safely removed (it restores the counter baseline)
+export async function isLatestUltrasoundApplicationForTip(id: string): Promise<boolean> {
+  if (!USE_SUPABASE) return local.isLatestUltrasoundApplicationForTip(id)
+  const client = await sb()
+  const { data: target } = await client.from('ultrasound_applications').select('tip').eq('id', id).single()
+  if (!target) return false
+  const { data: latest } = await client
+    .from('ultrasound_applications')
+    .select('id')
+    .eq('tip', target.tip)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return latest?.id === id
+}
+
+export async function deleteUltrasoundApplication(id: string): Promise<void> {
+  if (!USE_SUPABASE) { local.deleteUltrasoundApplication(id); return }
+  const client = await sb()
+  await client.from('ultrasound_applications').delete().eq('id', id)
 }

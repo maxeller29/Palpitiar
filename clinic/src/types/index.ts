@@ -54,6 +54,27 @@ export interface Appointment {
   created_at: string
 }
 
+// ── Ultrassom Microfocado ────────────────────────────────────────────────────
+
+export const ULTRASOUND_TIPS = ['1.5', '3.0', '4.5', '8.0'] as const
+export type UltrasoundTip = typeof ULTRASOUND_TIPS[number]
+
+export const ULTRASOUND_PRICE_PER_SHOT = 0.25
+
+// The device has a single cumulative shot counter per tip (shared across all patients).
+// Each record stores the counter reading taken at the end of a tip's use on a patient;
+// `shots` is the delta from the previous reading ever taken for that same tip.
+export interface UltrasoundApplication {
+  id: string
+  patient_id: string
+  patient?: Patient
+  tip: UltrasoundTip
+  counter_reading: number
+  shots: number
+  session_date: string
+  created_at: string
+}
+
 export const PREDEFINED_TREATMENTS: Omit<Treatment, 'id'>[] = [
   { name: 'Toxina Botulínica', category: 'Facial', is_predefined: true },
   { name: 'Bioestimulador', category: 'Facial', is_predefined: true },

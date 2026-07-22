@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Users, Calendar, Stethoscope, BarChart2 } from 'lucide-react'
+import { Users, Calendar, Stethoscope, BarChart2, Waves } from 'lucide-react'
 
 export function Home() {
   const navigate = useNavigate()
@@ -37,12 +37,22 @@ export function Home() {
 
         <button
           onClick={() => navigate('/relatorios')}
-          className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#b8e4d0] active:bg-[#9ed4bc] transition-colors"
+          className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#b8e4d0] active:bg-[#9ed4bc] transition-colors border-b-2 border-[#9ed4bc]"
         >
           <div className="w-16 h-16 rounded-full bg-[#1a6b45] flex items-center justify-center shadow-lg">
             <BarChart2 size={30} color="white" />
           </div>
           <span className="text-2xl font-extrabold text-[#1a6b45] tracking-wide">RELATÓRIOS</span>
+        </button>
+
+        <button
+          onClick={() => navigate('/ultrassom')}
+          className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#dccbf0] active:bg-[#c8adea] transition-colors"
+        >
+          <div className="w-16 h-16 rounded-full bg-[#5b21b6] flex items-center justify-center shadow-lg">
+            <Waves size={30} color="white" />
+          </div>
+          <span className="text-xl font-extrabold text-[#5b21b6] tracking-wide text-center px-4">ULTRASSOM MICROFOCADO</span>
         </button>
       </div>
     </div>
