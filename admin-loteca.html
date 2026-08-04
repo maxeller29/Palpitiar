@@ -319,7 +319,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
 <div class="popup-ov" id="popupNovoConcurso">
   <div class="popup-box wide" style="background:#0f2419;border:1px solid var(--amber-border);border-radius:6px;padding:28px 32px;max-height:90vh;overflow-y:auto;">
     <div class="ncp-popup-h">📷 Novo Concurso via Print</div>
-    <div class="ncp-popup-sub">Duas formas de preencher a grade: (1) recomendado — salve a página da Caixa com a grade aberta (Ctrl+S → "Página da Web, completa") e envie o .html aqui; (2) suba um print e o OCR tenta ler os confrontos. Revise sempre antes de criar.</div>
+    <div class="ncp-popup-sub">Três formas de preencher a grade: (1) recomendado — busca automática direto da API oficial da Caixa; (2) envie o .html salvo da página da Caixa (Ctrl+S → "Página da Web, completa"); (3) suba um print e o OCR tenta ler os confrontos. Revise sempre antes de criar.</div>
 
     <div id="ncpFormBody">
     <div class="ncp-grid">
@@ -333,17 +333,23 @@ html,body{background:var(--bg);color:var(--ink);font-family:var(--display);line-
       </div>
       <div class="ncp-field" style="grid-column:1 / -1">
         <label class="ncp-label">Competição (aplicada aos 14 jogos)</label>
-        <input class="ncp-input" type="text" id="ncpCompeticao" value="Copa do Mundo FIFA 2026">
+        <input class="ncp-input" type="text" id="ncpCompeticao" value="Loteca">
       </div>
     </div>
 
+    <div class="ncp-drop" id="ncpDropAuto" onclick="buscarConcursoVigenteAutomatico()" style="border-color:var(--emerald);border-style:solid">
+      <div id="ncpDropAutoInner">
+        <div class="ncp-drop-msg">⚡ <span class="em" style="color:var(--emerald)">Recomendado</span> — clique para buscar o concurso vigente automaticamente na API oficial da Caixa</div>
+      </div>
+    </div>
+    <div class="ncp-hint" style="margin:-6px 0 10px">— ou, se preferir preencher manualmente —</div>
     <div class="ncp-drop" id="ncpDropHtml" onclick="document.getElementById('ncpFileHtml').click()" style="border-color:#4caf7d">
       <div id="ncpDropHtmlInner">
-        <div class="ncp-drop-msg">✓ <span class="em">Recomendado</span> — clique para enviar o .html salvo da página da Caixa (Ctrl+S → Página da Web, completa)</div>
+        <div class="ncp-drop-msg">✓ envie o .html salvo da página da Caixa (Ctrl+S → Página da Web, completa)</div>
       </div>
       <input type="file" id="ncpFileHtml" accept=".html,.htm,text/html" style="display:none" onchange="onSelecionarHtmlConcurso(event)">
     </div>
-    <div class="ncp-hint" style="margin:-6px 0 10px">— ou, se não tiver o .html salvo —</div>
+    <div class="ncp-hint" style="margin:-6px 0 10px">— ou, se não tiver nenhum dos dois —</div>
     <div class="ncp-drop" id="ncpDrop" onclick="document.getElementById('ncpFile').click()">
       <div id="ncpDropInner">
         <div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>
@@ -1278,6 +1284,8 @@ function abrirPopupNovoConcurso() {
     '<div class="ncp-drop-msg"><span class="em">Clique</span> para escolher o print da grade (ou arraste a imagem aqui)</div>';
   document.getElementById('ncpDrop').classList.remove('has-img');
   document.getElementById('ncpOcrStatus').classList.remove('show');
+  document.getElementById('ncpDropAutoInner').innerHTML =
+    '<div class="ncp-drop-msg">⚡ <span class="em" style="color:var(--emerald)">Recomendado</span> — clique para buscar o concurso vigente automaticamente na API oficial da Caixa</div>';
   atualizarContagemNCP();
   document.getElementById('popupNovoConcurso').classList.add('show');
 }
@@ -1337,6 +1345,55 @@ function upscaleImagem(dataUrl, escala) {
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
   });
+}
+
+// ─── BUSCA AUTOMÁTICA DIRETO DA API OFICIAL DA CAIXA ───────────────────────
+// A própria página loterias.caixa.gov.br/Paginas/Programacao-Loteca.aspx
+// consome este endpoint (CORS aberto: Access-Control-Allow-Origin: *) para
+// exibir a grade do concurso vigente antes do fechamento das apostas.
+// Elimina a necessidade de HTML salvo manualmente ou print/OCR no caso comum.
+const LOTECA_PROGRAMACAO_URL = 'https://servicebus3.caixa.gov.br/portaldeloterias/api/loteca/programacao';
+
+async function buscarConcursoVigenteAutomatico() {
+  const drop = document.getElementById('ncpDropAuto');
+  const inner = document.getElementById('ncpDropAutoInner');
+  const original = inner.innerHTML;
+  inner.innerHTML = '<div class="ncp-drop-msg">⏳ Buscando concurso vigente na Caixa…</div>';
+
+  try {
+    const res = await fetch(LOTECA_PROGRAMACAO_URL, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const prog = Array.isArray(data) ? data[0] : data;
+    if (!prog || !Array.isArray(prog.listaJogos) || prog.listaJogos.length === 0) {
+      throw new Error('API não retornou jogos — tente o upload manual');
+    }
+
+    // Número e data (dataProximoConcurso vem como DD/MM/AAAA)
+    if (prog.nuConcurso) document.getElementById('ncpNumero').value = prog.nuConcurso;
+    const mData = String(prog.dataProximoConcurso || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (mData) document.getElementById('ncpData').value = `${mData[3]}-${mData[2]}-${mData[1]}`;
+
+    // Monta as linhas "TIME/UF x TIME/UF" — mantém o mesmo formato que o
+    // parser de HTML já produz, preservando compatibilidade com
+    // upsertTimeAdmin (infere estado/país do sufixo /UF).
+    const linhas = [...prog.listaJogos]
+      .sort((a, b) => (a.nuSequencial || 0) - (b.nuSequencial || 0))
+      .map(j => {
+        const casa  = j.nomeEquipeUm  + (j.siglaUFUm  ? '/' + j.siglaUFUm  : '');
+        const visit = j.nomeEquipeDois + (j.siglaUFDois ? '/' + j.siglaUFDois : '');
+        return `${casa} x ${visit}`;
+      });
+    document.getElementById('ncpTextarea').value = linhas.join('\n');
+    atualizarContagemNCP();
+
+    inner.innerHTML = `<div class="ncp-drop-msg">✓ Concurso ${prog.nuConcurso} — ${linhas.length} jogo(s) carregado(s) automaticamente. Revise abaixo antes de criar.</div>`;
+    drop.style.borderStyle = 'solid';
+    toast(`Concurso ${prog.nuConcurso} carregado da API da Caixa`, 'ok');
+  } catch (err) {
+    inner.innerHTML = original;
+    toast('Busca automática falhou: ' + err.message + ' — use o HTML ou print manual', 'err');
+  }
 }
 
 function onSelecionarHtmlConcurso(evt) {
