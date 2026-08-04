@@ -543,17 +543,26 @@ async function apiFutebolTabela(campId) {
   return apiFutTabelaCache[campId];
 }
 
-async function apiFutebolClube(apiFutebolId) {
-  if (!API_FUTEBOL_TOKEN || !apiFutebolId) return null;
+// apiFutebolId: usado quando já mapeado (rápido, exato). nomeBusca: fallback
+// por nome normalizado quando o time ainda não tem id salvo em
+// times_mapeamento — comum para times que nunca apareceram num concurso
+// antes. Sem esse fallback, todo time novo perdia a força "posição na
+// tabela" e caía direto na estimativa (menos precisa) via forma.
+async function apiFutebolClube(apiFutebolId, nomeBusca) {
+  if (!API_FUTEBOL_TOKEN) return null;
   // Escala de força alinhada à referência do admin (Série A 1º ≈ 88; Série B 1º ≈ 62)
   const series = [
     { camp: 10, letra: 'A', base: 88, passo: 1.8 },
     { camp: 14, letra: 'B', base: 62, passo: 1.5 },
   ];
+  const alvo = nomeBusca ? normalizarNome(nomeBusca) : null;
   for (const s of series) {
     const tabela = await apiFutebolTabela(s.camp);
     if (!tabela) continue;
-    const linha = tabela.find(t => t.time && t.time.time_id === apiFutebolId);
+    let linha = apiFutebolId ? tabela.find(t => t.time && t.time.time_id === apiFutebolId) : null;
+    if (!linha && alvo) {
+      linha = tabela.find(t => t.time && normalizarNome(t.time.nome_popular || t.time.nome || '') === alvo);
+    }
     if (!linha) continue;
     let forma = null, sequencia = null;
     if (Array.isArray(linha.ultimos_jogos) && linha.ultimos_jogos.length > 0) {
@@ -563,7 +572,10 @@ async function apiFutebolClube(apiFutebolId) {
       sequencia = linha.ultimos_jogos.join('').toUpperCase();
     }
     const forca = Math.round(Math.max(20, s.base - ((linha.posicao || 10) - 1) * s.passo));
-    return { forca, forma, sequencia, posicao: linha.posicao, serie: s.letra };
+    return {
+      forca, forma, sequencia, posicao: linha.posicao, serie: s.letra,
+      timeIdEncontrado: linha.time && linha.time.time_id,
+    };
   }
   return null;
 }
@@ -662,14 +674,20 @@ async function analisarTime(time) {
   if (resultado.tipo === 'selecao') {
     resultado.forca = forcaFifa(nomeCaixa);
     resultado.fontes.push('fifa');
-  } else if (resultado.tipo === 'clube_br' && time.api_futebol_id && API_FUTEBOL_TOKEN) {
+  } else if (resultado.tipo === 'clube_br' && API_FUTEBOL_TOKEN) {
     try {
-      const af = await apiFutebolClube(time.api_futebol_id);
+      const af = await apiFutebolClube(time.api_futebol_id, nomeBusca);
       if (af) {
         resultado.forca = af.forca;
         if (af.forma !== null) { resultado.forma = af.forma; resultado.formaSeq = af.sequencia; }
         resultado.fontes.push(`api-futebol:${af.posicao}º-serie-${af.serie}`);
         console.log(`      [api-futebol] ${resultado.nome}: ${af.posicao}º Série ${af.serie} — força ${af.forca}`);
+        // Time resolvido só pelo nome (sem id salvo): grava o id para
+        // acelerar e tornar exatas as próximas execuções.
+        if (!time.api_futebol_id && af.timeIdEncontrado) {
+          try { await supabase('PATCH', 'times_mapeamento', { api_futebol_id: af.timeIdEncontrado }, { id: `eq.${time.id}` }); }
+          catch (e) { console.log(`      [api-futebol] falha ao salvar id: ${e.message}`); }
+        }
       }
       await sleep(700);
     } catch (e) { console.log(`      [api-futebol] ${resultado.nome}: ${e.message}`); }
