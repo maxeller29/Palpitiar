@@ -988,10 +988,12 @@ function atualizarCobResumo() {
 // Dispara o workflow loteca-analisar.yml, que coleta força/forma/mando/H2H/odds
 // e grava no Supabase. Depois é só recarregar o concurso e revisar.
 
-// Duração de referência para a barra de progresso (o workflow real leva
-// ~2–4 min); a barra trava em 95% além disso, já que o fim real é detectado
-// pelo polling em monitorarAnaliseAuto, não pelo tempo decorrido.
-const ANALISE_ESTIMATIVA_MS = 3 * 60 * 1000;
+// Duração de referência para a barra de progresso. Com a validação de time
+// no api-football (2 checagens extras por time) e o rate limit do plano
+// grátis, o workflow real pode levar 10–15 min; a barra trava em 95% além
+// disso, já que o fim real é detectado pelo polling em monitorarAnaliseAuto,
+// não pelo tempo decorrido.
+const ANALISE_ESTIMATIVA_MS = 12 * 60 * 1000;
 let analiseProgressInterval = null;
 
 function fmtRestante(ms) {
@@ -1082,7 +1084,7 @@ async function dispararAnaliseAuto(forcar) {
 // Desiste após 6 min (workflow do GitHub Actions pode falhar ou atrasar).
 async function monitorarAnaliseAuto(concursoId, numero, btn) {
   const inicio = Date.now();
-  const LIMITE_MS = 6 * 60 * 1000;
+  const LIMITE_MS = 20 * 60 * 1000;
   const INTERVALO_MS = 15000;
 
   const tick = async () => {
