@@ -788,13 +788,19 @@ async function analisarTime(time) {
     if (coletas.length > 0) {
       const merge = mesclarUltimos(coletas);
       resultado.ultimos5 = merge;
-      // Também alimenta o fator Mando (mandoDeUltimos lê ultimosRaw filtrando
-      // por casa/fora) — sem isso, "Mando de campo" ficava sempre vazio para
-      // times sem chave de api-football configurada.
-      if (resultado.ultimosRaw.length === 0) resultado.ultimosRaw = merge;
+      // Mando só é sinal independente da forma quando a amostra é grande o
+      // bastante pra ter jogos em casa E fora pra separar. Com 1-3 jogos
+      // (comum no fallback TheSportsDB/SofaScore), "mando" e "forma" viravam
+      // literalmente o mesmo dado — fingindo ser um fator novo sem ser.
+      // Abaixo do mínimo, deixa ultimosRaw vazio: mandoDeUltimos volta null
+      // e o peso é redistribuído honestamente entre os fatores disponíveis.
+      const MIN_JOGOS_PARA_MANDO = 4;
+      if (resultado.ultimosRaw.length === 0 && merge.length >= MIN_JOGOS_PARA_MANDO) {
+        resultado.ultimosRaw = merge;
+      }
       resultado.forma = formaComGols(merge);
       resultado.formaSeq = merge.map(u => u.r).join('');
-      console.log(`      [forma] ${resultado.nome}: ${merge.length} jogo(s) — ${resultado.formaSeq} — forma ${resultado.forma}`);
+      console.log(`      [forma] ${resultado.nome}: ${merge.length} jogo(s) — ${resultado.formaSeq} — forma ${resultado.forma}${merge.length < MIN_JOGOS_PARA_MANDO ? ' (amostra pequena demais p/ mando)' : ''}`);
     }
   }
 
