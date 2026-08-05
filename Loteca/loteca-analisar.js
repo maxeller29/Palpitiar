@@ -214,14 +214,9 @@ async function af2Get(pathUrl) {
   }
 }
 
-// Resolve ID do time buscando por nome (cache local).
+// Busca candidatos por nome (até 2), correspondência exata primeiro.
 // ehSelecao: prioriza type=national; ehClubeBr: filtra country=Brazil.
-async function af2ResolverTimeId(nomeEn, ehSelecao, ehClubeBr) {
-  const chave = (ehSelecao ? 'n:' : ehClubeBr ? 'br:' : 'c:') + normalizarNome(nomeEn);
-  if (af2Cache[chave]) return af2Cache[chave];
-  // compat: cache antigo de seleções sem prefixo
-  if (ehSelecao && af2Cache[normalizarNome(nomeEn)]) return af2Cache[normalizarNome(nomeEn)];
-
+async function af2ResolverTimeCandidatos(nomeEn, ehSelecao, ehClubeBr) {
   const q = encodeURIComponent(nomeEn);
   const tentativas = ehSelecao
     ? [`/teams?name=${q}&type=national`, `/teams?search=${q}`]
@@ -235,15 +230,47 @@ async function af2ResolverTimeId(nomeEn, ehSelecao, ehClubeBr) {
     let times = (data.response || []);
     if (!ehSelecao) times = times.filter(t => !t.team.national);
     if (times.length === 0) continue;
-    // preferir correspondência exata de nome normalizado
     const alvo = normalizarNome(nomeEn);
-    const exato = times.find(t => normalizarNome(t.team.name) === alvo);
-    const id = (exato || times[0]).team.id;
-    af2Cache[chave] = id;
-    salvarAf2Cache();
-    return id;
+    times.sort((a, b) => (normalizarNome(a.team.name) === alvo ? 0 : 1) - (normalizarNome(b.team.name) === alvo ? 0 : 1));
+    return times.slice(0, 2).map(t => t.team.id);
   }
-  return null;
+  return [];
+}
+
+// Checagem leve (last=5, sem fallback de temporada) — só para VALIDAR se um
+// id candidato tem jogos de verdade, não para buscá-los de fato.
+async function af2TemJogosRecentes(teamId) {
+  try {
+    const data = await af2Get(`/fixtures?team=${teamId}&last=5`);
+    await sleep(AF2_DELAY);
+    return (data.response || []).some(m => m.fixture.status && ['FT','AET','PEN'].includes(m.fixture.status.short));
+  } catch { return false; }
+}
+
+// Resolve ID do time buscando por nome, validando que o candidato tem jogos
+// de verdade antes de aceitar (cache local). Nomes como "Botafogo" ou "São
+// Paulo" são ambíguos — a API pode retornar um clube homônimo menor/inativo
+// em vez do time nacional conhecido; sem validação isso falha calado (o time
+// "existe" mas nunca tem jogos, então forma/mando/H2H/odds ficam sempre vazios).
+async function af2ResolverTimeId(nomeEn, ehSelecao, ehClubeBr) {
+  const chave = (ehSelecao ? 'n:' : ehClubeBr ? 'br:' : 'c:') + normalizarNome(nomeEn);
+  if (af2Cache[chave]) return af2Cache[chave];
+  // compat: cache antigo de seleções sem prefixo
+  if (ehSelecao && af2Cache[normalizarNome(nomeEn)]) return af2Cache[normalizarNome(nomeEn)];
+
+  const candidatos = await af2ResolverTimeCandidatos(nomeEn, ehSelecao, ehClubeBr);
+  if (candidatos.length === 0) return null;
+
+  for (const id of candidatos) {
+    if (await af2TemJogosRecentes(id)) {
+      af2Cache[chave] = id;
+      salvarAf2Cache();
+      return id;
+    }
+  }
+  // Nenhum candidato validado — usa o primeiro mesmo assim (não piora o que já
+  // tínhamos), mas não cacheia, para tentar de novo numa próxima execução.
+  return candidatos[0];
 }
 
 // Ultimos 10 jogos finalizados do time (5 para forma; todos para mando casa/fora)
